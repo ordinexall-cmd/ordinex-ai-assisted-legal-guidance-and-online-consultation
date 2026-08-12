@@ -44,18 +44,15 @@ export const AiCaseAnalysis: React.FC = () => {
   const [history, setHistory] = useState<ConsultationResult[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyLoadError, setHistoryLoadError] = useState('');
-  const [followUpQ, setFollowUpQ] = useState('');
-  const [followUpLoading, setFollowUpLoading] = useState(false);
-  const [chatHistory, setChatHistory] = useState<{ role: string; content: string }[]>([]);
   const [lastOutcomeType, setLastOutcomeType] = useState<ConsultationOutcomeType | null>(null);
   const [lastMeta, setLastMeta] = useState<ConsultationAnalysisMeta | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const analyzeInFlight = useRef(false);
 
   const descLen = description.trim().length;
   const showPipeline = analyzing || pipelineFinishing;
-  const showResults = Boolean(result) && !showPipeline;
+  const isNeedsDetail = Boolean(result) && (lastOutcomeType === 'needs_detail' || result?.trialsCharged === false || (result?.aiResult?.possibleLegalCases?.length ?? 0) === 0);
+  const showResults = Boolean(result) && !showPipeline && !isNeedsDetail;
   const showCompose = !showResults;
 
   const refreshHistory = () => {
@@ -87,7 +84,6 @@ export const AiCaseAnalysis: React.FC = () => {
       consultationApi.getById(id)
         .then(({ consultation }) => {
           setResult(consultation);
-          setChatHistory(consultation.followUpHistory || []);
           if (consultation.description) setDescription(consultation.description);
           if (consultation.category) setCategory(consultation.category);
         })
@@ -97,10 +93,6 @@ export const AiCaseAnalysis: React.FC = () => {
         });
     }
   }, []);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
 
   const handleAnalyze = async () => {
     if (descLen < MIN_DESCRIPTION_CHARS) {
@@ -127,7 +119,6 @@ export const AiCaseAnalysis: React.FC = () => {
       setResult(response.consultation);
       setLastOutcomeType(response.meta?.outcomeType ?? 'full');
       setLastMeta(response.consultation.analysisMeta ?? response.meta ?? null);
-      setChatHistory([]);
       await refreshUser();
       setHistory((prev) => [response.consultation, ...prev].slice(0, 10));
     } catch (err) {
@@ -143,34 +134,8 @@ export const AiCaseAnalysis: React.FC = () => {
     }
   };
 
-  const handleFollowUp = async () => {
-    if (!result || !followUpQ.trim()) return;
-    if (followUpQ.trim().length < 5) {
-      setError('Please ask a longer question (at least 5 characters).');
-      return;
-    }
-
-    setFollowUpLoading(true);
-    const askedQuestion = followUpQ;
-
-    try {
-      const response = await consultationApi.followUp(result.id, askedQuestion);
-      setChatHistory((prev) => [
-        ...prev,
-        { role: 'user', content: askedQuestion },
-        { role: 'assistant', content: response.answer },
-      ]);
-      setFollowUpQ('');
-    } catch (err) {
-      setError(getErrorMessage(err, 'Follow-up failed. Please try again.'));
-    } finally {
-      setFollowUpLoading(false);
-    }
-  };
-
   const loadConsultation = (c: ConsultationResult) => {
     setResult(c);
-    setChatHistory(c.followUpHistory || []);
     if (c.description) setDescription(c.description);
     if (c.category) setCategory(c.category);
     const charged = c.trialsCharged !== false;
@@ -184,8 +149,6 @@ export const AiCaseAnalysis: React.FC = () => {
     setResult(null);
     setDescription('');
     setFile(null);
-    setChatHistory([]);
-    setFollowUpCount(0);
     setLastOutcomeType(null);
     setLastMeta(null);
     setError('');
@@ -219,6 +182,35 @@ export const AiCaseAnalysis: React.FC = () => {
               <h2>Describe your situation</h2>
               <p>A few clear facts help us match the right legal guidance.</p>
             </div>
+
+            {isNeedsDetail && (
+              <div
+                className="callout-info"
+                style={{
+                  marginBottom: 16,
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: 10,
+                  padding: '14px 18px',
+                  display: 'flex',
+                  gap: 12,
+                  alignItems: 'flex-start',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#1d4ed8', marginTop: 2 }}>
+                  info
+                </span>
+                <div style={{ flex: 1 }}>
+                  <strong style={{ color: '#1e40af', fontSize: '0.95rem', display: 'block', marginBottom: 2 }}>
+                    More detail needed for case matches
+                  </strong>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e3a8a', lineHeight: 1.4 }}>
+                    {ar?.courtWinOutlook?.summary ||
+                      'Please expand your description with specific facts (what happened, when, who was involved, and what outcome you want), then click Analyze again.'}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="analysis-describe__compose">
               <textarea
@@ -257,6 +249,15 @@ export const AiCaseAnalysis: React.FC = () => {
                   category={category}
                   mode="starters"
                   onSelect={(text) => setDescription(text)}
+                />
+              )}
+
+              {!showPipeline && isNeedsDetail && missingFacts && missingFacts.length > 0 && (
+                <AnalysisSuggestedQuestions
+                  category={category}
+                  extraFacts={missingFacts}
+                  className="analysis-suggested--inline"
+                  onSelect={(text) => appendSuggestion(text)}
                 />
               )}
 
@@ -469,61 +470,12 @@ export const AiCaseAnalysis: React.FC = () => {
               consultationId={result.id}
             />
 
-            {missingFacts && missingFacts.length > 0 && (
-              <AnalysisSuggestedQuestions
-                category={category}
-                extraFacts={missingFacts}
-                className="analysis-suggested--inline"
-                onSelect={(text) => {
-                  setFollowUpQ(text);
-                  appendSuggestion(text);
-                }}
-              />
-            )}
-
             {error && (
               <div className="callout-error" role="alert" style={{ marginBottom: 12 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--color-ox-error)' }}>error</span>
                 <span className="callout-error__text">{error}</span>
               </div>
             )}
-
-            <div className="followup-block">
-              <div className="followup-head">
-                <h3 className="followup-head__title">
-                  Follow-up questions
-                </h3>
-              </div>
-              {chatHistory.length > 0 && (
-                <div className="followup-scroll">
-                  {chatHistory.map((msg, i) => (
-                    <div key={i} className={msg.role === 'user' ? 'chat-bubble chat-bubble--user' : 'chat-bubble chat-bubble--ai'}>
-                      <p className="chat-bubble__role">{msg.role === 'user' ? 'You' : 'Advisor'}</p>
-                      <p className="chat-bubble__content">{msg.content}</p>
-                    </div>
-                  ))}
-                  <div ref={chatEndRef} />
-                </div>
-              )}
-              <div className="followup-input-row">
-                <input
-                  type="text"
-                  className="ox-input"
-                  placeholder="Ask a follow-up question…"
-                  value={followUpQ}
-                  onChange={(e) => setFollowUpQ(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleFollowUp()}
-                />
-                <button
-                  type="button"
-                  className="ox-btn ox-btn-primary"
-                  onClick={handleFollowUp}
-                  disabled={followUpLoading || !followUpQ.trim()}
-                >
-                  {followUpLoading ? '…' : 'Ask'}
-                </button>
-              </div>
-            </div>
           </>
         )}
       </div>
