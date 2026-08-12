@@ -15,6 +15,8 @@ import {
   verifyPaymongoSignature,
 } from '../services/paymongo.js';
 
+import { isDemoEmail } from '../../prisma/demoAccounts.js';
+
 const router = Router();
 
 function commissionPctLabel() {
@@ -172,12 +174,15 @@ router.get('/checkout-context', requireAuth, async (req, res, next) => {
       const total = quotedFee;
       const pct = commissionPctLabel();
 
+      const isDemoUser = req.user.email === 'citizen@test.com' || isDemoEmail(req.user.email);
+      const paymentsMode = isDemoUser ? 'simulated' : (isPaymongoMode() ? 'paymongo' : 'simulated');
+
       return res.json({
         merchant: env.PLATFORM_MERCHANT_NAME,
         type: 'booking',
         bookingId: booking.id,
         lawyerName: booking.lawyer.name,
-        paymentsMode: isPaymongoMode() ? 'paymongo' : 'simulated',
+        paymentsMode,
         commissionRate: env.PLATFORM_COMMISSION_RATE,
         preferredMethod: 'GCASH',
         holdNotice:
