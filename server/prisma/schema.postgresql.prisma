@@ -148,7 +148,10 @@ model Consultation {
   followUpCount   Int      @default(0)
   isFree          Boolean  @default(true)
   trialsCharged   Boolean  @default(true)
+  deletedAt       DateTime?
   createdAt       DateTime @default(now())
+
+  @@index([userId, deletedAt])
 }
 
 model LawReference {
