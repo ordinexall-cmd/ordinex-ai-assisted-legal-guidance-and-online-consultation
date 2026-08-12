@@ -69,41 +69,7 @@ export async function syncDemoAccounts(prisma, opts = {}) {
     },
   });
   await prisma.subscription.deleteMany({ where: { userId: citizen.id } });
-  log('citizen@test.com (FREE)');
-
-  const premiumEnd = new Date(Date.now() + THIRTY_DAYS_MS);
-  const premiumCitizen = await prisma.user.upsert({
-    where: { email: 'premium@test.com' },
-    update: { isPremium: true, trialsUsed: 0, role: 'CITIZEN' },
-    create: {
-      email: 'premium@test.com',
-      phone: '09181234567',
-      passwordHash,
-      role: 'CITIZEN',
-      name: 'Maria Santos',
-      isPremium: true,
-      trialsUsed: 0,
-      isFirstLogin: false,
-    },
-  });
-  await prisma.subscription.upsert({
-    where: { userId: premiumCitizen.id },
-    update: {
-      status: 'ACTIVE',
-      price: 299,
-      startDate: new Date(),
-      endDate: premiumEnd,
-    },
-    create: {
-      userId: premiumCitizen.id,
-      price: 299,
-      status: 'ACTIVE',
-      reference: 'TEST-REF-001',
-      startDate: new Date(),
-      endDate: premiumEnd,
-    },
-  });
-  log('premium@test.com (PREMIUM)');
+  log('citizen@test.com (Free Citizen)');
 
   const privateCreds = JSON.stringify(sampleCredential('Bar Certificate'));
   const demoRoll = '99001';
@@ -220,7 +186,7 @@ export async function syncDemoAccounts(prisma, opts = {}) {
     log('passwords reset to password123');
   }
 
-  return { citizen, premiumCitizen, lawyer, publicLawyer, version: DEMO_SEED_VERSION };
+  return { citizen, lawyer, publicLawyer, version: DEMO_SEED_VERSION };
 }
 
 export async function getStoredDemoVersion(prisma) {

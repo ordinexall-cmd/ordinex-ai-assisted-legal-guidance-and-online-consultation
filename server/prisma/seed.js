@@ -101,10 +101,8 @@ async function main() {
   console.log('🎉 Database seeded successfully!');
   console.log('═══════════════════════════════════════');
   console.log('\nTest accounts (all use password: password123):');
-  console.log('  Citizen (Free):    citizen@test.com');
-  console.log('  Citizen (Premium): premium@test.com');
-  console.log('  Lawyer (Private):  lawyer@test.com');
-  console.log('  Lawyer (Public):   publiclawyer@test.com');
+  console.log('  Citizen (Free Account): citizen@test.com');
+  console.log('  Lawyer (Verified):      lawyer@test.com');
 }
 
 main()
