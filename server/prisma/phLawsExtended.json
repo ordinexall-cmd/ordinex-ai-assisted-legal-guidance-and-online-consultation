@@ -1,0 +1,1332 @@
+[
+  {
+    "category": "Cybercrime",
+    "name": "Cybercrime — Online Romance Scam (Estafa via Electronic Means)",
+    "citation": "RA 10175 §6 in relation to RPC Art. 315",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Romance and investment scams conducted on social media or dating apps are prosecuted as estafa committed through information and communications technology, with the penalty one degree higher than ordinary estafa under RA 10175 §6. Victims should preserve chat logs, transaction receipts, wallet addresses, and bank/GCash records. PNP-Anti-Cybercrime Group (ACG) and NBI-CCD accept walk-in complaints and online reports via cybercrime.gov.ph.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
+    "keywords": "romance scam, investment scam, online dating fraud, swindling, estafa, Facebook, Telegram, GCash"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Cybercrime — Online Sextortion and Sexual Exploitation",
+    "citation": "RA 11930 (OSAEC) + RA 9995",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Threatening to publish nude or sexual images of a person unless they pay or perform sexual acts is criminalized under the Anti-OSAEC Act (RA 11930) if a child is involved (life imprisonment) and the Anti-Photo and Video Voyeurism Act (RA 9995) when an adult is involved (3-7 years and ₱100k-₱500k fine). Victims should not pay, preserve screenshots, block the account, and report to PNP-WCPC, ACG, or NBI-CCD.",
+    "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11930_2022.html",
+    "keywords": "sextortion, nude photo blackmail, OSAEC, voyeurism, revenge porn, private photo, minor exploitation"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Cybercrime — Cyber Libel via Facebook or Social Media",
+    "citation": "RA 10175 §4(c)(4)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Cyber libel is libel committed through a computer system. Under RA 10175 §4(c)(4) the penalty is one degree higher than ordinary libel (RPC Art. 355). Each repost or boost can be treated as a separate publication. Truth is a defense only if published with good motives. Prescriptive period is 15 years (Tolentino v. People). Preserve URL, post ID, timestamps, and witness accounts who saw the post.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
+    "keywords": "cyber libel, online defamation, Facebook post, Twitter, social media, reputation, online insult"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Online Lending App Harassment and Doxxing",
+    "citation": "RA 10173 + RA 9474 + SEC Memorandum Circular No. 18-2019",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Unfair debt collection practices by online lending apps (contact-shaming, threats, sending defamatory texts to your contacts, doxxing) violate the Data Privacy Act (RA 10173), the Financing Company Act (RA 9474), and SEC MC 18-2019. The borrower may file a complaint with the National Privacy Commission (NPC) and the Securities and Exchange Commission (SEC). Maintain screenshots of harassing messages and the app's privacy policy at install time.",
+    "link": "https://www.privacy.gov.ph/",
+    "keywords": "online lending, predatory lending, contact shaming, NPC, SEC, debt harassment, doxxing, loan shark"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Phishing and Account Takeover (GCash, Maya, Bank)",
+    "citation": "RA 10175 §4(b) + RA 8484",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Phishing, smishing, and SIM-swap attacks resulting in withdrawals from GCash, Maya, or bank accounts are prosecuted under RA 10175 (computer-related fraud) and RA 8484 (Access Devices Regulation Act). Victims should freeze the affected account immediately, file a dispute with the e-money issuer (BSP-supervised), report to PNP-ACG, and preserve SMS and email logs.",
+    "link": "https://lawphil.net/statutes/repacts/ra1998/ra_8484_1998.html",
+    "keywords": "phishing, smishing, account takeover, SIM swap, GCash hack, bank fraud, unauthorized transfer"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Unauthorized Access (Hacking) of Social Media Account",
+    "citation": "RA 10175 §4(a)(1)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Hacking another person's Facebook, Instagram, email, or game account constitutes illegal access under RA 10175 §4(a)(1), penalized with prision mayor or a fine of at least ₱200,000. Victims should change all passwords, enable 2FA, request a platform-side recovery, and report to PNP-ACG with the offender's username/UID if known.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
+    "keywords": "hacking, account hack, Facebook hack, illegal access, password theft, 2FA, identity theft"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Online Marketplace Scam (Lazada / Shopee / Facebook Marketplace)",
+    "citation": "RA 10175 + RA 7394",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Sellers who collect payment but never ship — or who ship a wrong, counterfeit, or empty item — commit estafa via electronic means and violate the Consumer Act (RA 7394). Buyers should first file in-platform dispute and chargeback. For amounts ≤ ₱1,000,000, a small-claims action can be filed even without a lawyer. Counterfeit goods may also violate the IP Code (RA 8293).",
+    "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7394_1992.html",
+    "keywords": "online shopping scam, Lazada, Shopee, Facebook marketplace, counterfeit, refund, chargeback, small claims"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Unauthorized Recording / Streaming of Private Calls",
+    "citation": "RA 4200 + RA 10175",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Recording private phone, Zoom, or Messenger calls without all-party consent violates the Anti-Wiretapping Act (RA 4200), and distributing the recording online may add cyber libel or unjust vexation. Recordings obtained without consent are inadmissible in court. Penalties: 6 months to 6 years imprisonment.",
+    "link": "https://lawphil.net/statutes/repacts/ra1965/ra_4200_1965.html",
+    "keywords": "wiretapping, secret recording, Zoom recording, private call, eavesdropping, inadmissible evidence"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Catfishing and Identity Theft Online",
+    "citation": "RA 10175 §4(b)(3)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Computer-related identity theft (using another person's identifying information online — name, photos, IDs — without consent) is penalized under RA 10175 §4(b)(3) with prision mayor and a fine of at least ₱200,000. Victims can request takedown from the platform under its impersonation policy and file a complaint with PNP-ACG.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
+    "keywords": "catfishing, identity theft, impersonation, fake profile, deepfake, social engineering"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Spreading of Disinformation and Fake News",
+    "citation": "RPC Art. 154 + RA 10175",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Publishing false news that endangers public order is penalized under RPC Art. 154 (arresto mayor + fine). Done online, the penalty is elevated under RA 10175. Spreading deepfakes of officials or private persons may also expose the poster to cyber libel.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "fake news, disinformation, deepfake, false report, public order, online hoax"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "E-Commerce Contract Disputes",
+    "citation": "RA 8792 (E-Commerce Act) + RA 386 (Civil Code)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Electronic documents and signatures (clicks, OTPs, digital signatures) have the same legal effect as written documents under RA 8792. Contractual disputes about online orders, terms-of-service breaches, or refund obligations are governed by the Civil Code on contracts and may be filed in small claims or regular courts.",
+    "link": "https://lawphil.net/statutes/repacts/ra2000/ra_8792_2000.html",
+    "keywords": "e-commerce, electronic signature, online contract, terms of service, refund, OTP"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Unwanted Sexual Messages and Online Sexual Harassment",
+    "citation": "RA 11313 (Safe Spaces Act) — Online Sexual Harassment",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Sending unsolicited sexual images, persistent sexual comments, or stalking through DMs is gender-based online sexual harassment under the Safe Spaces Act (RA 11313). Penalties: arresto menor + ₱100,000-₱500,000 fine for serious cases. Take screenshots before reporting to PNP-WCPC.",
+    "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11313_2019.html",
+    "keywords": "safe spaces, online harassment, unsolicited photo, DM harassment, sexting, RA 11313"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Bayanihan / Pandemic Online Solicitation Fraud",
+    "citation": "RPC Art. 315 (Estafa) + RA 10175 §6",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Soliciting donations for fake calamity, hospital bills, or charity drives on social media and absconding with the proceeds is estafa committed via ICT. Victims may pool their complaint-affidavits to qualify for syndicated estafa (if 5 or more conspirators).",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "online solicitation, fake donation, charity scam, calamity fraud, gofundme scam"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Job Posting Scam (Recruitment Fraud Online)",
+    "citation": "RA 8042 + RA 10175",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Online job postings demanding upfront 'placement fees' or asking for nude photos or ID copies for fake 'verification' are illegal recruitment and may also constitute estafa or human-trafficking attempt. Verify the recruiter at DMW's POEA license search before paying anything.",
+    "link": "https://lawphil.net/statutes/repacts/ra1995/ra_8042_1995.html",
+    "keywords": "job scam, recruitment fraud, fake job, DMW, POEA, placement fee, illegal recruitment"
+  },
+  {
+    "category": "Cybercrime",
+    "name": "Unauthorized Disclosure of Personal Data (Doxxing)",
+    "citation": "RA 10173 §31",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Publishing someone's home address, phone number, family details, employer, or financial information without consent and with malicious intent is a Data Privacy Act violation. Penalties: 1-3 years imprisonment + ₱500,000-₱2,000,000 fine. Report to the National Privacy Commission within 72 hours of discovery.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10173_2012.html",
+    "keywords": "doxxing, personal data leak, address shared online, NPC, privacy, data exposure"
+  },
+  {
+    "category": "Family",
+    "name": "Annulment — Psychological Incapacity (Article 36)",
+    "citation": "Family Code Art. 36 (as construed in Tan-Andal v. Andal, G.R. 196359, May 11 2021)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Psychological incapacity is now treated as a legal — not strictly medical — concept (Tan-Andal v. Andal). It must be proven by clear and convincing evidence of personality structure that makes a spouse incapable of complying with essential marital obligations. Expert testimony is no longer indispensable. Filed before the Regional Trial Court (Family Court).",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "annulment, psychological incapacity, family code, art 36, Tan-Andal, divorce alternative"
+  },
+  {
+    "category": "Family",
+    "name": "Annulment — Fraud and Lack of Consent",
+    "citation": "Family Code Arts. 45-46",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A marriage may be annulled within five years if fraud induced consent (e.g., concealment of pregnancy by another, STD, drug addiction, conviction for crime involving moral turpitude). Lack of parental consent (party 18-21 at time of marriage) is another ground. Annulment differs from declaration of nullity (no marriage existed in the first place).",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "annulment, fraud, concealment, no parental consent, void marriage, nullity"
+  },
+  {
+    "category": "Family",
+    "name": "Legal Separation Grounds",
+    "citation": "Family Code Art. 55",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Legal separation may be sought for: repeated physical violence; moral pressure to change religion or political affiliation; drug addiction or chronic alcoholism; lesbianism or homosexuality; bigamy; sexual infidelity or perversion; attempt against the life of the spouse; abandonment for more than 1 year; final judgment of imprisonment for more than 6 years. Legal separation does NOT dissolve the marriage bond, but separates the parties' bed, board, and properties.",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "legal separation, family code, infidelity, abandonment, drug addiction, art 55"
+  },
+  {
+    "category": "Family",
+    "name": "Child Custody and Tender-Age Doctrine",
+    "citation": "Family Code Arts. 213, 363",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A child under seven (7) years old shall not be separated from the mother unless the court finds compelling reasons (e.g., neglect, abandonment, immorality, habitual drunkenness, drug addiction). For children seven and above, the court considers the child's choice with the paramount standard of the best interest of the child.",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "child custody, tender age, mother custody, best interest, family court, parental authority"
+  },
+  {
+    "category": "Family",
+    "name": "Child Support and Computation",
+    "citation": "Family Code Arts. 194-208",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Both legitimate and illegitimate children are entitled to support proportionate to the giver's means and the child's needs. Support covers sustenance, dwelling, clothing, medical, education, and transportation. Failure to give support without justification may constitute economic abuse under RA 9262 (VAWC). A petition for support pendente lite can be filed simultaneously.",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "child support, monthly support, VAWC economic abuse, illegitimate child, support pendente lite"
+  },
+  {
+    "category": "Family",
+    "name": "Illegitimate Child Surname (RA 9255)",
+    "citation": "RA 9255 amending Civil Code Art. 176",
+    "region": "National",
+    "priority": "high",
+    "fullText": "An illegitimate child may use the surname of the biological father if the father expressly acknowledges paternity through the birth certificate (with thumbmark), affidavit of acknowledgment, or any public document. Without acknowledgment, the child uses the mother's surname. Affidavit to Use the Surname of the Father (AUSF) is filed with PSA.",
+    "link": "https://lawphil.net/statutes/repacts/ra2004/ra_9255_2004.html",
+    "keywords": "illegitimate child, surname, father acknowledgment, RA 9255, AUSF, PSA, birth certificate"
+  },
+  {
+    "category": "Family",
+    "name": "Adoption — Domestic Administrative Process",
+    "citation": "RA 11642 (Domestic Administrative Adoption Act)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Domestic adoption is now administrative (no court order required) and handled by the National Authority for Child Care (NACC). Filing simplifies and reduces costs. Foreign adoptions remain governed by the Inter-Country Adoption Act. Adopted children gain the same rights as legitimate children for support and inheritance.",
+    "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11642_2022.html",
+    "keywords": "adoption, NACC, RA 11642, foster care, inter-country adoption"
+  },
+  {
+    "category": "Family",
+    "name": "Abandonment and Withholding Financial Support",
+    "citation": "RA 9262 §5(e)(2) (Economic Abuse)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A spouse or parent who deliberately deprives the woman or child of financial support — including denying funds for school, food, or medicine — commits Economic Abuse under VAWC (RA 9262). Penalties: 6 months to 12 years and a fine of ₱100,000-₱300,000. Victim may seek BPO/TPO/PPO for immediate protection and support.",
+    "link": "https://lawphil.net/statutes/repacts/ra2004/ra_9262_2004.html",
+    "keywords": "VAWC, economic abuse, withholding support, abandonment, BPO, financial neglect"
+  },
+  {
+    "category": "Family",
+    "name": "Recognition of Foreign Divorce (RA 9223 line of cases)",
+    "citation": "Family Code Art. 26 (2) — Republic v. Manalo, G.R. 221029",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A divorce obtained abroad by either the foreign spouse OR the Filipino spouse (Republic v. Manalo doctrine) may be judicially recognized in the Philippines, freeing the Filipino to remarry. A Petition for Recognition of Foreign Divorce is filed at the RTC where the petitioner resides. Proof of the foreign divorce decree and foreign law is required.",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "foreign divorce, recognition, Republic v Manalo, art 26, remarry, RTC petition"
+  },
+  {
+    "category": "Family",
+    "name": "Conjugal vs Absolute Community Property",
+    "citation": "Family Code Arts. 75, 91, 116, 117",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Marriages without a prenup celebrated on or after Aug 3 1988 default to Absolute Community of Property (all assets owned at marriage + acquired during marriage are co-owned). Earlier marriages default to Conjugal Partnership of Gains. Properties acquired by gratuitous title (inheritance, donation) generally remain exclusive.",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "absolute community, conjugal property, prenup, property regime, family code"
+  },
+  {
+    "category": "Family",
+    "name": "Anti-Bigamy Law",
+    "citation": "RPC Art. 349",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Contracting a second marriage while the first marriage is still subsisting and undissolved is bigamy, punishable by prision mayor. A judicial declaration of nullity is required before the first marriage is legally considered void — even a void marriage cannot be ignored without a court decision.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "bigamy, second marriage, void marriage, art 349, declaration of nullity"
+  },
+  {
+    "category": "Family",
+    "name": "Anti-Mail Order Spouse Act",
+    "citation": "RA 10906",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Prohibits arrangements that match Filipino women or men to foreign nationals for marriage or common-law cohabitation as a business. Penalties: 15-20 years imprisonment + ₱500,000-₱2,000,000 fine.",
+    "link": "https://lawphil.net/statutes/repacts/ra2016/ra_10906_2016.html",
+    "keywords": "mail order bride, RA 10906, foreign matching, trafficking"
+  },
+  {
+    "category": "Family",
+    "name": "Magna Carta of Women",
+    "citation": "RA 9710",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Comprehensive rights framework: 60-day special leave for surgery related to gynecological disorders, equal access to education, protection from discrimination in the workplace, accommodation for pregnant workers, and women's representation in policy bodies. PCW oversees implementation.",
+    "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9710_2009.html",
+    "keywords": "magna carta women, RA 9710, special leave, gender equality, PCW"
+  },
+  {
+    "category": "Family",
+    "name": "Parental Authority and Discipline (Anti-Corporal Punishment in the Home)",
+    "citation": "RA 7610 + DSWD AO 2016-003",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Parental discipline that inflicts physical injury, humiliation, or psychological harm crosses into child abuse under RA 7610. DSWD may intervene; in serious cases parental authority can be suspended or terminated by the court. School corporal punishment is also banned under DepEd Child Protection Policy.",
+    "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7610_1992.html",
+    "keywords": "parental discipline, corporal punishment, child abuse, RA 7610, DepEd CPP, physical injury"
+  },
+  {
+    "category": "Family",
+    "name": "Anti-Bastardization (Rights of Illegitimate Children)",
+    "citation": "Family Code Art. 176 (as amended) and Art. 887",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Illegitimate children are entitled to support, education, and inherit one-half (½) of the share of legitimate children. Acknowledged illegitimate children also have visitation rights enforceable in family court.",
+    "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
+    "keywords": "illegitimate child, inheritance, support, acknowledgment, family code"
+  },
+  {
+    "category": "Labor",
+    "name": "Just Cause vs. Authorized Cause Termination",
+    "citation": "Labor Code Arts. 297-299",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Just causes (Art. 297) — serious misconduct, willful disobedience, gross/habitual neglect, fraud or willful breach of trust, commission of crime against employer — require twin-notice and hearing. Authorized causes (Arts. 298-299) — installation of labor-saving devices, redundancy, retrenchment, closure, disease — require 30-day notice to both employee and DOLE, plus separation pay. Failure on substantive OR procedural due process makes dismissal illegal.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_442_1974.html",
+    "keywords": "just cause, authorized cause, twin notice, separation pay, illegal dismissal, DOLE"
+  },
+  {
+    "category": "Labor",
+    "name": "Constructive Dismissal",
+    "citation": "Labor Code jurisprudence (e.g., Globe Telecom v. Florendo-Flores)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Constructive dismissal occurs when continued employment is rendered impossible, unreasonable, or unlikely due to demotion, discrimination, sustained harassment, or unjustified diminution of pay or rank. The employee is deemed to have been illegally dismissed. Backwages and reinstatement (or separation pay in lieu) apply.",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "constructive dismissal, demotion, harassment at work, diminution, backwages, NLRC"
+  },
+  {
+    "category": "Labor",
+    "name": "Regular vs Project / Seasonal / Fixed-Term Employees",
+    "citation": "Labor Code Art. 295",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A worker is regular if engaged for activities necessary or desirable to the usual business of the employer, or if a casual worker has rendered ≥ 1 year of service (whether continuous or broken). Project employees are tied to a specific project with defined start/end. Misclassification — labeling regular work as 'project' — can be challenged before the NLRC.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_442_1974.html",
+    "keywords": "regular employee, project employee, casual, fixed term, NLRC, art 295, endo"
+  },
+  {
+    "category": "Labor",
+    "name": "Overtime, Night Shift, and Holiday Pay",
+    "citation": "Labor Code Arts. 87, 86, 94",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Work beyond 8 hours commands overtime pay of 25% (regular day) or 30% (rest day/holiday). Night-shift differential of 10% applies to work between 10 PM and 6 AM. Regular holidays pay 200% if worked; special days pay 130%. Managerial employees and field personnel are typically exempt.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_442_1974.html",
+    "keywords": "overtime, night shift, holiday pay, regular holiday, special day, NSD"
+  },
+  {
+    "category": "Labor",
+    "name": "Service Incentive Leave and 13th Month Pay",
+    "citation": "Labor Code Art. 95 + PD 851",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Employees with ≥ 1 year of service are entitled to 5 days paid Service Incentive Leave (commutable if unused). 13th month pay (1/12 of basic salary earned in the calendar year) must be paid not later than December 24 of each year, regardless of company performance, under PD 851.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1975/pd_851_1975.html",
+    "keywords": "13th month pay, PD 851, service incentive leave, SIL, year-end bonus"
+  },
+  {
+    "category": "Labor",
+    "name": "Retirement Pay (RA 7641)",
+    "citation": "RA 7641 amending Labor Code Art. 302",
+    "region": "National",
+    "priority": "high",
+    "fullText": "An employee who reaches 60 (optional) or 65 (compulsory) and has served at least 5 years is entitled to retirement pay equivalent to one-half (½) month salary for every year of service. 'One-half month salary' includes 15 days, 1/12 of 13th month pay, and cash equivalent of 5 days SIL.",
+    "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7641_1992.html",
+    "keywords": "retirement pay, RA 7641, age 60, age 65, retirement age, lump sum"
+  },
+  {
+    "category": "Labor",
+    "name": "Migrant Workers Act (OFW Rights)",
+    "citation": "RA 8042 as amended by RA 10022",
+    "region": "National",
+    "priority": "high",
+    "fullText": "OFWs are protected from illegal recruitment, illegal placement fees, and contract substitution. Migrant Workers Act allows OFWs to file money claims at the NLRC (not POEA arbitration) within 3 years. DMW issues OEC and oversees licensed recruitment agencies. Repatriation in case of war, calamity, or contract violation is the obligation of the recruiter and DMW.",
+    "link": "https://lawphil.net/statutes/repacts/ra1995/ra_8042_1995.html",
+    "keywords": "OFW, migrant worker, RA 8042, DMW, POEA, NLRC, repatriation, contract substitution"
+  },
+  {
+    "category": "Labor",
+    "name": "Sexual Harassment in the Workplace (RA 7877 + Safe Spaces)",
+    "citation": "RA 7877 + RA 11313",
+    "region": "National",
+    "priority": "high",
+    "fullText": "RA 7877 covers quid-pro-quo and authority-based sexual harassment. RA 11313 expands to peer-to-peer harassment, including unwanted sexual remarks and conduct. Employers must form an internal Committee on Decorum and Investigation (CODI). Failure to act exposes the employer to solidary civil liability.",
+    "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11313_2019.html",
+    "keywords": "workplace sexual harassment, CODI, RA 7877, safe spaces, hostile environment"
+  },
+  {
+    "category": "Labor",
+    "name": "Maternity Leave Extension and Pay (RA 11210)",
+    "citation": "RA 11210",
+    "region": "National",
+    "priority": "high",
+    "fullText": "105 days paid maternity leave for live childbirth (cash benefit from SSS based on monthly salary credit, plus salary differential paid by employer for the gap). 60 days for miscarriage. Additional 15 days for solo parents. Up to 7 days transferable to the father or alternate caregiver.",
+    "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11210_2019.html",
+    "keywords": "maternity leave, RA 11210, SSS, 105 days, solo parent, paternity transfer"
+  },
+  {
+    "category": "Labor",
+    "name": "Wage Order — Minimum Wage in Davao Region (RTWPB XI)",
+    "citation": "RTWPB XI Wage Order No. RB XI-22",
+    "region": "Davao",
+    "priority": "high",
+    "fullText": "The Regional Tripartite Wages and Productivity Board (RTWPB) Region XI sets the minimum wage for Davao Region. As of the latest order, non-agriculture minimum wage in Davao City is approximately ₱481/day with COLA adjustments. Wage Orders are subject to periodic review. Check the latest order at DOLE-RXI before relying on a fixed amount.",
+    "link": "https://nwpc.dole.gov.ph/regional-wages/",
+    "keywords": "minimum wage, Davao, RTWPB, wage order, COLA, region XI"
+  },
+  {
+    "category": "Labor",
+    "name": "Single Entry Approach (SEnA) Mandatory Conciliation",
+    "citation": "DO 107-10 (DOLE)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Before filing a formal labor case at the NLRC, both parties must undergo 30 days of mandatory conciliation-mediation at the DOLE Regional Office under the Single Entry Approach. Cases settled at SEnA produce a binding compromise agreement.",
+    "link": "https://www.dole.gov.ph/",
+    "keywords": "SEnA, DOLE conciliation, mandatory mediation, NLRC, labor dispute"
+  },
+  {
+    "category": "Labor",
+    "name": "BPO and Night Worker Health Standards",
+    "citation": "DOLE DO 178-17",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Mandates additional health assessments, fortified meals, transport for late-shift workers, and an 8-hour rest between shifts. Applies to call centers, BPOs, and other night-work establishments.",
+    "link": "https://www.dole.gov.ph/",
+    "keywords": "BPO, call center, night shift, health, DOLE, transport"
+  },
+  {
+    "category": "Property",
+    "name": "Foreclosure of Real Estate Mortgage — Right to Redeem",
+    "citation": "Act No. 3135 (Extrajudicial Foreclosure) + Civil Code Art. 1601",
+    "region": "National",
+    "priority": "high",
+    "fullText": "After extrajudicial foreclosure, the mortgagor may redeem the property within 1 year from registration of the certificate of sale (banking institutions: shorter periods under General Banking Law). Redemption price = bid price + 1% per month interest + taxes. After the redemption period, the buyer consolidates ownership.",
+    "link": "https://lawphil.net/statutes/acts/act_3135_1924.html",
+    "keywords": "foreclosure, mortgage, redemption, Act 3135, real estate, bank loan"
+  },
+  {
+    "category": "Property",
+    "name": "Deed of Sale — Documentary Requirements",
+    "citation": "Civil Code Arts. 1458-1474",
+    "region": "National",
+    "priority": "high",
+    "fullText": "A valid deed of sale of real property must be notarized and contain the parties, technical description, consideration, and signatures. Transfer of title requires capital gains tax (6%), DST (1.5%), and transfer tax (0.5%) before the Register of Deeds issues a new TCT. Failure to register exposes the buyer to later sale to a third party in good faith.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "deed of sale, TCT, capital gains tax, transfer tax, Register of Deeds, notarized"
+  },
+  {
+    "category": "Property",
+    "name": "Co-Ownership and Partition",
+    "citation": "Civil Code Arts. 484-501",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Co-ownership exists when ownership of a thing belongs to different persons in undivided shares. Any co-owner may demand partition at any time; the action is imprescriptible. Properties that cannot be physically divided are sold and the proceeds split proportionally.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "co-ownership, partition, undivided share, inheritance, sibling dispute"
+  },
+  {
+    "category": "Property",
+    "name": "Donation Inter Vivos and Mortis Causa",
+    "citation": "Civil Code Arts. 725-773",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Donation of real property must be in a public instrument and accepted by the donee in the same or separate public instrument (Art. 749). Donations mortis causa (taking effect upon death) must comply with formalities of a will, otherwise void. Donor's tax applies under the Tax Code.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "donation, donor tax, public instrument, mortis causa, real property"
+  },
+  {
+    "category": "Property",
+    "name": "Adverse Possession and Acquisitive Prescription",
+    "citation": "Civil Code Arts. 1117-1138",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Ownership over real property may be acquired by extraordinary prescription after 30 years of uninterrupted, peaceful, public, and adverse possession (10 years if with just title and good faith). Possession of titled (Torrens) land cannot ripen into ownership through prescription.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "adverse possession, prescription, Torrens title, 30 years, ownership"
+  },
+  {
+    "category": "Property",
+    "name": "Boundary Disputes and Relocation Survey",
+    "citation": "Civil Code Art. 481 + DENR Survey Regulations",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Owners with disputed boundaries may commission a relocation survey by a licensed Geodetic Engineer based on the technical descriptions in their TCTs. A barangay conciliation is required before filing in court (Katarungang Pambarangay). Misplaced monuments or encroachments may also expose the offender to malicious mischief or qualified theft.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "boundary dispute, relocation survey, geodetic, neighbor, barangay, encroachment"
+  },
+  {
+    "category": "Property",
+    "name": "Free Patent and Public Land Disposition",
+    "citation": "Public Land Act (CA 141)",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "A Filipino citizen who has actually occupied and cultivated agricultural public land for at least 30 years may apply for a Free Patent. Residential Free Patents are governed by RA 10023 (simplified one-time grant for actual occupants of public residential land ≤ 200 sqm).",
+    "link": "https://lawphil.net/statutes/commacts/ca_141_1936.html",
+    "keywords": "free patent, public land, CA 141, RA 10023, DENR, agricultural"
+  },
+  {
+    "category": "Property",
+    "name": "Right of First Refusal in Sale of Tenanted Land",
+    "citation": "PD 1517 + RA 7279",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Long-term tenants in urban land covered by the Urban Land Reform Act (PD 1517) and beneficiaries under RA 7279 enjoy a right of first refusal when the landowner sells. Failure to honor this right voids the sale and may entitle the tenant to the same purchase price.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1978/pd_1517_1978.html",
+    "keywords": "right of first refusal, urban land reform, tenant, PD 1517, RA 7279"
+  },
+  {
+    "category": "Property",
+    "name": "Subdivision Developer Refund and Cancellation (Maceda Law)",
+    "citation": "RA 6552 (Realty Installment Buyer Protection Act)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Buyers of real estate on installment who have paid at least 2 years of installments are entitled to a 50% cash refund (up to 90% with longer years) on cancellation by the developer. Buyers with less than 2 years get a 60-day grace period to settle.",
+    "link": "https://lawphil.net/statutes/repacts/ra1972/ra_6552_1972.html",
+    "keywords": "Maceda Law, RA 6552, real estate refund, subdivision cancellation, installment"
+  },
+  {
+    "category": "Criminal",
+    "name": "Statute of Limitations for Crimes (Prescriptive Periods)",
+    "citation": "RPC Arts. 90-91",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Death/reclusion perpetua: 20 years. Other afflictive penalties: 15 years. Correctional penalties: 10 years (except arresto mayor: 5 years). Light offenses: 2 months. Libel: 1 year (15 years for cyber libel). Prescription begins from discovery and is interrupted by complaint filing.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "prescription, statute of limitations, RPC arts 90, libel, cyber libel"
+  },
+  {
+    "category": "Criminal",
+    "name": "Frustrated vs Consummated vs Attempted Crime",
+    "citation": "RPC Art. 6",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Consummated felonies have all elements present. Frustrated felonies have all acts of execution performed but the crime is not produced for reasons independent of the offender's will. Attempted felonies commence direct overt acts without performing all acts of execution. Penalties decrease by one or two degrees from consummated form.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "consummated, frustrated, attempted, art 6, stages of crime"
+  },
+  {
+    "category": "Criminal",
+    "name": "Self-Defense and Justifying Circumstances",
+    "citation": "RPC Art. 11",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Self-defense requires: (1) unlawful aggression, (2) reasonable necessity of the means employed, (3) lack of sufficient provocation by the defender. Unlawful aggression is the indispensable element — without actual or imminent attack, self-defense fails. Defense of relatives and strangers have parallel requirements.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "self defense, unlawful aggression, art 11, justifying circumstance, defense of relative"
+  },
+  {
+    "category": "Criminal",
+    "name": "Plea Bargaining in Drug Cases",
+    "citation": "A.M. No. 18-03-16-SC (Plea Bargaining Framework)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Accused charged with possession of dangerous drugs (RA 9165) may plea-bargain to lesser offenses within fixed thresholds (e.g., possession of < 5g shabu may be downgraded to drug paraphernalia possession under §12). DOJ guidelines (DC No. 27-2022) align prosecutorial discretion. Plea bargaining is not allowed for sale (Sec. 5).",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "plea bargain, drugs, RA 9165, A.M. 18-03-16-SC, downgraded, paraphernalia"
+  },
+  {
+    "category": "Criminal",
+    "name": "Probation Law",
+    "citation": "PD 968 as amended by RA 10707",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Probation is available to offenders sentenced to imprisonment of not more than 6 years, on application after judgment becomes final. RA 10707 lets accused who lose on appeal still apply for probation. Excluded: those sentenced to > 6 years, drug pushers, election offenses, those who already enjoyed probation.",
+    "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10707_2013.html",
+    "keywords": "probation, PD 968, RA 10707, 6 years, alternative to imprisonment"
+  },
+  {
+    "category": "Criminal",
+    "name": "Bail — Right and Conditions",
+    "citation": "Constitution Art. III §13 + Rules of Court Rule 114",
+    "region": "National",
+    "priority": "high",
+    "fullText": "All persons in custody are entitled to bail except those charged with offenses punishable by reclusion perpetua when evidence of guilt is strong (capital offense). Bail may be cash, surety, property, or recognizance. Forfeited bail can be reinstated upon production of accused within 30 days.",
+    "link": "https://lawphil.net/courts/rules/rc_civilproc.html",
+    "keywords": "bail, recognizance, surety, reclusion perpetua, capital offense, Rule 114"
+  },
+  {
+    "category": "Criminal",
+    "name": "Right to Counsel and Custodial Investigation (Miranda)",
+    "citation": "RA 7438",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Persons under custodial investigation must be informed in a language they understand of: (1) the right to remain silent, (2) the right to counsel preferably of their own choice, (3) the right to have the proceedings reduced in writing in the presence of counsel. Confessions obtained without counsel are inadmissible. Investigating officers face 8-10 years imprisonment for violations.",
+    "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7438_1992.html",
+    "keywords": "Miranda, RA 7438, custodial investigation, right to counsel, inadmissible confession"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Hijacking and Aviation Crimes",
+    "citation": "RA 6235 as amended",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Penalizes hijacking, unauthorized carrying of explosives/firearms on a Philippine-registered aircraft, and acts endangering aviation safety. Penalties range up to life imprisonment.",
+    "link": "https://lawphil.net/statutes/repacts/ra1971/ra_6235_1971.html",
+    "keywords": "hijacking, aviation, aircraft, RA 6235, in-flight"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Plunder Act",
+    "citation": "RA 7080",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Public officers who amass ill-gotten wealth of at least ₱50,000,000 through a combination of overt acts (kickbacks, malversation, misappropriation) commit plunder, punishable by reclusion perpetua and perpetual disqualification.",
+    "link": "https://lawphil.net/statutes/repacts/ra1991/ra_7080_1991.html",
+    "keywords": "plunder, RA 7080, ill-gotten wealth, public officer, corruption"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Graft and Corrupt Practices Act",
+    "citation": "RA 3019",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Penalizes 11 corrupt practices of public officers, including causing undue injury to government through manifest partiality, evident bad faith, or gross inexcusable negligence (Sec. 3(e) — most-cited provision). Penalties: 6 years and 1 month to 15 years + perpetual disqualification.",
+    "link": "https://lawphil.net/statutes/repacts/ra1960/ra_3019_1960.html",
+    "keywords": "graft, RA 3019, anti-corruption, public officer, Sec 3(e), undue injury"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Sandiganbayan and Ombudsman Jurisdiction",
+    "citation": "RA 8249",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Sandiganbayan exclusive jurisdiction covers RA 3019, RA 7080, and other crimes by public officers occupying SG 27 or higher (or specifically enumerated). Lower-ranking officials are tried in regular RTC. Ombudsman investigates and prosecutes.",
+    "link": "https://lawphil.net/statutes/repacts/ra1997/ra_8249_1997.html",
+    "keywords": "Sandiganbayan, Ombudsman, SG 27, public officer, RA 8249"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Red Tape Act and EODB",
+    "citation": "RA 11032 (EODB and Efficient Government Service Delivery Act)",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Government agencies must process simple transactions within 3 working days, complex within 7, highly technical within 20. Violations expose officers to fines, suspension, and dismissal. Anti-Red Tape Authority (ARTA) receives complaints.",
+    "link": "https://lawphil.net/statutes/repacts/ra2018/ra_11032_2018.html",
+    "keywords": "ARTA, red tape, RA 11032, EODB, government service, 3-7-20 rule"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Truancy and Curfew Ordinances",
+    "citation": "RA 9344 (Juvenile Justice) + LGU ordinances",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Truancy or violation of LGU curfew by a minor is treated under RA 9344. Minors are NOT detained but turned over to parents or DSWD social worker. Curfew violation alone is not a criminal offense unless tied to a more serious act.",
+    "link": "https://lawphil.net/statutes/repacts/ra2006/ra_9344_2006.html",
+    "keywords": "curfew, truancy, minor, juvenile, RA 9344, DSWD"
+  },
+  {
+    "category": "Criminal",
+    "name": "Acts of Lasciviousness",
+    "citation": "RPC Art. 336",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Lascivious conduct (groping, kissing, fondling) committed against another person by force, intimidation, or against a person deprived of reason or under 16 (raised by RA 11648) is punishable by prision correccional. Lasciviousness against children also qualifies under RA 7610.",
+    "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
+    "keywords": "lasciviousness, art 336, groping, sexual assault, RA 11648, RA 7610"
+  },
+  {
+    "category": "Criminal",
+    "name": "Statutory Rape — Age of Sexual Consent Raised to 16",
+    "citation": "RA 11648 (2022)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "RA 11648 raised the age of sexual consent from 12 to 16. Sexual intercourse with anyone below 16 is statutory rape, regardless of consent. Close-in-age exception: relations between persons whose age difference is not more than 3 years (if not abusive) are not criminalized.",
+    "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11648_2022.html",
+    "keywords": "statutory rape, age of consent, RA 11648, 16, close in age"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Terrorist Financing",
+    "citation": "RA 10168",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Prohibits the financing of terrorism, including direct funding and material support. Banks and covered institutions must implement freeze orders from the AMLC.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10168_2012.html",
+    "keywords": "terrorist financing, AMLC, RA 10168, freeze order"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Smuggling and Customs Modernization",
+    "citation": "RA 10863 (CMTA)",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Smuggling of goods worth ≥ ₱200,000,000 is an economic sabotage offense punishable by reclusion perpetua and a fine of ≥ ₱50,000,000.",
+    "link": "https://lawphil.net/statutes/repacts/ra2016/ra_10863_2016.html",
+    "keywords": "smuggling, customs, CMTA, RA 10863, economic sabotage"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Squatting Repealed — Eviction Requirements",
+    "citation": "RA 7279 §28",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Eviction or demolition of informal settler families requires: 30-day notice; adequate consultation; presence of LGU; execution outside rainy season; relocation site identification. Failure to comply renders the demolition illegal.",
+    "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7279_1992.html",
+    "keywords": "demolition, informal settler, eviction, RA 7279, 30 day notice"
+  },
+  {
+    "category": "Consumer",
+    "name": "Air Passenger Bill of Rights",
+    "citation": "DOTC-DTI JAO No. 01 Series of 2012",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Passengers delayed > 3 hours due to airline fault are entitled to meals, communication, accommodation if overnight, and rebooking without fee. Cancellation refund must be in cash unless the passenger opts for a travel voucher.",
+    "link": "https://www.dti.gov.ph/",
+    "keywords": "airline delay, flight cancellation, refund, DTI, passenger rights, DOTC"
+  },
+  {
+    "category": "Consumer",
+    "name": "Internet and Mobile Service Quality Standards",
+    "citation": "NTC MC 03-08-2022",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Telcos must achieve at least 80% of advertised speed and uptime. Subscribers experiencing persistent service degradation may file with the National Telecommunications Commission (NTC) for refund, rebate, or contract termination without penalty.",
+    "link": "https://ntc.gov.ph/",
+    "keywords": "telco, internet speed, NTC, refund, service degradation, mobile data"
+  },
+  {
+    "category": "Consumer",
+    "name": "Universal Banking Customer Protection",
+    "citation": "RA 11765 + BSP Circular No. 1160",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Banks and e-money issuers must reverse unauthorized transfers if the customer reports within 15 calendar days and shows no negligence. BSP enforces consumer protection against hidden fees and unfair credit practices.",
+    "link": "https://www.bsp.gov.ph/",
+    "keywords": "BSP, RA 11765, unauthorized transfer, e-money, refund, financial consumer"
+  },
+  {
+    "category": "Consumer",
+    "name": "Real Estate Service Act (Brokers / Salespersons)",
+    "citation": "RA 9646",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Only licensed real estate brokers, salespersons, and appraisers may transact as professionals. Buyers should verify the PRC license number of any agent collecting fees or representing in negotiations.",
+    "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9646_2009.html",
+    "keywords": "real estate broker, PRC, RA 9646, RESA, salesperson, license"
+  },
+  {
+    "category": "Consumer",
+    "name": "Truth in Lending Act and Effective Interest Rate Disclosure",
+    "citation": "RA 3765",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Lenders must disclose total finance charges and the effective interest rate in writing before consummation. Failure exposes lender to twice the finance charge but not more than ₱2,000 plus court costs.",
+    "link": "https://lawphil.net/statutes/repacts/ra1963/ra_3765_1963.html",
+    "keywords": "truth in lending, RA 3765, effective interest rate, disclosure, finance charge"
+  },
+  {
+    "category": "Consumer",
+    "name": "Anti-Lapses for Pre-Need / Insurance Products",
+    "citation": "RA 9829 (Pre-Need Code) + Insurance Code Sec. 233",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Pre-need plan holders enjoy a 30-day grace period and reinstatement rights if lapsed. Insurance Commission supervises and entertains complaints against pre-need and insurance companies.",
+    "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9829_2009.html",
+    "keywords": "pre-need, insurance, lapse, grace period, IC, RA 9829"
+  },
+  {
+    "category": "Consumer",
+    "name": "Senior Citizen and PWD Discounts",
+    "citation": "RA 9994 (Expanded Senior) + RA 10754 (PWD)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Seniors and PWDs are entitled to 20% discount and 12% VAT exemption on medicine, transportation, restaurants, and accommodations. Establishments must provide express lanes and accept the senior/PWD ID issued by the LGU or OSCA.",
+    "link": "https://lawphil.net/statutes/repacts/ra2010/ra_9994_2010.html",
+    "keywords": "senior discount, PWD discount, RA 9994, RA 10754, VAT exempt, express lane"
+  },
+  {
+    "category": "Data Privacy",
+    "name": "Data Breach Notification (72-Hour Rule)",
+    "citation": "RA 10173 IRR §38",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Personal Information Controllers must notify the National Privacy Commission and affected data subjects within 72 hours of knowledge of a data breach involving sensitive personal information likely to give rise to a real risk of serious harm. Late or no notification is itself a separate offense.",
+    "link": "https://www.privacy.gov.ph/",
+    "keywords": "data breach, 72 hours, NPC, sensitive personal info, notification"
+  },
+  {
+    "category": "Data Privacy",
+    "name": "Rights of Data Subjects",
+    "citation": "RA 10173 §16",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Data subjects have rights to: be informed, access, object, erase or block, damages, data portability, file complaints, rectification. A formal request to the PIC's Data Protection Officer must be answered within 30 days, otherwise the subject may escalate to the NPC.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10173_2012.html",
+    "keywords": "data subject rights, access, erasure, DPO, NPC, 30 days, portability"
+  },
+  {
+    "category": "Health",
+    "name": "Universal Health Care Act",
+    "citation": "RA 11223",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Automatic enrollment of every Filipino in PhilHealth (direct or indirect contributor). Benefits include primary care, in-patient care, and outpatient drugs for chronic conditions. Direct contributors are formal-sector workers and self-earning individuals; indirect contributors are subsidized by national/local government.",
+    "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11223_2019.html",
+    "keywords": "universal health care, RA 11223, PhilHealth, automatic enrollment, primary care"
+  },
+  {
+    "category": "Health",
+    "name": "Mental Health Act",
+    "citation": "RA 11036",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Recognizes mental health as a basic right; mandates integration of mental health services in primary care; protects against stigma and discrimination. Employers are encouraged to develop mental-health policies; involuntary admission requires court order and second opinion.",
+    "link": "https://lawphil.net/statutes/repacts/ra2018/ra_11036_2018.html",
+    "keywords": "mental health, RA 11036, depression, anxiety, hospital admission, discrimination"
+  },
+  {
+    "category": "Health",
+    "name": "Generic Medicines Act",
+    "citation": "RA 6675",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Doctors must prescribe by generic name; pharmacies must offer the generic equivalent. Violations expose health professionals to fines and disciplinary action by the PRC.",
+    "link": "https://lawphil.net/statutes/repacts/ra1988/ra_6675_1988.html",
+    "keywords": "generic medicine, RA 6675, prescription, pharmacy, FDA"
+  },
+  {
+    "category": "Health",
+    "name": "Reproductive Health (RH) Law",
+    "citation": "RA 10354",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Guarantees universal access to reproductive health services, including contraception, maternal care, adolescent health, and sex education. Public health facilities must stock contraceptives; conscientious objection allowed for individual providers, not institutions.",
+    "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10354_2012.html",
+    "keywords": "RH Law, contraception, reproductive health, RA 10354, sex education"
+  },
+  {
+    "category": "Education",
+    "name": "Free Higher Education (UAQTE)",
+    "citation": "RA 10931",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Universal Access to Quality Tertiary Education provides free tuition and fees in state universities and colleges (SUCs) and TESDA programs, plus a Tertiary Education Subsidy for needy students. Available to all qualified students except those who already earned a bachelor's degree.",
+    "link": "https://lawphil.net/statutes/repacts/ra2017/ra_10931_2017.html",
+    "keywords": "free tuition, RA 10931, UAQTE, SUC, TES, scholarship, CHED"
+  },
+  {
+    "category": "Education",
+    "name": "K-12 Basic Education Curriculum",
+    "citation": "RA 10533",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Mandates compulsory basic education from Kindergarten through Grade 12 (13 years). Senior High School tracks: Academic, Tech-Voc, Sports, Arts and Design. DepEd implements the curriculum and standards.",
+    "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10533_2013.html",
+    "keywords": "K-12, basic education, senior high, DepEd, RA 10533, curriculum"
+  },
+  {
+    "category": "Environmental",
+    "name": "Philippine Mining Act",
+    "citation": "RA 7942",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Governs the exploration, development, and utilization of mineral resources. Requires Environmental Compliance Certificate (ECC), Mineral Production Sharing Agreement (MPSA) or Financial or Technical Assistance Agreement (FTAA). Affected indigenous communities have the right to Free Prior and Informed Consent (FPIC) under IPRA.",
+    "link": "https://lawphil.net/statutes/repacts/ra1995/ra_7942_1995.html",
+    "keywords": "mining, RA 7942, ECC, MPSA, IP, FPIC, environmental"
+  },
+  {
+    "category": "Environmental",
+    "name": "Climate Change Act",
+    "citation": "RA 9729 as amended by RA 10174",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Created the Climate Change Commission. LGUs must integrate climate change adaptation in their development plans. People's Survival Fund finances local adaptation projects.",
+    "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9729_2009.html",
+    "keywords": "climate change, RA 9729, RA 10174, PSF, adaptation, LGU"
+  },
+  {
+    "category": "Environmental",
+    "name": "Water Code of the Philippines",
+    "citation": "PD 1067",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Regulates appropriation, control, conservation, and pollution of water resources. Anyone diverting or appropriating water must secure a water permit from the National Water Resources Board (NWRB).",
+    "link": "https://lawphil.net/statutes/presdecs/pd1976/pd_1067_1976.html",
+    "keywords": "water code, PD 1067, NWRB, water permit, appropriation"
+  },
+  {
+    "category": "Environmental",
+    "name": "Toxic Substances and Hazardous Wastes Act",
+    "citation": "RA 6969",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Regulates importation, manufacture, distribution, and disposal of toxic substances. DENR-EMB enforces compliance. Penalties: fines + imprisonment up to 12 years for nuclear waste violations.",
+    "link": "https://lawphil.net/statutes/repacts/ra1990/ra_6969_1990.html",
+    "keywords": "toxic, hazardous waste, RA 6969, DENR, EMB"
+  },
+  {
+    "category": "Election",
+    "name": "Omnibus Election Code — Election Offenses",
+    "citation": "BP 881",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Election offenses include vote-buying, vote-selling, electioneering during prohibited periods, possession of firearms or alcohol within a polling area, and coercion of voters. Penalties: 1-6 years imprisonment, disqualification from public office, and loss of suffrage.",
+    "link": "https://lawphil.net/statutes/bataspam/bp1985/bp_blg_881_1985.html",
+    "keywords": "election, vote buying, BP 881, gun ban, COMELEC, election offense"
+  },
+  {
+    "category": "Election",
+    "name": "Anti-Political Dynasty / Disqualification",
+    "citation": "Constitution Art. II §26 + LGU Code",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Constitution prohibits political dynasties as may be defined by law (enabling law remains pending). Election laws disqualify candidates with final criminal conviction involving moral turpitude, dual citizenship, or term-limit violations.",
+    "link": "https://lawphil.net/statutes/constitutions/ph1987.html",
+    "keywords": "political dynasty, disqualification, term limit, moral turpitude"
+  },
+  {
+    "category": "Immigration",
+    "name": "Dual Citizenship Retention",
+    "citation": "RA 9225",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Filipino citizens who became naturalized citizens of another country may reacquire Philippine citizenship by taking an oath of allegiance. Re-acquirers retain civil and political rights, including right to vote and own land in the Philippines.",
+    "link": "https://lawphil.net/statutes/repacts/ra2003/ra_9225_2003.html",
+    "keywords": "dual citizenship, RA 9225, reacquisition, oath of allegiance, US citizen"
+  },
+  {
+    "category": "Immigration",
+    "name": "Naturalization Process",
+    "citation": "CA 473 + RA 9139",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Foreigners may seek naturalization via judicial process (CA 473) or administrative process for natural-born qualified aliens (RA 9139). Requirements: 10 years residency (5 with qualifications), good moral character, knowledge of Filipino history, lawful occupation.",
+    "link": "https://lawphil.net/statutes/commacts/ca_473_1939.html",
+    "keywords": "naturalization, CA 473, RA 9139, foreigner, citizenship, residency"
+  },
+  {
+    "category": "Tax",
+    "name": "Income Tax — TRAIN Law Brackets",
+    "citation": "RA 10963 (TRAIN)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Annual taxable income up to ₱250,000 is exempt. Brackets: ₱250k-₱400k = 15%; ₱400k-₱800k = 20%; ₱800k-₱2M = 25%; ₱2M-₱8M = 30%; over ₱8M = 35%. Self-employed and professionals may opt for 8% gross-receipts tax (if gross ≤ ₱3M).",
+    "link": "https://lawphil.net/statutes/repacts/ra2017/ra_10963_2017.html",
+    "keywords": "TRAIN, income tax, BIR, RA 10963, bracket, 8 percent, self employed"
+  },
+  {
+    "category": "Tax",
+    "name": "VAT Threshold and Registration",
+    "citation": "NIRC §109(B)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Persons with gross sales or receipts exceeding ₱3,000,000 in any 12-month period must register and charge 12% VAT. Below the threshold, businesses are non-VAT and pay 3% percentage tax (1% for 2020-2023 under CREATE).",
+    "link": "https://www.bir.gov.ph/",
+    "keywords": "VAT, BIR, 3 million, percentage tax, NIRC, sole proprietor"
+  },
+  {
+    "category": "Tax",
+    "name": "Tax Amnesty on Estates",
+    "citation": "RA 11569 (extension)",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Heirs of decedents who died on or before May 31, 2022 may avail of estate tax amnesty (6% of net estate, no penalties) until June 14, 2025. Filing is with the BIR Revenue District Office where the decedent was domiciled.",
+    "link": "https://lawphil.net/statutes/repacts/ra2021/ra_11569_2021.html",
+    "keywords": "estate tax amnesty, RA 11569, BIR, heir, succession"
+  },
+  {
+    "category": "Tax",
+    "name": "Donor's Tax",
+    "citation": "NIRC §99 (as amended by TRAIN)",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Donor's tax = 6% of the total gifts in excess of ₱250,000 annual exemption, regardless of relationship between donor and donee. Donations to qualified charitable institutions enjoy full deduction.",
+    "link": "https://www.bir.gov.ph/",
+    "keywords": "donor tax, 6 percent, NIRC, TRAIN, gift"
+  },
+  {
+    "category": "Tax",
+    "name": "Capital Gains Tax on Real Estate",
+    "citation": "NIRC §24(D)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Capital gains tax on sale of real property classified as capital asset is 6% of the gross selling price or fair market value (whichever is higher). Filed and paid within 30 days from notarization of the deed of sale.",
+    "link": "https://www.bir.gov.ph/",
+    "keywords": "capital gains tax, CGT, real estate, 6 percent, 30 days, BIR"
+  },
+  {
+    "category": "Civil",
+    "name": "Quasi-Delicts (Tort Liability)",
+    "citation": "Civil Code Art. 2176",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Whoever by act or omission causes damage to another, there being fault or negligence, is obliged to pay for the damage done. This forms the basis of tort liability — independent of criminal action. Common applications: vehicular accidents, medical malpractice, employer's vicarious liability.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "quasi-delict, tort, art 2176, negligence, vehicular accident, malpractice, damages"
+  },
+  {
+    "category": "Civil",
+    "name": "Vicarious Liability of Employer",
+    "citation": "Civil Code Art. 2180",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Employers are liable for the negligent acts of their employees committed in the course of employment. Defense: diligence of a good father of a family in selection and supervision. Common in trucking, BPO transport, and security agency cases.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "vicarious liability, art 2180, employer liability, good father, negligence"
+  },
+  {
+    "category": "Civil",
+    "name": "Damages — Actual, Moral, Exemplary, Nominal, Temperate",
+    "citation": "Civil Code Arts. 2197-2235",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Actual damages compensate proven losses. Moral damages cover physical suffering, mental anguish, social humiliation. Exemplary damages punish gross misconduct. Nominal damages vindicate a right. Temperate damages apply when actual amount cannot be proved with certainty. Each category has independent requirements.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "damages, moral, exemplary, actual, civil code, art 2199, art 2219"
+  },
+  {
+    "category": "Civil",
+    "name": "Succession — Forced Heirs and Legitime",
+    "citation": "Civil Code Arts. 886-906",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Legitimate children and descendants share equally in the legitime (1/2 of the estate); the surviving spouse is entitled to a legitime equal to one legitimate child. Illegitimate children get one-half of a legitimate child. A testator may only freely dispose of the disposable portion.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "succession, inheritance, legitime, forced heir, will, testator, civil code"
+  },
+  {
+    "category": "Civil",
+    "name": "Settlement of Estate of Deceased",
+    "citation": "Rule 74 (Extrajudicial) + Rule 73 (Judicial)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "If the decedent left no debts and the heirs are all of age (or minors represented by guardians), the estate may be partitioned extrajudicially by public instrument or affidavit of self-adjudication, published in a newspaper of general circulation. Otherwise, judicial settlement is required.",
+    "link": "https://lawphil.net/courts/rules/",
+    "keywords": "extrajudicial settlement, estate, Rule 74, self adjudication, inheritance, heirs"
+  },
+  {
+    "category": "Civil",
+    "name": "Notarial Will and Holographic Will",
+    "citation": "Civil Code Arts. 805-810",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "A notarial will requires the testator and three credible witnesses to sign each page, attested by a notary public. A holographic will is entirely written, dated, and signed by the hand of the testator. Both forms must undergo probate to be valid for transferring property.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "will, notarial will, holographic, probate, testator, succession"
+  },
+  {
+    "category": "Civil",
+    "name": "Civil Code on Contracts — Essential Requisites",
+    "citation": "Civil Code Arts. 1318-1346",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Three essential requisites of a valid contract: (1) consent of the contracting parties, (2) object certain that is the subject matter, (3) cause of the obligation. Defective consent (vitiated by error, force, intimidation, undue influence, or fraud) renders the contract voidable.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "contract, consent, object, cause, vitiated, void, voidable, civil code"
+  },
+  {
+    "category": "Civil",
+    "name": "Action for Reformation of Instrument",
+    "citation": "Civil Code Arts. 1359-1369",
+    "region": "National",
+    "priority": "low",
+    "fullText": "When a written instrument fails to express the true intention of the parties due to mistake, fraud, inequitable conduct, or accident, either party may file an action to reform it. Must be filed within 10 years.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "reformation, contract, civil code, mistake, fraud, 10 years"
+  },
+  {
+    "category": "Civil",
+    "name": "Specific Performance vs Rescission",
+    "citation": "Civil Code Art. 1191",
+    "region": "National",
+    "priority": "high",
+    "fullText": "In reciprocal obligations (e.g., sale, lease), the injured party may choose between specific performance (compel performance) or rescission (cancel and seek damages). Rescission is automatic only in special cases; in others, judicial action is required.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "specific performance, rescission, art 1191, reciprocal obligation, contract breach"
+  },
+  {
+    "category": "Civil",
+    "name": "Small Claims Court — Updated Threshold",
+    "citation": "A.M. No. 08-8-7-SC (Revised Rules)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Small claims jurisdiction now covers money claims up to ₱1,000,000 (excluding interest and costs). Filed at the first-level court of the place of residence of plaintiff or defendant or where the obligation arose. Lawyers are not allowed to appear. Decision on the day of hearing, no appeal.",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "small claims, 1 million, A.M. 08-8-7-SC, MTC, MeTC, lawyer prohibited"
+  },
+  {
+    "category": "Civil",
+    "name": "Habeas Data and Writ of Amparo",
+    "citation": "A.M. No. 08-1-16-SC (Habeas Data) + A.M. No. 07-9-12-SC (Amparo)",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Writ of Habeas Data — remedy for any person whose right to privacy is violated through gathering or use of personal data by a public official or private entity. Writ of Amparo — remedy against extralegal killings and enforced disappearances. Both are filed with the RTC, CA, SC, or Sandiganbayan and decided within prescribed periods.",
+    "link": "https://sc.judiciary.gov.ph/",
+    "keywords": "habeas data, amparo, writ, privacy, extralegal killing, enforced disappearance"
+  },
+  {
+    "category": "Civil",
+    "name": "Forcible Entry vs Unlawful Detainer",
+    "citation": "Rule 70 + Civil Code",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Forcible entry: dispossession by force, intimidation, threat, strategy, or stealth — filed within 1 year from entry. Unlawful detainer: lessor's right to recover after the lease has lapsed or contract was violated — filed within 1 year from demand to vacate. Summary procedure applies; filed at MTC.",
+    "link": "https://lawphil.net/courts/rules/",
+    "keywords": "ejectment, forcible entry, unlawful detainer, Rule 70, MTC, 1 year"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao Comprehensive Anti-Discrimination Ordinance",
+    "citation": "Davao City Ordinance No. 0417-12",
+    "region": "Davao",
+    "priority": "high",
+    "fullText": "Prohibits discrimination on the basis of sex, gender identity and expression, sexual orientation, religion, ethnicity, age, disability, or socioeconomic status in employment, education, housing, services, and public spaces in Davao City. Penalties: fines up to ₱5,000 and/or imprisonment up to 1 year, plus community service.",
+    "link": null,
+    "keywords": "anti discrimination, SOGIE, Davao, ordinance 0417-12, LGBT, equality"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Anti-Sagasa Ordinance (Anti-Speeding)",
+    "citation": "Davao City Ordinance No. 0356-13",
+    "region": "Davao",
+    "priority": "medium",
+    "fullText": "Penalizes over-speeding within the territorial limits of Davao City. Strictly enforced by the CTTMO. First offense: ₱2,000 fine and 1-month license suspension; second offense: ₱3,500 fine; third offense: ₱5,000 fine and license revocation.",
+    "link": null,
+    "keywords": "sagasa, over speeding, Davao, ordinance 0356-13, CTTMO, license suspension"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Plastic Ban",
+    "citation": "Davao City Ordinance No. 0361-12 (as amended)",
+    "region": "Davao",
+    "priority": "low",
+    "fullText": "Regulates the use of plastic bags and styrofoam containers by establishments. Wet goods may use plastic only as secondary packaging. Violators face fines and possible permit suspension.",
+    "link": null,
+    "keywords": "plastic ban, Davao, ordinance 0361-12, styrofoam, environment"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Children's Welfare Code (Anti-Begging)",
+    "citation": "Davao City Ordinance No. 0029-94",
+    "region": "Davao",
+    "priority": "low",
+    "fullText": "Prohibits child begging and child labor in the streets. Children found begging are referred to CSWDO for rescue. Adults using children for begging may be charged under RA 9208 (Anti-Trafficking).",
+    "link": null,
+    "keywords": "child begging, Davao, CSWDO, trafficking, RA 9208"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Women's Development Code",
+    "citation": "Davao City Ordinance No. 5004-04",
+    "region": "Davao",
+    "priority": "medium",
+    "fullText": "Establishes the Integrated Gender and Development Division (IGDD) and women-friendly spaces in every barangay. Mandates LGU funding for VAWC desks, women's livelihood programs, and reproductive health programs in coordination with DOH.",
+    "link": null,
+    "keywords": "women development code, Davao, IGDD, VAWC desk, reproductive health"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Anti-Drug Abuse Council",
+    "citation": "Davao City Ordinance No. 0292-94",
+    "region": "Davao",
+    "priority": "low",
+    "fullText": "Created the City Anti-Drug Abuse Council (CADAC) and barangay-level BADAC. Encourages voluntary surrender, treatment, and rehabilitation programs in partnership with PDEA and DOH.",
+    "link": null,
+    "keywords": "CADAC, BADAC, Davao, drug rehabilitation, PDEA"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Anti-Loud Music Ordinance",
+    "citation": "Davao City Ordinance",
+    "region": "Davao",
+    "priority": "low",
+    "fullText": "Prohibits playing of loud music from establishments, vehicles, or residences exceeding allowable decibel levels (typically 50 dB at night). Repeated violations may result in business permit suspension.",
+    "link": null,
+    "keywords": "loud music, decibel, Davao, ordinance, noise pollution"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao Region — DENR-XI Environmental Permits",
+    "citation": "PD 1586 + DENR-XI guidelines",
+    "region": "Davao",
+    "priority": "medium",
+    "fullText": "Establishments in Davao Region engaging in mining, agro-industry, or large-scale construction must secure an Environmental Compliance Certificate (ECC) from DENR-EMB Region XI. Violations may lead to project stoppage and fines.",
+    "link": "https://r11.denr.gov.ph/",
+    "keywords": "DENR, ECC, Davao, EMB, environmental permit, PD 1586"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao Region — Indigenous Peoples Mandatory Representation",
+    "citation": "RA 8371 (IPRA) + LGU codes",
+    "region": "Davao",
+    "priority": "medium",
+    "fullText": "LGUs in Davao Region must include indigenous people's representatives (Lumad communities) in local councils and seek their Free, Prior, and Informed Consent (FPIC) before issuing permits in ancestral domains.",
+    "link": "https://lawphil.net/statutes/repacts/ra1997/ra_8371_1997.html",
+    "keywords": "IPRA, RA 8371, Davao, Lumad, FPIC, ancestral domain"
+  },
+  {
+    "category": "Davao",
+    "name": "Davao City Hospital Patient's Bill of Rights",
+    "citation": "DOH AO 2016-0035 + Davao adoption",
+    "region": "Davao",
+    "priority": "low",
+    "fullText": "Patients have rights to informed consent, medical records, second opinion, confidentiality, and refusal of treatment. Hospitals must not refuse emergency care due to inability to pay (RA 10932 — Anti-Hospital Deposit Law).",
+    "link": "https://lawphil.net/statutes/repacts/ra2017/ra_10932_2017.html",
+    "keywords": "patient bill of rights, RA 10932, anti hospital deposit, Davao, emergency"
+  },
+  {
+    "category": "Family",
+    "name": "Anti-Hospital Deposit Law (Emergency Care)",
+    "citation": "RA 10932",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Hospitals and medical clinics cannot demand a deposit or any form of advance payment as a prerequisite for confinement or treatment in emergency or serious cases. Violators face ₱100,000-₱1,000,000 fine and 6 months-2 years imprisonment.",
+    "link": "https://lawphil.net/statutes/repacts/ra2017/ra_10932_2017.html",
+    "keywords": "anti hospital deposit, RA 10932, emergency care, refusal, deposit"
+  },
+  {
+    "category": "Criminal",
+    "name": "Carnapping with Violence — Special Aggravating",
+    "citation": "RA 10883 §3(b)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "If during the carnapping the owner, driver, or occupant is killed or raped, the penalty is life imprisonment to death. Mere accomplice or accessory is punished one degree lower.",
+    "link": "https://lawphil.net/statutes/repacts/ra2016/ra_10883_2016.html",
+    "keywords": "carnapping with violence, RA 10883, life imprisonment, killed driver"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Violence Against Children in Conflict with the Law",
+    "citation": "RA 10630 amending RA 9344",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Children below 15 are absolutely exempt from criminal liability. Children 15-18 are exempt unless they acted with discernment. Detention in regular jails is prohibited; instead, Bahay Pag-asa (DSWD-managed) is used.",
+    "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10630_2013.html",
+    "keywords": "RA 10630, juvenile, discernment, Bahay Pag-asa, DSWD"
+  },
+  {
+    "category": "Criminal",
+    "name": "Anti-Sexual Abuse and Exploitation Online (Live Streaming)",
+    "citation": "RA 11930 §4",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Producing, directing, facilitating, or live-streaming the sexual abuse of a child carries reclusion perpetua and a fine up to ₱5,000,000. ISPs and content platforms must block CSAM URLs reported by the IACAT or PNP-WCPC.",
+    "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11930_2022.html",
+    "keywords": "OSAEC live stream, RA 11930, CSAM, child exploitation, IACAT"
+  },
+  {
+    "category": "Family",
+    "name": "Anti-Sexual Harassment of Minors in Schools",
+    "citation": "RA 11648 + DepEd Order 40 s. 2012 (Child Protection Policy)",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Schools must adopt a Child Protection Policy and a Committee on Child Protection. Teachers or school personnel found liable face administrative sanctions plus criminal liability under RA 7610, RA 11648, or RPC.",
+    "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11648_2022.html",
+    "keywords": "school sexual harassment, child protection, RA 11648, DepEd, RA 7610"
+  },
+  {
+    "category": "Labor",
+    "name": "Magna Carta for Workers in the Informal Economy",
+    "citation": "Pending bill / DOLE Department Order",
+    "region": "National",
+    "priority": "low",
+    "fullText": "Informal workers (sidewalk vendors, kasambahay, ride-hailing riders) gain progressive coverage under SSS, PhilHealth, and Pag-IBIG through expanded voluntary contributions. DOLE coordinates skill upgrading programs.",
+    "link": "https://www.dole.gov.ph/",
+    "keywords": "informal worker, magna carta, kasambahay, rider, voluntary contribution"
+  },
+  {
+    "category": "Labor",
+    "name": "Workers' Compensation (Employees' Compensation Program)",
+    "citation": "PD 626 amending Title II Book IV Labor Code",
+    "region": "National",
+    "priority": "high",
+    "fullText": "Employees injured, contracted illness, or died because of work-related causes are entitled to ECP benefits from SSS (private) or GSIS (government). No-fault principle: gross negligence of the employee may bar claim. Filed within 3 years from cause of action.",
+    "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_626_1974.html",
+    "keywords": "workers compensation, ECP, SSS, GSIS, PD 626, work injury"
+  },
+  {
+    "category": "Civil",
+    "name": "Tort of Abuse of Rights",
+    "citation": "Civil Code Art. 19",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Every person must, in the exercise of their rights and in the performance of their duties, act with justice, give everyone their due, and observe honesty and good faith. Abuse of rights may give rise to damages even when the underlying right exists.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "abuse of right, art 19, good faith, damages, civil code"
+  },
+  {
+    "category": "Criminal",
+    "name": "Hate Crime (Sex / Gender / Religion / Race)",
+    "citation": "RPC + Safe Spaces Act + Anti-Discrimination ordinances",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "No standalone national hate-crime law yet, but underlying offenses (physical injuries, threats, libel) may be aggravated by motive based on sex, gender identity, religion, or race. Local anti-discrimination ordinances (Davao, QC, Mandaluyong) provide independent penalties.",
+    "link": null,
+    "keywords": "hate crime, discrimination, LGBT, religion, motive, aggravating circumstance"
+  },
+  {
+    "category": "Labor",
+    "name": "Service Charge Distribution (Restaurant / Hotel)",
+    "citation": "RA 11360",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "All service charges collected by hotels, restaurants, and similar establishments must be 100% distributed to rank-and-file employees, distributed equally on a payroll period. Excludes managerial employees.",
+    "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11360_2019.html",
+    "keywords": "service charge, RA 11360, restaurant, hotel, tipping, rank and file"
+  },
+  {
+    "category": "Civil",
+    "name": "Acknowledgment of Debt and Prescription",
+    "citation": "Civil Code Arts. 1144 + 1155",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Actions to enforce a written contract or judgment prescribe in 10 years; quasi-delicts in 4 years. The prescriptive period is interrupted by written extrajudicial demand, written acknowledgment of the debt, or filing of an action.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "prescription, 10 years, civil action, demand letter, interruption"
+  },
+  {
+    "category": "Civil",
+    "name": "Compromise Agreement and Enforcement",
+    "citation": "Civil Code Arts. 2028-2046",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "Compromise agreement has the force of res judicata between the parties. Court-approved compromises are enforced by motion; otherwise, a separate action is needed. Must not be contrary to law, morals, good customs, public order, or public policy.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "compromise agreement, settlement, res judicata, civil code, enforcement"
+  },
+  {
+    "category": "Property",
+    "name": "Easement of Right of Way",
+    "citation": "Civil Code Arts. 649-657",
+    "region": "National",
+    "priority": "high",
+    "fullText": "An owner of an enclosed estate (no adequate outlet to public road) may demand a right of way through neighboring estates upon payment of proper indemnity. The route chosen must cause the least damage to the servient estate. Voluntary easements are constituted by agreement; compulsory ones by court order.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "easement, right of way, enclosed land, civil code, art 649, neighbor"
+  },
+  {
+    "category": "Property",
+    "name": "Action for Quieting of Title",
+    "citation": "Civil Code Arts. 476-481",
+    "region": "National",
+    "priority": "medium",
+    "fullText": "An owner of real property may bring an action to remove a cloud on the title — e.g., a forged deed, a void contract, an unjust encumbrance. The plaintiff must have legal or equitable title; the action does not prescribe so long as the plaintiff remains in possession.",
+    "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
+    "keywords": "quieting title, cloud on title, forged deed, art 476, real property"
+  }
+]

@@ -1,0 +1,130 @@
+/* ============================================================
+   Ordinex design system — shared tokens, a11y, primitives
+   ============================================================ */
+
+:root {
+  --section-y: clamp(48px, 8vw, 96px);
+  --tap-min: 44px;
+  --focus-ring: 2px solid var(--color-ox-emerald-mid);
+  --focus-ring-offset: 2px;
+  /* Darker muted text for WCAG-friendlier small copy on parchment */
+  --color-ox-text-muted: #555555;
+}
+
+html {
+  scroll-padding-top: calc(var(--landing-nav-h) + 12px);
+}
+
+/* Skip to main content */
+.ox-skip-link {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 10000;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-ox-emerald);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--transition-base);
+}
+
+.ox-skip-link:focus,
+.ox-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Global focus-visible */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+.ox-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Flat card primitive */
+.ox-card--flat {
+  background: var(--color-ox-surface-elevated);
+  border: 1px solid var(--color-ox-border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
+
+/* Marketing / legal section wrapper */
+.ui-section {
+  width: min(100%, var(--content-max));
+  margin-inline: auto;
+  padding: var(--section-y) clamp(16px, 4vw, 32px);
+}
+
+/* Form field comfort + iOS zoom fix */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+.ox-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ox-text);
+}
+
+.ox-field-error {
+  margin-top: 6px;
+  font-size: var(--text-sm);
+  color: var(--color-ox-error);
+}
+
+/* Touch-friendly tap targets for icon buttons */
+.ox-tap-target {
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reduced motion — global */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .landing-hero__glow,
+  .landing-reveal,
+  .landing-benefit-item,
+  .landing-benefit-chip {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .landing-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,438 @@
+/* Lawyer marketplace — directory & profile (staff-panel aligned) */
+
+.marketplace {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.marketplace-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: #fff;
+  border: 1px solid rgba(13, 59, 46, 0.12);
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+}
+
+.marketplace-search .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+.marketplace-search .ox-input {
+  border: none;
+  padding: 0;
+  background: transparent;
+  flex: 1;
+  min-width: 0;
+}
+
+.marketplace-search .ox-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.marketplace-meta {
+  font-size: 0.78rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+  margin: 0 0 0.65rem;
+}
+
+.marketplace-banner {
+  padding: 0.75rem 0.9rem;
+  background: rgba(26, 92, 71, 0.06);
+  border: 1px solid rgba(26, 92, 71, 0.15);
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+}
+
+.marketplace-banner__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-banner__body {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+  line-height: 1.45;
+}
+
+.marketplace-banner__link {
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.marketplace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.marketplace-lawyer-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(13, 59, 46, 0.08);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+
+.marketplace-lawyer-row:hover {
+  border-color: rgba(184, 146, 46, 0.45);
+}
+
+.marketplace-lawyer-row--muted {
+  opacity: 0.72;
+}
+
+.marketplace-lawyer-row__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-ox-emerald-deep, #082820);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.marketplace-lawyer-row__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marketplace-lawyer-row__avatar .material-symbols-outlined {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 22px;
+}
+
+.marketplace-lawyer-row__main {
+  min-width: 0;
+}
+
+.marketplace-lawyer-row__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.marketplace-lawyer-row__name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-lawyer-row__verified {
+  font-size: 16px;
+  color: var(--color-ox-emerald-mid, #1A5C47);
+}
+
+.marketplace-lawyer-row__match {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(184, 146, 46, 0.15);
+  color: var(--color-ox-gold-muted, #9A7A24);
+}
+
+.marketplace-lawyer-row__spec {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marketplace-lawyer-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+.marketplace-lawyer-row__meta strong {
+  color: var(--color-ox-emerald, #0D3B2E);
+  font-weight: 650;
+}
+
+.marketplace-lawyer-row__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .marketplace-lawyer-row {
+    grid-template-columns: auto 1fr;
+  }
+
+  .marketplace-lawyer-row__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .marketplace-lawyer-row__actions .ox-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.marketplace-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.marketplace-empty__icon {
+  font-size: 40px;
+  color: rgba(13, 59, 46, 0.25);
+  margin-bottom: 0.5rem;
+}
+
+.marketplace-empty h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+/* Profile */
+.marketplace-profile-stepper {
+  max-width: 480px;
+  margin-bottom: 1rem;
+}
+
+.marketplace-profile-hero {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.marketplace-profile-hero__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-ox-emerald-deep, #082820);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.marketplace-profile-hero__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marketplace-profile-hero__avatar .material-symbols-outlined {
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.marketplace-profile-hero__name {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+  font-family: var(--font-headline, Georgia, serif);
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-profile-hero__spec {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+.marketplace-profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.marketplace-profile-stats span {
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+.marketplace-profile-stats strong {
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-profile-bio {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-ox-text, #1A1A1A);
+}
+
+.marketplace-profile-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.marketplace-profile-cta p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+  line-height: 1.45;
+}
+
+.marketplace-credentials__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.marketplace-credentials__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(13, 59, 46, 0.06);
+  font-size: 0.85rem;
+}
+
+.marketplace-credentials__item:last-child {
+  border-bottom: none;
+}
+
+.marketplace-review {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(13, 59, 46, 0.06);
+}
+
+.marketplace-review:last-child {
+  border-bottom: none;
+}
+
+.marketplace-review__stars {
+  display: flex;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--color-ox-gold, #B8922E);
+}
+
+.marketplace-review__comment {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.marketplace-review__author {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+/* Video lobby session rows */
+.marketplace-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid rgba(13, 59, 46, 0.06);
+}
+
+.marketplace-session-row:last-child {
+  border-bottom: none;
+}
+
+.marketplace-session-row__name {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.marketplace-session-row__meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-ox-text-muted, #6B6B6B);
+}
+
+/* —— Minimalist directory polish —— */
+.marketplace-search {
+  min-height: var(--tap-min, 44px);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.marketplace-lawyer-row {
+  border: 1px solid rgba(13, 59, 46, 0.1);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: #fff;
+  box-shadow: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.marketplace-lawyer-row:hover {
+  border-color: rgba(26, 92, 71, 0.28);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+.marketplace-lawyer-row__fee {
+  font-weight: 700;
+  color: var(--color-ox-emerald, #0D3B2E);
+  font-variant-numeric: tabular-nums;
+}
+
+.marketplace-filters,
+.marketplace-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.marketplace-chip,
+.marketplace-filters button {
+  min-height: 36px;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-ox-border, #E2E8E5);
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-ox-emerald, #0D3B2E);
+  cursor: pointer;
+}
+
+.marketplace-chip.is-active,
+.marketplace-filters button[aria-pressed='true'] {
+  background: var(--color-ox-surface-tint, #EDF4F1);
+  border-color: rgba(26, 92, 71, 0.35);
+}
+

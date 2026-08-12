@@ -1,0 +1,262 @@
+/* ============================================================
+   Citizen shell refresh — palette, nav, dashboard surfaces
+   ============================================================ */
+
+:root {
+  /* Softer workspace tones */
+  --color-ox-parchment: #F8FAF9;
+  --color-ox-cream: #FFFFFF;
+  --color-ox-surface: #F3F5F4;
+  --color-ox-surface-elevated: #FFFFFF;
+  --color-ox-surface-tint: #EDF4F1;
+  --color-ox-border: #E2E8E5;
+  --color-ox-text-muted: #5C6560;
+
+  /* Calmer canvas — subtle green wash, no heavy gold radials */
+  --app-canvas-mesh:
+    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(26, 92, 71, 0.04), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(13, 59, 46, 0.03), transparent 50%),
+    linear-gradient(180deg, #F8FAF9 0%, #F4F7F5 100%);
+}
+
+/* Portal layout handles nav chrome — legacy sidenav overrides removed */
+
+/* —— Marketing nav —— */
+.marketing-nav {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-ox-border);
+}
+
+.marketing-nav--dark {
+  background: rgba(8, 40, 32, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.marketing-nav__link--active {
+  color: var(--color-ox-emerald-mid);
+}
+
+/* —— Cards on canvas —— */
+.app-content .ox-card,
+.flow-content .ox-card {
+  background: var(--color-ox-surface-elevated);
+  box-shadow: var(--shadow-xs);
+}
+
+/* —— Premium dashboard (dash-layout unified) —— */
+.dash-layout--premium {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dash-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .dash-grid-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dash-stat-tile {
+  padding: var(--space-4);
+  background: var(--color-ox-surface-elevated);
+  border: 1px solid var(--color-ox-border);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-ox-emerald-mid);
+  box-shadow: var(--shadow-xs);
+}
+
+.dash-stat-tile--gold {
+  border-left-color: var(--color-ox-gold);
+}
+
+.dash-stat-tile__value {
+  font-family: var(--font-headline);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-ox-emerald);
+  line-height: 1.1;
+}
+
+.dash-stat-tile__label {
+  margin-top: 0.25rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ox-text-muted);
+}
+
+.dash-split--premium {
+  grid-template-columns: 1.65fr 1fr;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .dash-split--premium {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-panel {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dash-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-ox-border);
+}
+
+.dash-panel__title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-ox-emerald);
+}
+
+.dash-panel__body {
+  padding: var(--space-4);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.dash-stack-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+.dash-booking-card {
+  padding: var(--space-4);
+  border: 1px solid var(--color-ox-border);
+  border-radius: var(--radius-md);
+  background: var(--color-ox-surface-tint);
+}
+
+.dash-booking-card + .dash-booking-card {
+  margin-top: var(--space-3);
+}
+
+.dash-booking-card__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--color-ox-emerald);
+}
+
+.dash-booking-card__meta {
+  margin: 0.2rem 0 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-ox-text-muted);
+}
+
+.dash-booking-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.dash-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dash-row-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3);
+  border: 1px solid var(--color-ox-border);
+  border-radius: var(--radius-md);
+  background: var(--color-ox-surface-elevated);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.dash-row-btn:hover {
+  border-color: rgba(26, 92, 71, 0.35);
+  background: var(--color-ox-surface-tint);
+}
+
+.dash-row-btn + .dash-row-btn {
+  margin-top: var(--space-2);
+}
+
+.dash-row-btn__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ox-emerald);
+}
+
+.dash-row-btn__meta {
+  margin: 0.15rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-ox-text-muted);
+}
+
+/* Animations for premium dash too */
+@media (prefers-reduced-motion: no-preference) {
+  .page-stack--dashboard .dash-layout--premium > * {
+    animation: dash-rise 0.45s ease both;
+  }
+
+  .page-stack--dashboard .dash-layout--premium > *:nth-child(1) { animation-delay: 0ms; }
+  .page-stack--dashboard .dash-layout--premium > *:nth-child(2) { animation-delay: 60ms; }
+  .page-stack--dashboard .dash-layout--premium > *:nth-child(3) { animation-delay: 120ms; }
+  .page-stack--dashboard .dash-layout--premium > *:nth-child(4) { animation-delay: 180ms; }
+  .page-stack--dashboard .dash-layout--premium > *:nth-child(5) { animation-delay: 240ms; }
+}
+
+/* —— Minimalist dashboard polish —— */
+.dash-stat-tile {
+  box-shadow: none;
+}
+
+.dash-booking-card {
+  background: var(--color-ox-surface-elevated);
+  box-shadow: none;
+}
+
+.dash-booking-card__actions .ox-btn {
+  min-height: var(--tap-min, 44px);
+}
+
+.dash-row-btn {
+  min-height: var(--tap-min, 44px);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.dash-empty,
+.dash-panel__body .dash-empty-state {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-ox-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+

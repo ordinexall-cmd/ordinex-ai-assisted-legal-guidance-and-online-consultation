@@ -1,0 +1,712 @@
+/* ============================================================
+   Consultation chromeless UI — private lawyer video sessions
+   Adapted from Ordinex consult-chromeless (PAO) for OXfinal tokens
+   ============================================================ */
+
+.consult-chromeless {
+  min-height: 100vh;
+  background: var(--color-ox-emerald-deep, #082820);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.consult-chromeless--center {
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.consult-chromeless__muted {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.consult-chromeless__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--color-ox-gold, #B8922E);
+  background: var(--color-ox-emerald-deep, #082820);
+  flex-shrink: 0;
+}
+
+.consult-chromeless__back {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.consult-chromeless__back:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.consult-chromeless__header-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.consult-chromeless__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--font-headline, Georgia, serif);
+  letter-spacing: 0.01em;
+}
+
+.consult-chromeless__subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consult-chromeless__header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.consult-chromeless__btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: var(--font-body, inherit);
+}
+
+.consult-chromeless__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.consult-chromeless__btn--end {
+  background: var(--color-ox-error, #C41E1E);
+  border-color: var(--color-ox-error, #C41E1E);
+  color: #fff;
+  font-weight: 600;
+}
+
+.consult-chromeless__btn--primary {
+  background: var(--color-ox-emerald-mid, #1A5C47);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+
+.consult-chromeless__btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.consult-chromeless__btn--gold {
+  background: transparent;
+  border-color: rgba(184, 146, 46, 0.55);
+  color: var(--color-ox-gold-light, #D4AF5A);
+}
+
+/* —— Preflight —— */
+.consult-preflight {
+  flex: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+  width: 100%;
+}
+
+.consult-preflight__intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.consult-preflight__section {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md, 10px);
+}
+
+.consult-preflight__section h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  font-family: var(--font-headline, Georgia, serif);
+  color: var(--color-ox-gold-light, #D4AF5A);
+  font-weight: 600;
+}
+
+.consult-preflight__section p,
+.consult-preflight__section li {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.consult-preflight__section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.consult-preflight__section li + li {
+  margin-top: 0.35rem;
+}
+
+.consult-preflight__device {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.consult-preflight__device--ok {
+  color: #7dcea0;
+}
+
+.consult-preflight__device--wait {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.consult-preflight__device--fail {
+  color: #f5a8a8;
+}
+
+.consult-preflight__agree {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 1.15rem 0;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.consult-preflight__agree input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--color-ox-gold, #B8922E);
+}
+
+.consult-preflight__proceed {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  border-radius: var(--radius-md, 10px);
+  border: none;
+  background: var(--color-ox-emerald-mid, #1A5C47);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body, inherit);
+}
+
+.consult-preflight__proceed:hover:not(:disabled) {
+  background: var(--color-ox-emerald, #0D3B2E);
+  filter: brightness(1.15);
+}
+
+.consult-preflight__proceed:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.consult-preflight__error {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  background: rgba(196, 30, 30, 0.18);
+  border: 1px solid rgba(196, 30, 30, 0.4);
+  color: #f5c6c6;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* —— Video room —— */
+.consult-room {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 0;
+  position: relative;
+}
+
+.consult-room--transcript {
+  grid-template-columns: 1fr minmax(260px, 320px);
+}
+
+.consult-room__stage {
+  position: relative;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-height: calc(100vh - 56px);
+}
+
+.consult-room__stage .video-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.consult-room__stage .video-stage__canvas {
+  flex: 1;
+  min-height: calc(100vh - 56px);
+  border-radius: 0;
+}
+
+.consult-room__gate {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1.25rem;
+  color: #fff;
+  min-height: calc(100vh - 56px);
+}
+
+.consult-room__gate h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-headline, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.consult-room__gate p {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+  max-width: 360px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.55;
+}
+
+.consult-room__transcript {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0c2e24;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.consult-room__transcript-inner {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.consult-room__transcript .transcript-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  min-height: 0;
+}
+
+.consult-room__transcript .transcript-card__title {
+  color: var(--color-ox-gold-light, #D4AF5A);
+}
+
+.consult-room__transcript .transcript-hint,
+.consult-room__transcript .muted-center {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.consult-room__transcript .transcript-segment {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.consult-room__transcript .transcript-segment__who {
+  color: var(--color-ox-gold-light, #D4AF5A);
+}
+
+.consult-room__transcript .transcript-plain {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.consult-room__transcript .ox-btn-ghost {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.consult-room__transcript-foot {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  line-height: 1.4;
+}
+
+/* —— Post-call —— */
+.consult-postcall {
+  max-width: 480px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md, 10px);
+}
+
+.consult-postcall h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-headline, Georgia, serif);
+  font-size: 1.15rem;
+}
+
+.consult-postcall__lead {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.consult-postcall ul {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0 0 1.25rem;
+  padding-left: 1.2rem;
+  line-height: 1.55;
+}
+
+.consult-postcall li + li {
+  margin-top: 0.35rem;
+}
+
+.consult-postcall__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* —— Preflight card —— */
+.consult-preflight--centered {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.consult-preflight-card {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.15rem 1.2rem 1rem;
+}
+
+.consult-preflight-card__intro {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.consult-preflight-card__item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.consult-preflight-card__item:last-of-type {
+  border-bottom: none;
+}
+
+.consult-preflight-card__icon {
+  font-size: 22px;
+  color: var(--color-ox-gold-light, #D4AF5A);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.consult-preflight-card__item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.consult-preflight-card__item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.consult-preflight-card__item-head h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: #fff;
+}
+
+.consult-preflight-card__item-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.consult-preflight-card__item-text p {
+  margin: 0;
+}
+
+.consult-preflight-card__item-text ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.consult-preflight-card__item-text li + li {
+  margin-top: 0.3rem;
+}
+
+.consult-preflight-card__footer {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.consult-preflight-card__footer .consult-preflight__agree {
+  margin-top: 0;
+}
+
+.consult-preflight-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* —— Video stage (consolidated from index.css) —— */
+.video-stage__canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  background: #1e2220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-stage__remote {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-stage__placeholder {
+  text-align: center;
+  color: rgba(225, 227, 224, 0.6);
+  font-size: 11px;
+}
+
+.video-stage__placeholder .material-symbols-outlined {
+  font-size: 48px;
+  opacity: 0.4;
+}
+
+.video-stage__room {
+  font-family: monospace;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+.video-stage__live {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-stage__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-ox-success);
+}
+
+.video-stage__pip {
+  position: absolute;
+  bottom: 88px;
+  right: 12px;
+  width: 120px;
+  height: 72px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 77, 64, 0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-stage__local {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-stage__pip-label {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.video-stage__controls {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-stage__ctrl {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #333;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-stage__ctrl--end {
+  background: var(--color-ox-error);
+}
+
+.video-stage__ctrl--recording {
+  background: #c0392b;
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(192, 57, 43, 0); }
+}
+
+.video-stage__rec-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(192, 57, 43, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.video-stage__rec-badge--upload {
+  background: rgba(0, 77, 64, 0.85);
+}
+
+.video-stage__rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4444;
+  animation: rec-dot-blink 1s steps(1) infinite;
+}
+
+@keyframes rec-dot-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* —— Lobby polish —— */
+.video-lobby-list .video-session-card {
+  border: 1px solid var(--color-ox-border);
+  background: var(--color-ox-cream, #FFFCF7);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.video-lobby-list .video-session-card:hover {
+  border-color: rgba(26, 92, 71, 0.35);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 900px) {
+  .consult-chromeless__header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 55%;
+  }
+
+  .consult-chromeless__header {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  .consult-room--transcript {
+    grid-template-columns: 1fr;
+  }
+
+  .consult-room__transcript {
+    position: relative;
+    min-height: 280px;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .consult-room__stage,
+  .consult-room__stage .video-stage__canvas,
+  .consult-room__gate {
+    min-height: 48vh;
+  }
+
+  .consult-chromeless__subtitle {
+    white-space: normal;
+  }
+}

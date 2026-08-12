@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install frontend
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install server
+        working-directory: server
+        run: npm ci
+
+      - name: Prisma generate
+        working-directory: server
+        run: npx prisma generate
+
+      - name: Migrate SQLite test DB
+        working-directory: server
+        env:
+          DATABASE_URL: file:./ci.db
+        run: npx prisma migrate deploy
+
+      - name: API smoke test
+        working-directory: server
+        env:
+          DATABASE_URL: file:./ci.db
+          JWT_SECRET: ci-test-secret
+          NODE_ENV: test
+        run: node scripts/smoke-test.js

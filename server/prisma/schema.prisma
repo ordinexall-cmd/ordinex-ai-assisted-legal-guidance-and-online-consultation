@@ -1,0 +1,353 @@
+// ============================================================
+// Ordinex — Prisma Schema
+// Full 10-model schema matching the implementation plan.
+// Dev: SQLite | Prod: PostgreSQL (Supabase)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ======================== MODELS ========================
+
+model User {
+  id                String         @id @default(uuid())
+  email             String         @unique
+  phone             String         @unique
+  passwordHash      String
+  googleId          String?        @unique
+  role              String         @default("CITIZEN") // CITIZEN | LAWYER
+  name              String
+  language          String         @default("en")
+  isPremium         Boolean        @default(false)
+  trialsUsed        Int            @default(0) // max 3 lifetime for free
+  isFirstLogin      Boolean        @default(true) // for walkthrough
+  isBanned          Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Lawyer-specific fields
+  barNumber         String?
+  specializations   String? // JSON array string: ["Criminal","Family"]
+  consultationFee   Float? // legacy; synced from consultationFeeMin
+  consultationFeeMin Float?
+  consultationFeeMax Float?
+  acceptingBookings Boolean        @default(true)
+  bio               String?
+  yearsOfExperience Int?
+  practiceType      String? // "PUBLIC" | "PRIVATE"
+  isVerified        Boolean        @default(false)
+  avatarUrl         String?
+  paymentMethods    String? // JSON: [{type, qrUrl, accountName}]
+  // JSON array of {id, title, description, fileUrl, uploadedAt}
+  // Used for ID proof, bar certificate, diplomas, etc.
+  credentials       String?
+  rating            Float          @default(0)
+  ratingCount       Int            @default(0)
+  noShowStrikes     Int            @default(0)
+
+  // Lawyer wallet (platform-owned payment model)
+  walletBalance     Float          @default(0) // withdrawable after COMPLETED
+  walletPending     Float          @default(0) // held until consultation COMPLETED
+
+  // Citizen personal-profile fields (expanded registration)
+  dob               String?
+  gender            String?
+  address           String?
+  civilStatus       String?
+  occupation        String?
+
+  // Lawyer KYC / identity-verification status machine.
+  // NOT_STARTED → PENDING_UPLOAD → PROCESSING → (VERIFIED | NEEDS_REUPLOAD | REJECTED)
+  lawyerVerificationStatus        String   @default("NOT_STARTED")
+  lawyerVerificationScore         Float?   // 0-100 aggregate confidence
+  lawyerVerificationRejectionReason String?
+  lawyerVerificationCooldownUntil DateTime? // re-registration blocked until this date
+  lawyerVerificationUpdatedAt     DateTime?
+
+  // Relations
+  consultations       Consultation[]
+  availabilities      Availability[]
+  bookingsAsCitizen   Booking[]      @relation("CitizenBookings")
+  bookingsAsLawyer    Booking[]      @relation("LawyerBookings")
+  reviews             Review[]
+  subscription        Subscription?
+  notifications       Notification[]
+  reportsFiled        Report[]       @relation("Reporter")
+  reportsReceived     Report[]       @relation("Reported")
+  lawyerVerification  LawyerVerification?
+  payments            Payment[]
+  payoutRequests      PayoutRequest[]
+}
+
+// ===== Lawyer Identity Verification (no-admin pipeline) =====
+// Stores artifacts (ID, selfie, payment-name) and per-attempt scoring
+// for the deterministic AI-assisted verification flow described in the
+// Ordinex Lawyer Verification blueprint.
+model LawyerVerification {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Professional registry match
+  submittedFullName      String?  // name lawyer entered
+  submittedRollNumber    String?  // SC roll / IBP number
+  rollMatchedName        String?  // canonical name from seed registry
+  rollMatchHit           Boolean  @default(false)
+
+  // Government-issued ID upload
+  govIdType              String?  // e.g. PRC, Driver, Passport, NBI
+  govIdUrl               String?
+  govIdOcrName           String?  // extracted name from ID
+  govIdUploadedAt        DateTime?
+
+  // Selfie + dynamic challenge note
+  challengeCode          String?  // e.g. ORD-2026-0526-AB12
+  challengeIssuedAt      DateTime?
+  selfieUrl              String?
+  selfieUploadedAt       DateTime?
+
+  // Scoring artefacts (each 0..1 unless noted)
+  faceMatchScore         Float?   // 1 - normalized euclidean distance
+  ocrNameMatchScore      Float?   // 0..1 similarity of OCR name vs roll name
+  paymentAccountName     String?
+  paymentNameMatchScore  Float?   // 0..1
+  challengeCodeMatched   Boolean  @default(false)
+
+  // Aggregate decision
+  aggregateConfidence    Float    @default(0) // 0..100
+  decision               String   @default("PENDING") // PENDING | AUTO_APPROVE | NEEDS_REUPLOAD | AUTO_REJECT
+  decisionReason         String?
+  decisionAt             DateTime?
+
+  attempts               Int      @default(0)
+  lastSubmittedAt        DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// Seeded subset of Supreme Court Roll of Attorneys used for grounding
+// the "registry cross-reference" verification step. Dev-only sample data
+// in this repo; production should sync from the official source.
+model RollOfAttorneys {
+  rollNumber String  @id
+  fullName   String
+  admittedAt DateTime?
+  status     String  @default("ACTIVE") // ACTIVE | SUSPENDED | DISBARRED
+  region     String?
+  createdAt  DateTime @default(now())
+
+  @@index([fullName])
+}
+
+model Consultation {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  title           String?  // User-editable name for the analysis
+  category        String
+  description     String
+  fileUrl         String? // Uploaded PDF/DOCX in Supabase Storage
+  extractedText   String? // Parsed text from document
+  aiResult        String // Full structured JSON from AI analysis (Groq)
+  analysisMeta    String? // JSON: corpusSource, corpusFreshness, supersededWarning, providersUsed
+  followUpHistory String? // JSON array of {role, content}
+  followUpCount   Int      @default(0) // unlimited follow-ups; count kept for analytics
+  isFree          Boolean  @default(true)
+  trialsCharged   Boolean  @default(true) // false when needs_detail / no_corpus
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([userId, deletedAt])
+}
+
+model LawReference {
+  id       String  @id @default(uuid())
+  category String
+  name     String
+  fullText String
+  link     String?
+  keywords String
+}
+
+model Availability {
+  id        String   @id @default(uuid())
+  lawyerId  String
+  lawyer    User     @relation(fields: [lawyerId], references: [id])
+  date      DateTime
+  startTime String
+  endTime   String
+  isBooked  Boolean  @default(false)
+  version   Int      @default(0) // optimistic locking
+  createdAt DateTime @default(now())
+  booking   Booking?
+}
+
+model Booking {
+  id                String   @id @default(uuid())
+  citizenId         String
+  citizen           User     @relation("CitizenBookings", fields: [citizenId], references: [id])
+  lawyerId          String
+  lawyer            User     @relation("LawyerBookings", fields: [lawyerId], references: [id])
+  availabilityId    String   @unique
+  availability      Availability @relation(fields: [availabilityId], references: [id])
+  // REQUESTED | APPROVED | PAYMENT_SUBMITTED | CONFIRMED | DECLINED | AUTO_CANCELLED | NO_SHOW | IN_PROGRESS | COMPLETED | RATED
+  status            String   @default("REQUESTED")
+  feeAtBooking      Float // Price locked at booking time
+  consultationId    String? // Optional linked AI analysis
+  caseDescription   String? // Custom description from citizen
+  paymentReference  String? // GCash/Maya reference number (legacy)
+  paymentReceiptUrl String? // citizen-uploaded proof screenshot (legacy)
+  paymentSnapshot   String? // JSON: payment method chosen at approve (legacy)
+  paymentVerifiedAt DateTime?
+  // Platform-owned payment fields
+  quotedFee         Float?  // Set by lawyer on approve
+  platformFee       Float?  // 10% commission, set on approve / payment
+  lawyerShare       Float?  // 85% to lawyer, set on payment confirm
+  paymentId         String? @unique // Links to Payment model
+  approvedAt        DateTime? // For 24h unpaid expiry cron
+  roomId            String? // Opaque PeerJS room token (UUID)
+  transcript        String? // Call transcript
+  recordingUrl      String? // Uploaded consultation recording (internal path)
+  consultConsentAt  DateTime? // Server-audited preflight consent timestamp
+  chatMessages      String? // JSON array of messages
+  chatClosedAt      DateTime?
+  noShowParty       String? // "CITIZEN" | "LAWYER"
+  citizenDeletedAt  DateTime?
+  lawyerDeletedAt   DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  review            Review?
+  recordHash        RecordHash?
+  payment           Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([citizenId, citizenDeletedAt])
+  @@index([lawyerId, lawyerDeletedAt])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  citizenId String
+  citizen   User     @relation(fields: [citizenId], references: [id])
+  rating    Int // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  price     Float    @default(299)
+  status    String   @default("ACTIVE") // ACTIVE | EXPIRED
+  reference String? // Payment reference number
+  startDate DateTime @default(now())
+  endDate   DateTime // startDate + 30 days
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String // AI_READY, BOOKING_REQUEST, BOOKING_APPROVED, etc.
+  isRead    Boolean  @default(false)
+  linkTo    String? // URL to navigate to
+  createdAt DateTime @default(now())
+}
+
+model RecordHash {
+  id               String    @id @default(uuid())
+  bookingId        String    @unique
+  booking          Booking   @relation(fields: [bookingId], references: [id])
+  dataHash         String // SHA-256
+  previousHash     String? // Chain linkage
+  blockchainTxHash String? // Ethereum tx hash
+  anchoredAt       DateTime?
+  createdAt        DateTime  @default(now())
+}
+
+model OtpChallenge {
+  id        String   @id @default(uuid())
+  phone     String
+  purpose   String // REGISTER | RESET_PASSWORD
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([phone, purpose])
+}
+
+model PendingRegistration {
+  phone     String   @id
+  payload   String // JSON user fields pending OTP
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id              String   @id @default(uuid())
+  reporterId      String
+  reporter        User     @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUserId  String
+  reportedUser    User     @relation("Reported", fields: [reportedUserId], references: [id])
+  bookingId       String?
+  reason          String // HARASSMENT | NO_SHOW | SCAM | INAPPROPRIATE | OTHER
+  description     String
+  screenshotUrl   String?
+  disputeText     String?
+  disputeProofUrl String?
+  disputedAt      DateTime?
+  status          String   @default("PENDING") // PENDING | DISPUTED | RESOLVED | ACTIONED
+  createdAt       DateTime @default(now())
+}
+
+// ===== Platform Payment (simulated checkout v1, PayMongo v2) =====
+model Payment {
+  id              String   @id @default(uuid())
+  idempotencyKey  String   @unique
+  type            String   // SUBSCRIPTION | BOOKING
+  amount          Float
+  platformFee     Float    @default(0)
+  method          String?  // GCASH | MAYA | CARD (mock for v1)
+  status          String   @default("COMPLETED") // COMPLETED | FAILED
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  bookingId       String?  // only for BOOKING type
+  subscriptionId  String?  // only for SUBSCRIPTION type
+  booking         Booking?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ===== Lawyer Payout Request =====
+model PayoutRequest {
+  id              String   @id @default(uuid())
+  lawyerId        String
+  lawyer          User     @relation(fields: [lawyerId], references: [id])
+  amount          Float
+  method          String   // GCASH | BANK
+  accountDetails  String   // JSON: {accountName, accountNumber, bankName?, provider?}
+  status          String   @default("PENDING") // PENDING | PAID | REJECTED
+  createdAt       DateTime @default(now())
+
+  @@index([lawyerId])
+}
+
+/** Key-value store for app flags (e.g. demo_seed_version). */
+model AppMeta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

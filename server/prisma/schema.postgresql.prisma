@@ -1,0 +1,260 @@
+// Production schema — PostgreSQL (Supabase). Dev uses schema.prisma (SQLite).
+// Apply: npm run db:push:prod  (with DATABASE_URL + DIRECT_URL in .env)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Models mirror schema.prisma — keep in sync when changing schema.
+
+model User {
+  id                String         @id @default(uuid())
+  email             String         @unique
+  phone             String         @unique
+  passwordHash      String
+  googleId          String?        @unique
+  role              String         @default("CITIZEN")
+  name              String
+  language          String         @default("en")
+  isPremium         Boolean        @default(false)
+  trialsUsed        Int            @default(0)
+  isFirstLogin      Boolean        @default(true)
+  isBanned          Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  barNumber         String?
+  specializations   String?
+  consultationFee   Float?
+  consultationFeeMin Float?
+  consultationFeeMax Float?
+  acceptingBookings Boolean        @default(true)
+  bio               String?
+  yearsOfExperience Int?
+  practiceType      String?
+  isVerified        Boolean        @default(false)
+  avatarUrl         String?
+  paymentMethods    String?
+  credentials       String?
+  rating            Float          @default(0)
+  ratingCount       Int            @default(0)
+  noShowStrikes     Int            @default(0)
+  lawyerVerificationStatus        String   @default("NOT_STARTED")
+  lawyerVerificationScore         Float?
+  lawyerVerificationRejectionReason String?
+  lawyerVerificationCooldownUntil DateTime?
+  lawyerVerificationUpdatedAt     DateTime?
+  consultations       Consultation[]
+  availabilities      Availability[]
+  bookingsAsCitizen   Booking[]      @relation("CitizenBookings")
+  bookingsAsLawyer    Booking[]      @relation("LawyerBookings")
+  reviews             Review[]
+  subscription        Subscription?
+  notifications       Notification[]
+  reportsFiled        Report[]       @relation("Reporter")
+  reportsReceived     Report[]       @relation("Reported")
+  lawyerVerification  LawyerVerification?
+}
+
+model LawyerVerification {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedFullName      String?
+  submittedRollNumber    String?
+  rollMatchedName        String?
+  rollMatchHit           Boolean  @default(false)
+  govIdType              String?
+  govIdUrl               String?
+  govIdOcrName           String?
+  govIdUploadedAt        DateTime?
+  challengeCode          String?
+  challengeIssuedAt      DateTime?
+  selfieUrl              String?
+  selfieUploadedAt       DateTime?
+  faceMatchScore         Float?
+  ocrNameMatchScore      Float?
+  paymentAccountName     String?
+  paymentNameMatchScore  Float?
+  challengeCodeMatched   Boolean  @default(false)
+  aggregateConfidence    Float    @default(0)
+  decision               String   @default("PENDING")
+  decisionReason         String?
+  decisionAt             DateTime?
+  attempts               Int      @default(0)
+  lastSubmittedAt        DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model RollOfAttorneys {
+  rollNumber String  @id
+  fullName   String
+  admittedAt DateTime?
+  status     String  @default("ACTIVE")
+  region     String?
+  createdAt  DateTime @default(now())
+
+  @@index([fullName])
+}
+
+model Consultation {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  title           String?
+  category        String
+  description     String
+  fileUrl         String?
+  extractedText   String?
+  aiResult        String
+  analysisMeta    String?
+  followUpHistory String?
+  followUpCount   Int      @default(0)
+  isFree          Boolean  @default(true)
+  trialsCharged   Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model LawReference {
+  id       String  @id @default(uuid())
+  category String
+  name     String
+  fullText String
+  link     String?
+  keywords String
+}
+
+model Availability {
+  id        String   @id @default(uuid())
+  lawyerId  String
+  lawyer    User     @relation(fields: [lawyerId], references: [id])
+  date      DateTime
+  startTime String
+  endTime   String
+  isBooked  Boolean  @default(false)
+  version   Int      @default(0)
+  createdAt DateTime @default(now())
+  booking   Booking?
+}
+
+model Booking {
+  id                String       @id @default(uuid())
+  citizenId         String
+  citizen           User         @relation("CitizenBookings", fields: [citizenId], references: [id])
+  lawyerId          String
+  lawyer            User         @relation("LawyerBookings", fields: [lawyerId], references: [id])
+  availabilityId    String       @unique
+  availability      Availability @relation(fields: [availabilityId], references: [id])
+  status            String       @default("REQUESTED")
+  feeAtBooking      Float
+  consultationId    String?
+  caseDescription   String?
+  paymentReference  String?
+  paymentReceiptUrl String?
+  paymentSnapshot   String?
+  paymentVerifiedAt DateTime?
+  roomId            String?
+  transcript        String?
+  chatMessages      String?
+  chatClosedAt      DateTime?
+  noShowParty       String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  review            Review?
+  recordHash        RecordHash?
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  citizenId String
+  citizen   User     @relation(fields: [citizenId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  price     Float    @default(299)
+  status    String   @default("ACTIVE")
+  reference String?
+  startDate DateTime @default(now())
+  endDate   DateTime
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  linkTo    String?
+  createdAt DateTime @default(now())
+}
+
+model RecordHash {
+  id               String    @id @default(uuid())
+  bookingId        String    @unique
+  booking          Booking   @relation(fields: [bookingId], references: [id])
+  dataHash         String
+  previousHash     String?
+  blockchainTxHash String?
+  anchoredAt       DateTime?
+  createdAt        DateTime  @default(now())
+}
+
+model OtpChallenge {
+  id        String   @id @default(uuid())
+  phone     String
+  purpose   String
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([phone, purpose])
+}
+
+model PendingRegistration {
+  phone     String   @id
+  payload   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id              String    @id @default(uuid())
+  reporterId      String
+  reporter        User      @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUserId  String
+  reportedUser    User      @relation("Reported", fields: [reportedUserId], references: [id])
+  bookingId       String?
+  reason          String
+  description     String
+  screenshotUrl   String?
+  disputeText     String?
+  disputeProofUrl String?
+  disputedAt      DateTime?
+  status          String    @default("PENDING")
+  createdAt       DateTime  @default(now())
+}
+
+model AppMeta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "deposit-withheld",
+    "category": "Property",
+    "description": "My landlord in Davao City refuses to return my security deposit after I moved out. Lease says return within 30 days. I left the unit clean and have photos.",
+    "expectKeywords": ["deposit", "lease"],
+    "minCases": 1
+  },
+  {
+    "id": "unpaid-wages",
+    "category": "Labor",
+    "description": "I worked for a construction firm in Davao for 3 months without receiving salary. I have timesheets and chat messages from my supervisor promising pay.",
+    "expectKeywords": ["wage", "salary", "labor"],
+    "minCases": 1
+  },
+  {
+    "id": "online-scam",
+    "category": "General",
+    "description": "I paid for shoes online through Facebook Marketplace in Davao but the seller blocked me after I sent 2500 pesos via GCash. I have screenshots of the chat and receipt.",
+    "expectKeywords": ["cyber", "fraud", "10175"],
+    "minCases": 1
+  },
+  {
+    "id": "loud-muffler-davao",
+    "category": "General",
+    "description": "My neighbor in Davao City drives a modified car with a very loud muffler revving past our house at 2 AM almost every night. Barangay asked them to stop but they continue.",
+    "expectKeywords": ["noise", "muffler", "ordinance", "davao"],
+    "minCases": 1
+  },
+  {
+    "id": "wrongful-dismissal",
+    "category": "Labor",
+    "description": "I got top merits on the job evaluation then my employer in Davao terminated me two days later without written notice or just cause. I have the merit certificate and termination letter.",
+    "expectKeywords": ["labor", "termination", "dismissal"],
+    "minCases": 1
+  },
+  {
+    "id": "niche-chicken-garden",
+    "category": "General",
+    "description": "My neighbor's chicken keeps entering my garden in Davao and laying eggs in my vegetable plot. I asked them to fence it but they refuse. I want to know my legal options.",
+    "minCases": 1,
+    "expectKeywords": ["trespass", "property", "nuisance", "mischief", "damage"]
+  },
+  {
+    "id": "vague-input",
+    "category": "General",
+    "description": "help me with legal problem",
+    "expectUncertain": true,
+    "minCases": 0
+  },
+  {
+    "id": "vague-decimation",
+    "category": "General",
+    "description": "decimation",
+    "expectUncertain": true,
+    "minCases": 0
+  }
+]

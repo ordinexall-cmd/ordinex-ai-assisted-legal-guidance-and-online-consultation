@@ -1,0 +1,17 @@
+import React from 'react';
+
+export const DashHistorySkeleton: React.FC = () => (
+  <div className="dash-skeleton-list" aria-busy="true" aria-label="Loading analyses">
+    {[0, 1, 2].map((i) => (
+      <div key={i} className="dash-skeleton-row">
+        <div className="dash-skeleton-row__thumb" />
+        <div className="dash-skeleton-row__lines">
+          <div className="dash-skeleton-row__line dash-skeleton-row__line--wide" />
+          <div className="dash-skeleton-row__line dash-skeleton-row__line--short" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+export default DashHistorySkeleton;

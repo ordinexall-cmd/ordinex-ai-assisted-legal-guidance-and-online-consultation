@@ -1,0 +1,57 @@
+{
+  "name": "ordinex-server",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Ordinex Legal Platform — Backend API",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "node prisma/seed.js",
+    "db:sync-demo": "node scripts/sync-demo-accounts.js",
+    "db:reset-demo": "node scripts/reset-demo-state.js",
+    "db:clear-users": "node scripts/clearAllUsers.js",
+    "db:defense-reset": "node scripts/defense-full-reset.js",
+    "db:reset": "npx prisma migrate reset --force",
+    "db:studio": "npx prisma studio",
+    "seed:legal": "node scripts/seed-legal-supabase.js",
+    "seed:roll": "node scripts/seed-roll-of-attorneys.js",
+    "embed:legal": "node scripts/embed-legal-supabase.js",
+    "verify:env": "node scripts/verify-env.js",
+    "db:push:prod": "prisma db push --schema prisma/schema.postgresql.prisma",
+    "db:generate:prod": "prisma generate --schema prisma/schema.postgresql.prisma",
+    "test:ai": "node scripts/run-ai-evaluation.js",
+    "test:smoke": "node scripts/smoke-test.js",
+    "test:api": "node scripts/api-verify.js",
+    "test:demo": "node scripts/verify-demo-accounts.js",
+    "test:defense-flow": "node scripts/defense-flow-verify.js",
+    "test:socket": "node scripts/verify-socket.js",
+    "test:verification": "node scripts/test-verification-and-corpus.js",
+    "db:clear-panel-lawyer": "node scripts/clear-panel-lawyer.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "@supabase/supabase-js": "^2.105.4",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.9.0",
+    "multer": "^2.0.1",
+    "node-cron": "^4.2.1",
+    "pdf-parse": "^1.1.1",
+    "socket.io": "^4.8.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "prisma": "^6.9.0"
+  }
+}
