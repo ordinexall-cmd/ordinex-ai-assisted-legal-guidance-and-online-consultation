@@ -11,8 +11,12 @@ export const DEMO_META_KEY = 'demo_seed_version';
 
 export const DEMO_PASSWORD = 'password123';
 
-/** Empty by default — set SYNC_DEMO_ACCOUNTS=true to re-enable seed users. */
-export const DEMO_EMAILS = [];
+/** Demo account emails — these get simulated (free) payments instead of live PayMongo. */
+export const DEMO_EMAILS = [
+  'citizen@test.com',
+  'lawyer@test.com',
+  'publiclawyer@test.com',
+];
 
 export function isDemoEmail(email) {
   if (!email || typeof email !== 'string') return false;
