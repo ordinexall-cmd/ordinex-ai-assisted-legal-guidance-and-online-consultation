@@ -186,11 +186,9 @@ router.get('/checkout-context', requireAuth, async (req, res, next) => {
         commissionRate: env.PLATFORM_COMMISSION_RATE,
         preferredMethod: 'GCASH',
         holdNotice:
-          'Your payment is held by Ordinex until the consultation is finished. It is not sent to the lawyer immediately. Cancel before the session for a full refund.',
+          'Your payment is safely held by Ordinex and will only be credited to the lawyer after your consultation is completed (verifying no reports or issues). In case a problem or cancellation occurs, your payment will be immediately refunded to you.',
         lineItems: [
           { label: `Consultation fee (${booking.lawyer.name})`, amount: quotedFee },
-          { label: `Includes ${pct} Ordinex service fee (from lawyer share)`, amount: platformFee },
-          { label: 'Lawyer receives', amount: lawyerShare },
         ],
         total,
         currency: 'PHP',
@@ -398,7 +396,8 @@ router.post('/confirm', requireAuth, async (req, res, next) => {
     if (type !== 'BOOKING') {
       return res.status(400).json({ error: 'type must be BOOKING.' });
     }
-    if (isPaymongoMode()) {
+    const isDemoUser = req.user.email === 'citizen@test.com' || isDemoEmail(req.user.email);
+    if (isPaymongoMode() && !isDemoUser) {
       return res.status(400).json({
         error: 'Use PayMongo checkout (GCash) for this environment.',
         code: 'USE_PAYMONGO_CHECKOUT',

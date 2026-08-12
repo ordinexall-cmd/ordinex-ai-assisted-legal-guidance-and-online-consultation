@@ -229,9 +229,8 @@ export const CheckoutPage: React.FC = () => {
             <p className="checkout-disclaimer">
               By continuing, you agree to the Ordinex{' '}
               <Link to="/terms" className="link-inline">Terms of Service</Link>
-              . Fees are quoted by your lawyer
-              after reviewing your case. Ordinex keeps a 10% platform fee from the lawyer&apos;s share.
-              Production will use verified PayMongo live keys and signed webhooks.
+              . Fees are quoted by your lawyer after reviewing your case.
+              Your payment is safely held by Ordinex and will only be credited to the lawyer after your consultation is completed (pending verification of any reports or issues). In case a problem or cancellation occurs, your payment will be immediately refunded to you.
             </p>
           </>
         )}

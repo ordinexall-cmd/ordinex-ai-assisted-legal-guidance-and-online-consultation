@@ -106,11 +106,11 @@ export const AccountSettings: React.FC = () => {
         updates.specializations = specializations;
       }
       if (isCitizen) {
-        updates.dob = dob || undefined;
-        updates.gender = gender || undefined;
-        updates.address = address.trim() || undefined;
-        updates.civilStatus = civilStatus || undefined;
-        updates.occupation = occupation.trim() || undefined;
+        updates.dob = dob || null;
+        updates.gender = gender || null;
+        updates.address = address.trim() || null;
+        updates.civilStatus = civilStatus || null;
+        updates.occupation = occupation.trim() || null;
       }
       await authApi.updateProfile(updates as any);
       await refreshUser();

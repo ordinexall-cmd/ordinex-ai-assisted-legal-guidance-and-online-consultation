@@ -182,14 +182,13 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
         <div style={{ fontSize: 11, color: 'var(--color-ox-text-muted)', margin: '4px 0 10px' }}>
           <div className="quote-breakdown" style={{ marginTop: 8, marginBottom: 8 }}>
             <div className="quote-breakdown__row quote-breakdown__row--total">
-              <span>Total</span>
+              <span>Consultation fee</span>
               <span>{peso(booking.quotedFee)}</span>
             </div>
-            <div className="quote-breakdown__row">
-              <span>Includes Ordinex service fee (10%)</span>
-              <span>{peso(booking.platformFee)}</span>
-            </div>
           </div>
+          <p style={{ margin: '4px 0', fontSize: 11, color: 'var(--color-ox-brand)', fontWeight: 500 }}>
+            🛡️ Payment is safely held by Ordinex until consultation ends. Immediate refund if cancelled or disputed.
+          </p>
           <p style={{ margin: '4px 0', fontSize: 10, color: 'var(--color-ox-text-muted)' }}>
             Pay with GCash within 24 hours or the slot will be released.
           </p>
