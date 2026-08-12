@@ -193,6 +193,7 @@ model Booking {
   paymentReceiptUrl String?      // Uploaded receipt photo/PDF
   paymentSnapshot   String?      // JSON snapshot of selected payment method
   paymentVerifiedAt DateTime?    // When lawyer verified the payment
+  quotedFee         Float?       // Set by lawyer on approve
   platformFee       Float?       // 10% commission, set on approve / payment
   lawyerShare       Float?       // 85% to lawyer, set on payment confirm
   paymentId         String?      @unique // Links to Payment model
