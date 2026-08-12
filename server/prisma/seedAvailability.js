@@ -49,6 +49,6 @@ export async function seedAvailabilitySlots(prisma, lawyerId, publicLawyerId) {
   };
 
   const lawyerSlots = await seedSlotsFor(lawyerId);
-  const publicSlots = await seedSlotsFor(publicLawyerId);
+  const publicSlots = publicLawyerId ? await seedSlotsFor(publicLawyerId) : 0;
   return { lawyerSlots, publicSlots };
 }

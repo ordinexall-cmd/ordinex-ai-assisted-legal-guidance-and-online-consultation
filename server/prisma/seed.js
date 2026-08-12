@@ -84,18 +84,18 @@ async function main() {
   await setStoredDemoVersion(prisma, DEMO_SEED_VERSION);
 
   console.log('\n📅 Seeding availability slots...');
-  let lawyerSlots;
-  let publicSlots;
+  let lawyerSlots = 0;
+  let publicSlots = 0;
   try {
-    ({ lawyerSlots, publicSlots } = await seedAvailabilitySlots(prisma, lawyer.id, publicLawyer.id));
+    const publicLawyerId = publicLawyer?.id || null;
+    ({ lawyerSlots, publicSlots } = await seedAvailabilitySlots(prisma, lawyer.id, publicLawyerId));
   } catch (slotErr) {
-    console.error('\n⚠️  Demo accounts were created, but availability seeding failed.');
-    console.error('   Run: cd server && npm run db:sync-demo');
-    console.error('   Or re-run: npm run db:seed\n');
-    throw slotErr;
+    console.warn('\n⚠️  Demo accounts were created, but availability seeding failed.');
+    console.warn(`   Reason: ${slotErr.message}`);
+    console.warn('   This is non-critical — demo accounts still work.\n');
   }
-  console.log(`   ✅ ${lawyerSlots} slots for lawyer@test.com`);
-  console.log(`   ✅ ${publicSlots} slots for publiclawyer@test.com\n`);
+  if (lawyerSlots) console.log(`   ✅ ${lawyerSlots} slots for lawyer@test.com`);
+  if (publicSlots) console.log(`   ✅ ${publicSlots} slots for publiclawyer@test.com\n`);
 
   console.log('═══════════════════════════════════════');
   console.log('🎉 Database seeded successfully!');
