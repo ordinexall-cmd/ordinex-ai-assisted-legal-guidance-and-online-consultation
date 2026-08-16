@@ -25,28 +25,30 @@ export const env = {
   JWT_SECRET: requiredInProd('JWT_SECRET', 'ordinex-dev-secret-key-2026'),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
 
-  // Semaphore SMS
-  SEMAPHORE_API_KEY: process.env.SEMAPHORE_API_KEY || '',
-  SEMAPHORE_SENDER_NAME: process.env.SEMAPHORE_SENDER_NAME || 'ORDINEX',
+  // Transactional Email — Gmail / Custom SMTP
+  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '465', 10),
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465' || !process.env.SMTP_PORT,
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  EMAIL_FROM: process.env.EMAIL_FROM || 'Ordinex <ordinex.all@gmail.com>',
 
   // Groq — AI case analysis and booking chat translation
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
+  GROQ_API_KEYS: (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
   GROQ_MODEL: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  GROQ_LIGHT_MODEL: process.env.GROQ_LIGHT_MODEL || 'llama-3.1-8b-instant',
 
-  // Google Gemini — primary fallback when Groq fails
+  // Google Gemini — primary fallback when Groq fails / multimodal Vision & audio transcript
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  GEMINI_API_KEYS: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-flash-latest',
 
   // OpenAI — optional fallback/embeddings
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   OPENAI_CHAT_MODEL: process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
   EMBEDDING_API_URL: process.env.EMBEDDING_API_URL || '',
   EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
-
-  // Supabase
-  SUPABASE_URL: process.env.SUPABASE_URL || '',
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
-  SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY || '',
 
   // Google OAuth (optional)
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
@@ -62,7 +64,7 @@ export const env = {
   // Payments — platform-owned checkout (simulated | paymongo)
   PAYMENTS_MODE: process.env.PAYMENTS_MODE || 'simulated',
   PLATFORM_MERCHANT_NAME: process.env.PLATFORM_MERCHANT_NAME || 'Ordinex Legal Tech',
-  PLATFORM_COMMISSION_RATE: parseFloat(process.env.PLATFORM_COMMISSION_RATE || '0.10'), // 10%
+  PLATFORM_COMMISSION_RATE: parseFloat(process.env.PLATFORM_COMMISSION_RATE || '0.15'), // 15%
   APPROVED_BOOKING_EXPIRE_HOURS: parseInt(process.env.APPROVED_BOOKING_EXPIRE_HOURS || '24', 10),
 
   // PayMongo (test keys for now; live keys later)

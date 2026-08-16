@@ -2,13 +2,25 @@ import React from 'react';
 
 interface LawyerCardSkeletonProps {
   readonly count?: number;
-  readonly variant?: 'grid' | 'tile';
+  readonly variant?: 'grid' | 'tile' | 'portrait';
+  readonly label?: string;
 }
 
 export const LawyerCardSkeleton: React.FC<LawyerCardSkeletonProps> = ({
   count = 8,
   variant = 'grid',
+  label = 'Loading lawyers',
 }) => {
+  if (variant === 'portrait') {
+    return (
+      <div className="dir-lawyer-grid" aria-busy="true" aria-label={label}>
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} className="dir-lawyer-card dir-lawyer-card--skeleton" />
+        ))}
+      </div>
+    );
+  }
+
   if (variant === 'tile') {
     return (
       <div className="directory-card-grid directory-card-grid--tiles" aria-busy="true" aria-label="Loading lawyers">

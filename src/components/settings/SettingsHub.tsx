@@ -8,7 +8,8 @@ export type SettingsSection =
   | 'subscription'
   | 'privacy'
   | 'records'
-  | 'recycle';
+  | 'recycle'
+  | 'history';
 
 interface SettingsHubProps {
   readonly isLawyer: boolean;
@@ -136,6 +137,11 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({
           onClick={() => onSelect('subscription')}
         />
       ) : null}
+      <SettingsHubRow
+        title="History"
+        description="View past AI case analyses and consultation records."
+        onClick={() => onSelect('history')}
+      />
       <SettingsHubRow
         title="Consultation records"
         description="Past consultations and record settings."

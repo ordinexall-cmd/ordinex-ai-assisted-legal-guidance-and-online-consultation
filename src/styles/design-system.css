@@ -39,6 +39,18 @@ html {
   outline-offset: var(--focus-ring-offset);
 }
 
+.ox-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Global focus-visible */
 a:focus-visible,
 button:focus-visible,
@@ -127,4 +139,209 @@ summary:focus-visible,
     opacity: 1;
     transform: none;
   }
+
+  .ox-boot-screen__spinner {
+    animation: none;
+    border-top-color: var(--color-ox-gold);
+  }
+}
+
+/* Shared portal status banners (citizen + lawyer dashboards) */
+.ox-callout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--color-ox-border);
+  background: var(--color-ox-surface-tint);
+}
+
+.ox-callout__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.ox-callout__icon {
+  font-size: 24px;
+  color: var(--color-ox-emerald-mid);
+  flex-shrink: 0;
+}
+
+.ox-callout__title {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-headline);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ox-emerald-deep);
+}
+
+.ox-callout__body {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--color-ox-text);
+}
+
+.ox-callout__body p {
+  margin: 0 0 0.5rem;
+}
+
+.ox-callout__body p:last-child {
+  margin-bottom: 0;
+}
+
+.ox-callout__checks {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--color-ox-text);
+}
+
+.ox-callout__action {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.ox-callout--verify {
+  background: var(--color-ox-surface-tint);
+  border-color: rgba(26, 92, 71, 0.28);
+}
+
+.ox-callout--warn {
+  background: #f8f4ea;
+  border-color: rgba(184, 146, 46, 0.45);
+}
+
+.ox-callout--warn .ox-callout__icon,
+.ox-callout--warn .ox-callout__title {
+  color: var(--color-ox-gold-muted);
+}
+
+.ox-boot-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-ox-emerald-deep);
+  color: var(--color-ox-gold-light);
+  font-family: var(--font-body);
+}
+
+.ox-boot-screen p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.ox-boot-screen__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(212, 175, 90, 0.25);
+  border-top-color: var(--color-ox-gold-light);
+  border-radius: 50%;
+  animation: ox-boot-spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes ox-boot-spin {
+  to { transform: rotate(360deg); }
+}
+
+.verification-gate-notice {
+  max-width: 680px;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  background: var(--color-ox-cream, #FFFCF7);
+  border: 1px solid var(--color-ox-border);
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+.verification-gate-notice__icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: var(--color-ox-surface-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ox-emerald-mid);
+}
+
+.verification-gate-notice__title {
+  font-family: var(--font-headline);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ox-text);
+  margin: 0 0 0.5rem;
+}
+
+.verification-gate-notice__lead {
+  font-size: 0.95rem;
+  color: var(--color-ox-text);
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto 1.5rem;
+}
+
+.verification-gate-notice__checklist {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--color-ox-border);
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  margin-bottom: 1.75rem;
+}
+
+.verification-gate-notice__checklist h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ox-text-muted);
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+.verification-gate-notice__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.verification-gate-notice__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--color-ox-text);
+}
+
+.verification-gate-notice__item-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-ox-text-muted);
+}
+
+.verification-gate-notice__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }

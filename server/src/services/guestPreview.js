@@ -1,113 +1,133 @@
 /**
- * Lightweight guest preview for landing — no auth, no RAG, no DB.
+ * Guest landing preview — preloaded corpus only (no live gov scrape).
+ * Grounded hits return full case identification. Corpus misses return
+ * requiresLogin so the citizen can Sign in (create an account) or Log in
+ * for live search + history. This module does not write to the database.
  */
-import { preprocessConcern } from './textPreprocess.js';
-import { llmChatWithMeta } from './llmClient.js';
+import { analyzeLegalCase } from './aiOrchestrator.js';
 
 const DISCLAIMER =
   'This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney.';
-const LAW_HINT_LINE =
-  'Possible legal basis identified. Sign in to view the exact law references and full reasoning.';
+const CASE_MATCH_MIN = 50;
 
-const PREVIEW_SCHEMA = `{
-  "previewLine": "one sentence summarizing the likely legal angle for a Philippine citizen",
-  "outlookLevel": "Weak|Moderate|Strong|Uncertain",
-  "caseHint": "short case-type label e.g. Unjust dismissal"
-}`;
-
-const VALID_OUTLOOK = new Set(['Weak', 'Moderate', 'Strong', 'Uncertain']);
-
-function truncatePreviewLine(line) {
-  const s = (line || '').trim();
-  if (s.length <= 200) return s;
-  return s.slice(0, 197).trimEnd() + '...';
-}
-
-function normalizeOutlook(level) {
-  const v = (level || '').trim();
-  if (VALID_OUTLOOK.has(v)) return v;
-  return 'Uncertain';
-}
-
-function fallbackPreview({ category, pre }) {
-  const cat = (category || 'legal').toString().trim();
-  const words = (pre?.normalized || '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 6)
-    .join(' ');
-  const topic = words ? ` based on: ${words}` : '';
+function loginGate({ category }) {
   return {
-    previewLine: truncatePreviewLine(
-      `Possible ${cat.toLowerCase()} issue detected${topic}. Sign in to view the full structured analysis and next steps.`,
-    ),
-    lawHintLine: LAW_HINT_LINE,
+    userConcernSummary: '',
+    situationSummary: '',
+    possibleLegalCases: [],
+    suggestedNextSteps: [],
+    penalties: '',
     outlookLevel: 'Uncertain',
-    caseHint: `${cat} concern`.trim().slice(0, 80),
+    caseHint: '',
+    matchSpecialty: category || 'General',
     disclaimer: DISCLAIMER,
+    requiresLogin: true,
+    requiresDeepSearch: true,
+    isComplex: true,
+  };
+}
+
+function filterCases(result) {
+  return (Array.isArray(result.possibleLegalCases) ? result.possibleLegalCases : [])
+    .filter((c) => Number(c.confidenceScore) >= CASE_MATCH_MIN)
+    .slice(0, 3);
+}
+
+function mapFullResult(result, category) {
+  const topCases = filterCases(result);
+  const first = topCases[0];
+  const outlook = result.courtWinOutlook || {};
+  const analysis = {
+    userConcernSummary: result.userConcernSummary || '',
+    extractedKeywords: result.extractedKeywords || [],
+    possibleLegalCases: topCases,
+    penalties: result.penalties || '',
+    courtWinOutlook: {
+      level: outlook.level || 'Uncertain',
+      summary: outlook.summary || result.userConcernSummary || '',
+      factorsFor: outlook.factorsFor || [],
+      factorsAgainst: outlook.factorsAgainst || [],
+      missingFacts: outlook.missingFacts || [],
+    },
+    suggestedNextSteps: Array.isArray(result.suggestedNextSteps) ? result.suggestedNextSteps : [],
+    recommendedAgency: result.recommendedAgency,
+    lawyerSpecialty: result.lawyerSpecialty,
+    matchSpecialty: result.matchSpecialty || category,
+    costBallpark: result.costBallpark,
+    possibleDeadline: result.possibleDeadline || '',
+    cautions: Array.isArray(result.cautions) ? result.cautions : [],
+    systemDisclaimer: result.systemDisclaimer || DISCLAIMER,
+  };
+  return {
+    userConcernSummary: analysis.userConcernSummary,
+    situationSummary: analysis.courtWinOutlook.summary,
+    possibleLegalCases: topCases.map((c) => ({
+      name: c.name,
+      confidenceScore: c.confidenceScore,
+      explanation: c.explanation,
+      applicableLaw: c.applicableLaw,
+    })),
+    suggestedNextSteps: analysis.suggestedNextSteps,
+    penalties: analysis.penalties,
+    outlookLevel: analysis.courtWinOutlook.level,
+    caseHint: (first?.name || result.matchSpecialty || category || '').toString().trim().slice(0, 80),
+    matchSpecialty: analysis.matchSpecialty,
+    lawyerSpecialty: analysis.lawyerSpecialty,
+    recommendedAgency: analysis.recommendedAgency,
+    costBallpark: analysis.costBallpark,
+    possibleDeadline: analysis.possibleDeadline,
+    cautions: analysis.cautions,
+    factorsFor: analysis.courtWinOutlook.factorsFor,
+    factorsAgainst: analysis.courtWinOutlook.factorsAgainst,
+    missingFacts: analysis.courtWinOutlook.missingFacts,
+    disclaimer: analysis.systemDisclaimer,
+    requiresLogin: false,
+    requiresDeepSearch: false,
+    isComplex: false,
+    analysis,
   };
 }
 
 /**
  * @param {{ description: string, category?: string }}
- * @returns {Promise<{ previewLine: string, lawHintLine: string, outlookLevel: string, caseHint: string, disclaimer: string }>}
  */
-export async function analyzeGuestPreview({ description, category = 'Family' }) {
-  const pre = preprocessConcern(description);
+export async function analyzeGuestPreview({ description, category } = {}) {
+  const cat = !category || category === 'unsure' ? undefined : category;
 
-  if (pre.isVague) {
+  const { result, meta } = await analyzeLegalCase({
+    category: cat || 'unsure',
+    description,
+    extractedText: null,
+    isPremium: false,
+    liveSearch: false,
+    corpusOnly: true,
+  });
+
+  if (meta?.outcomeType === 'requires_login' || meta?.outcomeType === 'no_corpus') {
+    return loginGate({ category: cat });
+  }
+
+  if (meta?.outcomeType === 'needs_detail') {
     return {
-      previewLine: truncatePreviewLine(
-        'Add more specific facts — what happened, when, who was involved, and what outcome you want — for a useful preview.',
-      ),
-      lawHintLine: LAW_HINT_LINE,
+      needsMoreDetail: true,
+      missingFacts: result.courtWinOutlook?.missingFacts || [],
+      userConcernSummary: '',
+      situationSummary: '',
+      possibleLegalCases: [],
+      suggestedNextSteps: [],
+      penalties: '',
       outlookLevel: 'Uncertain',
       caseHint: '',
       disclaimer: DISCLAIMER,
+      requiresLogin: false,
+      requiresDeepSearch: false,
+      isComplex: false,
     };
   }
 
-  try {
-    const { text } = await llmChatWithMeta({
-      jsonMode: true,
-      maxTokens: 256,
-      temperature: 0.25,
-      messages: [
-        {
-          role: 'system',
-          content: `You are ORDINEX, an AI-assisted legal guidance system for the Philippines.
-Provide a single-sentence preview only — NOT full legal advice. Never claim to be a lawyer.
-Output valid JSON only matching:
-${PREVIEW_SCHEMA}`,
-        },
-        {
-          role: 'user',
-          content: `Category: ${category}\nConcern:\n${pre.normalized}`,
-        },
-      ],
-    });
-
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      return fallbackPreview({ category, pre });
-    }
-
-    const previewLine = truncatePreviewLine(parsed.previewLine || '');
-    if (!previewLine) {
-      return fallbackPreview({ category, pre });
-    }
-
-    return {
-      previewLine,
-      lawHintLine: LAW_HINT_LINE,
-      outlookLevel: normalizeOutlook(parsed.outlookLevel),
-      caseHint: (parsed.caseHint || '').trim().slice(0, 80),
-      disclaimer: DISCLAIMER,
-    };
-  } catch {
-    // Never fail the landing demo due to provider/network issues.
-    return fallbackPreview({ category, pre });
+  const mapped = mapFullResult(result, cat);
+  if (!mapped.possibleLegalCases.length && meta?.outcomeType !== 'needs_detail') {
+    return loginGate({ category: cat });
   }
+  return mapped;
 }

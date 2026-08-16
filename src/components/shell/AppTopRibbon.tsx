@@ -12,6 +12,7 @@ export interface AppTopRibbonProps {
   readonly backLabel?: string;
   readonly actions?: React.ReactNode;
   readonly showNotifications?: boolean;
+  readonly locked?: boolean;
 }
 
 export const AppTopRibbon: React.FC<AppTopRibbonProps> = ({
@@ -21,17 +22,13 @@ export const AppTopRibbon: React.FC<AppTopRibbonProps> = ({
   backLabel = 'Back',
   actions,
   showNotifications = true,
+  locked = false,
 }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { toggle } = useSideNav();
 
   const displayName = user?.name?.trim() || 'Account';
-
-  const handleSignOut = () => {
-    logout();
-    navigate('/');
-  };
 
   return (
     <header className="pao-top-ribbon">
@@ -54,6 +51,12 @@ export const AppTopRibbon: React.FC<AppTopRibbonProps> = ({
           </button>
         ) : null}
         <h2 className="staff-ribbon__title">
+          {locked ? <span className="ox-sr-only">Locked. Verification required. </span> : null}
+          {locked ? (
+            <span className="material-symbols-outlined staff-ribbon__lock" aria-hidden>
+              lock
+            </span>
+          ) : null}
           {title}
           {stepLabel ? (
             <>
@@ -68,18 +71,9 @@ export const AppTopRibbon: React.FC<AppTopRibbonProps> = ({
         {showNotifications && user ? (
           <NotificationBell className="staff-notify__trigger" />
         ) : null}
-        {user && (
-          <div className="staff-ribbon__user">
-            <span className="staff-ribbon__name" title={displayName}>{displayName}</span>
-            <button
-              type="button"
-              className="staff-ribbon__signout"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </button>
-          </div>
-        )}
+        {user ? (
+          <span className="staff-ribbon__name" title={displayName}>{displayName}</span>
+        ) : null}
       </div>
     </header>
   );

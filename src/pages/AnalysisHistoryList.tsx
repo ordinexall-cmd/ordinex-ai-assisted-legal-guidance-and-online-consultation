@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { consultationApi, consultationDisplayTitle, type ConsultationResult } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getAppBackFallback } from '../utils/navigation';
 import { DashHistorySkeleton } from '../components/dashboard/DashHistorySkeleton';
@@ -13,6 +14,7 @@ import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
 
 export const AnalysisHistoryList: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
@@ -50,7 +52,7 @@ export const AnalysisHistoryList: React.FC = () => {
     <AppShell
       variant="flow"
       title="Analysis history"
-      navItems={getCitizenNav()}
+      navItems={getCitizenNav(user)}
       stepLabel="History"
       backTo={getAppBackFallback(false)}
     >

@@ -27,8 +27,8 @@ export function toUserFacingError(err, fallback = 'Something went wrong. Please 
 
   if (code === 'P2002') {
     const field = err?.meta?.target?.[0];
-    if (field === 'email') return 'An account with this email already exists.';
-    if (field === 'phone') return 'An account with this phone number already exists.';
+    if (field === 'email') return 'An account with this email already exists. Log in instead.';
+    if (field === 'phone') return 'An account with this phone number already exists. Log in instead.';
     return 'That value is already in use.';
   }
 
@@ -41,7 +41,7 @@ export function toUserFacingError(err, fallback = 'Something went wrong. Please 
   }
 
   if (/isAdmin|does not exist in the current database/i.test(message)) {
-    return 'Sign-in is temporarily unavailable. Please restart the API server and try again.';
+    return 'Log-in is temporarily unavailable. Please restart the API server and try again.';
   }
 
   if (isTechnicalMessage(message)) {

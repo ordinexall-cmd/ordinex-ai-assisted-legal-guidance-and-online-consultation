@@ -15,6 +15,8 @@ function sourceLabel(source: string | undefined): string {
       return 'Local law references';
     case 'local':
       return 'Bundled legal corpus';
+    case 'live':
+      return 'Official Gazette / LawPhil / e-Library';
     default:
       return source || 'Unknown source';
   }
@@ -25,6 +27,7 @@ export const AnalysisGroundingCard: React.FC<AnalysisGroundingCardProps> = ({ me
 
   const freshness = meta.corpusFreshness;
   const health = meta.corpusHealth;
+  const sources = meta.retrievedSources || [];
 
   return (
     <div className="analysis-grounding-card" role="status" aria-label="Legal grounding summary">
@@ -35,16 +38,26 @@ export const AnalysisGroundingCard: React.FC<AnalysisGroundingCardProps> = ({ me
       <p className="analysis-grounding-card__source">
         Sources: <strong>{sourceLabel(meta.corpusSource)}</strong>
       </p>
-      {freshness && freshness.total > 0 && (
+      {sources.length > 0 ? (
+        <ul className="analysis-result-card__list">
+          {sources.map((s, i) => (
+            <li key={`${s.name}-${i}`}>
+              <strong>{s.name}</strong>
+              {s.citation && s.citation !== s.name ? ` · ${s.citation}` : ''}
+              {s.url ? (
+                <>
+                  {' · '}
+                  <a href={s.url} target="_blank" rel="noreferrer">Open source</a>
+                </>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : freshness && freshness.total > 0 ? (
         <p className="analysis-grounding-card__stats">
           {freshness.total} reference{freshness.total === 1 ? '' : 's'} used
-          {freshness.highPriority > 0 && ` · ${freshness.highPriority} high-priority curated`}
-          {freshness.amended > 0 && ` · ${freshness.amended} recently amended`}
-          {freshness.superseded > 0 && ` · ${freshness.superseded} superseded (excluded from match)`}
-          {typeof freshness.oldestDays === 'number' && freshness.oldestDays > 0
-            && ` · oldest update ${freshness.oldestDays}d ago`}
         </p>
-      )}
+      ) : null}
       {meta.supersededWarning && (
         <p className="analysis-grounding-card__warn">
           Some matched references may be outdated. Confirm with a licensed lawyer before acting.

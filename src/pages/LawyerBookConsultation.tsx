@@ -14,6 +14,7 @@ import {
   type Booking,
 } from '../services/api';
 import { onAvailabilityChanged } from '../services/appSocket';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getErrorMessage } from '../utils/userFacingError';
 import { citizenBookingCalendarStyle } from '../utils/calendarEventStyle';
@@ -24,7 +25,8 @@ export const LawyerBookConsultation: React.FC = () => {
   const [searchParams] = useSearchParams();
   const consultationIdFromUrl = searchParams.get('consultationId') ?? '';
   const navigate = useNavigate();
-  const navItems = getCitizenNav();
+  const { user } = useAuth();
+  const navItems = getCitizenNav(user);
 
   const [lawyer, setLawyer] = useState<LawyerProfile | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
@@ -116,7 +118,7 @@ export const LawyerBookConsultation: React.FC = () => {
     }
   };
 
-  if (!lawyerId) return <Navigate to="/lawyers" replace />;
+  if (!lawyerId) return <Navigate to="/directory" replace />;
 
   const backTo = consultationIdFromUrl
     ? `/lawyers/${lawyerId}?consultationId=${encodeURIComponent(consultationIdFromUrl)}`
@@ -140,7 +142,7 @@ export const LawyerBookConsultation: React.FC = () => {
         {!loading && !lawyer && (
           <div className="staff-panel">
             <p className="staff-empty-hint">{error || 'Lawyer not found.'}</p>
-            <button type="button" className="ox-btn ox-btn-primary" onClick={() => navigate('/lawyers')}>
+            <button type="button" className="ox-btn ox-btn-primary" onClick={() => navigate('/directory')}>
               Back to directory
             </button>
           </div>

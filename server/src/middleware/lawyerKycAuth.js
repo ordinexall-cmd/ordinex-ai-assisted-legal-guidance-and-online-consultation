@@ -33,7 +33,7 @@ export async function requireLawyerKyc(req, res, next) {
         userId = decoded.userId;
       } catch (err) {
         if (err.name === 'TokenExpiredError') {
-          return res.status(401).json({ error: 'Session expired. Please sign in again.' });
+          return res.status(401).json({ error: 'Session expired. Please log in again.' });
         }
         return res.status(401).json({ error: 'Invalid authentication token.' });
       }
@@ -58,7 +58,7 @@ export async function requireLawyerKyc(req, res, next) {
 
     if (user.isVerified && kycSession) {
       return res.status(403).json({
-        error: 'Your counsel account is already verified. Please sign in.',
+        error: 'Your counsel account is already verified. Please log in.',
         code: 'LAWYER_ALREADY_VERIFIED',
       });
     }

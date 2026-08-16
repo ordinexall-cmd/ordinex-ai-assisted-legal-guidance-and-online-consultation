@@ -41,7 +41,7 @@ export const BookingTranscriptPanel: React.FC<BookingTranscriptPanelProps> = ({
   const load = useCallback(async () => {
     try {
       const data = await bookingsApi.getTranscript(bookingId);
-      setSegments(data.segments || []);
+      setSegments((data.segments || []) as TranscriptSegment[]);
       setPlainText(data.plainText || '');
       setDraft(data.plainText || '');
       setLoadErr('');

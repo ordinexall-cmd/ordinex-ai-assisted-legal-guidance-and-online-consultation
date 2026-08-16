@@ -5,13 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { bookingsApi, type Booking } from '../services/api';
 import { onBookingUpdated } from '../services/appSocket';
 import { displayFirstName } from '../utils/displayName';
-import { lawyerNav } from '../utils/lawyerWorkspace';
+import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { getErrorMessage } from '../utils/userFacingError';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
 import StaffListPreview from '../components/staff/StaffListPreview';
 import { statusChipLabel } from '../utils/bookingStatusChip';
 import { canJoinBookingVideo } from '../utils/bookingSlotWindow';
+import { DashWelcome } from '../components/dashboard/DashWelcome';
+import { DashHistorySkeleton } from '../components/dashboard/DashHistorySkeleton';
+import { OxStatusCallout } from '../components/ui/OxStatusCallout';
 
 const fmtSlot = (b: Booking) => {
   const dateStr = new Date(b.availability.date).toLocaleDateString('en-PH', {
@@ -79,17 +82,68 @@ export const LawyerDashboard: React.FC = () => {
   const userName = displayFirstName(user?.name, 'Atty.');
 
   return (
-    <AppShell title="Dashboard" navItems={lawyerNav} hidePageHeader>
-      <div className="staff-workspace">
-        <p style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: 'var(--color-ox-text-muted)' }}>
-          Welcome, <strong style={{ color: 'var(--color-ox-emerald)' }}>{userName}</strong>
-        </p>
+    <AppShell title="Dashboard" navItems={getLawyerNav(user)} hidePageHeader>
+      <div className="dash-layout dash-layout--premium">
+        <DashWelcome
+          userName={userName}
+          subtitle="Review booking requests, confirm payments, and join today's sessions."
+        />
+
+        {user?.isVerified ? (
+          <OxStatusCallout
+            variant="verify"
+            icon="verified"
+            title="Verified counsel — listed on the lawyer directory"
+            action={(
+              <button
+                type="button"
+                className="ox-btn ox-btn-secondary ox-btn-sm"
+                onClick={() => navigate('/settings?tab=verification')}
+              >
+                View bar credentials
+              </button>
+            )}
+          >
+            <p>
+              {[
+                user.barNumber ? `SC Roll No. ${user.barNumber}` : null,
+                user.ibpChapter ? `IBP ${user.ibpChapter}` : null,
+                user.ptrNumber ? `PTR ${user.ptrNumber}` : null,
+                user.mcleComplianceNo ? `MCLE ${user.mcleComplianceNo}` : null,
+              ].filter(Boolean).join(' · ') || 'Your verification is on file in Account Settings.'}
+            </p>
+          </OxStatusCallout>
+        ) : (
+          <OxStatusCallout
+            variant="warn"
+            title="Bar verification required"
+            action={(
+              <button
+                type="button"
+                className="ox-btn ox-btn-primary ox-btn-sm"
+                onClick={() => navigate('/settings?tab=verification')}
+              >
+                Complete bar verification
+              </button>
+            )}
+          >
+            <p>
+              Your profile stays hidden from the public directory and cannot accept bookings until Supreme Court Roll and bar credentials are verified.
+            </p>
+            <ul className="ox-callout__checks">
+              <li>{user?.barNumber ? 'Provided' : 'Pending'} — Supreme Court Roll No.</li>
+              <li>{user?.ibpChapter ? 'Provided' : 'Pending'} — IBP Chapter & ID</li>
+              <li>{user?.ptrNumber ? 'Provided' : 'Pending'} — PTR (Professional Tax Receipt)</li>
+              <li>{user?.mcleComplianceNo ? 'Provided' : 'Pending'} — MCLE Compliance</li>
+            </ul>
+          </OxStatusCallout>
+        )}
 
         {loadError && <ApiLoadBanner message={loadError} onRetry={load} />}
-        {actionError && <div className="staff-alert staff-alert--error">{actionError}</div>}
+        {actionError && <div className="staff-alert staff-alert--error" role="alert">{actionError}</div>}
 
         {loading ? (
-          <p className="staff-empty-hint">Loading…</p>
+          <DashHistorySkeleton label="Loading dashboard" />
         ) : (
           <>
             <p className="acct-stat-line">

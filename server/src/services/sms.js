@@ -22,8 +22,8 @@ export async function sendOTP(phone, code, purpose = 'REGISTER') {
     update: { codeHash, attempts: 0, expiresAt },
   });
 
-  if (env.isDev || !env.SEMAPHORE_API_KEY) {
-    console.log(`\n📱 ═══ OTP FOR ${phone} (${purpose}) ═══`);
+  if (phone.includes('@') || env.isDev || !process.env.SEMAPHORE_API_KEY) {
+    console.log(`\n🔐 ═══ OTP FOR ${phone} (${purpose}) ═══`);
     console.log(`   Code: ${code}`);
     console.log(`   Expires: 5 minutes`);
     console.log(`   ═══════════════════════\n`);
@@ -41,10 +41,10 @@ export async function sendOTP(phone, code, purpose = 'REGISTER') {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        apikey: env.SEMAPHORE_API_KEY,
+        apikey: process.env.SEMAPHORE_API_KEY,
         number: semaphoreNumber,
         message: `Your ORDINEX verification code is: ${code}. Valid for 5 minutes. Do not share this code.`,
-        sendername: env.SEMAPHORE_SENDER_NAME,
+        sendername: process.env.SEMAPHORE_SENDER_NAME || 'ORDINEX',
       }),
     });
 

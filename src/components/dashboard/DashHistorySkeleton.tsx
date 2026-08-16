@@ -1,7 +1,13 @@
 import React from 'react';
 
-export const DashHistorySkeleton: React.FC = () => (
-  <div className="dash-skeleton-list" aria-busy="true" aria-label="Loading analyses">
+interface DashHistorySkeletonProps {
+  readonly label?: string;
+}
+
+export const DashHistorySkeleton: React.FC<DashHistorySkeletonProps> = ({
+  label = 'Loading',
+}) => (
+  <div className="dash-skeleton-list" aria-busy="true" aria-label={label}>
     {[0, 1, 2].map((i) => (
       <div key={i} className="dash-skeleton-row">
         <div className="dash-skeleton-row__thumb" />

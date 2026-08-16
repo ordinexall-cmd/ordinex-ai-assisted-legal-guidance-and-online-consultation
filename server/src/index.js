@@ -18,6 +18,7 @@ import notificationsRoutes from './routes/notifications.js';
 import reportsRoutes from './routes/reports.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
+import briefsRoutes from './routes/briefs.js';
 import { startScheduler } from './jobs/scheduler.js';
 import { initBookingSocket } from './socket/bookingSocket.js';
 import { prisma } from './config/prisma.js';
@@ -69,6 +70,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/briefs', briefsRoutes);
 
 // 404 handler
 app.use((req, res) => {

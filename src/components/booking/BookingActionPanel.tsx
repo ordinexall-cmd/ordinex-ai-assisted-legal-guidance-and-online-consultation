@@ -7,7 +7,7 @@ import { BookingPaymentStepper } from './BookingPaymentStepper';
 const peso = (n: number | null | undefined) =>
   (n == null ? 'Ask' : n === 0 ? 'Free' : `₱${n.toLocaleString()}`);
 
-const COMMISSION_RATE = 0.10;
+const COMMISSION_RATE = 0.15;
 
 export interface BookingActionPanelProps {
   readonly booking: Booking;
@@ -122,11 +122,11 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
                       <span>{peso(citizenTotal)}</span>
                     </div>
                     <div className="quote-breakdown__row">
-                      <span>Ordinex service fee (10%)</span>
+                      <span>Ordinex service fee (15%)</span>
                       <span>−{peso(platformFee)}</span>
                     </div>
                     <div className="quote-breakdown__row">
-                      <span>You receive (90%)</span>
+                      <span>You receive (85%)</span>
                       <span>{peso(lawyerReceives)}</span>
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
           {actionTitle('Approved · Awaiting payment')}
           {actionText(<>
             Quoted fee: <strong>{peso(booking.quotedFee)}</strong>.
-            The citizen has 24 hours to pay (GCash via PayMongo).
+            The citizen has 24 hours to pay in Ordinex (PayMongo/GCash). Do not collect GCash on a personal wallet.
             {booking.approvedAt && (
               <> Expires {new Date(new Date(booking.approvedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}.</>
             )}
@@ -187,10 +187,10 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             </div>
           </div>
           <p style={{ margin: '4px 0', fontSize: 11, color: 'var(--color-ox-brand)', fontWeight: 500 }}>
-            🛡️ Payment is safely held by Ordinex until consultation ends. Immediate refund if cancelled or disputed.
+            Pay only through Ordinex. Do not send GCash to the lawyer directly. Funds are held until the session ends; 15% is the platform fee.
           </p>
           <p style={{ margin: '4px 0', fontSize: 10, color: 'var(--color-ox-text-muted)' }}>
-            Pay with GCash within 24 hours or the slot will be released.
+            Complete PayMongo/GCash checkout within 24 hours or the slot will be released.
           </p>
         </div>
         <button
@@ -367,7 +367,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             : 'The slot has been released. You can book another lawyer or another time.'}
         </p>
         {isCitizen && (
-          <button onClick={() => navigate('/lawyers')} className="ox-btn ox-btn-primary"
+          <button onClick={() => navigate('/directory')} className="ox-btn ox-btn-primary"
             style={{ marginTop: 10, width: '100%', justifyContent: 'center' }}>
             Find Another Lawyer
           </button>

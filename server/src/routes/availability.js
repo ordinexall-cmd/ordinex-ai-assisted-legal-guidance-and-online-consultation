@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { requireLawyer } from '../middleware/premium.js';
+import { requireLawyer, requireLawyerVerified } from '../middleware/premium.js';
 import { emitAvailabilityChanged } from '../socket/bookingSocket.js';
 
 const router = Router();
@@ -23,7 +23,7 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
  *   - end <= start
  *   - any slot that overlaps an existing slot for this lawyer/date
  */
-router.post('/', requireAuth, requireLawyer, async (req, res, next) => {
+router.post('/', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
   try {
     const incoming = Array.isArray(req.body.slots)
       ? req.body.slots
@@ -100,7 +100,7 @@ const ACTIVE_BOOKING_STATUSES = new Set([
  * DELETE /api/availability/:id
  * Allowed when unbooked or only tied to a terminal booking record.
  */
-router.delete('/:id', requireAuth, requireLawyer, async (req, res, next) => {
+router.delete('/:id', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
   try {
     const slot = await prisma.availability.findUnique({
       where: { id: req.params.id },

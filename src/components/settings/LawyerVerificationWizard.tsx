@@ -74,8 +74,8 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
   const [step, setStep] = useState<WizardStep>('roll');
 
   // Form state
-  const [fullName, setFullName] = useState(user.name);
-  const [rollNumber, setRollNumber] = useState(user.barNumber || '');
+  const [fullName, setFullName] = useState(user?.name ?? '');
+  const [rollNumber, setRollNumber] = useState(user?.barNumber || '');
   const [govIdType, setGovIdType] = useState<GovIdType>('PRC');
   const idInputRef = useRef<HTMLInputElement>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -115,8 +115,8 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
     done: null,
   };
 
-  const handlePanelAdvance = async () => {
-    const panelStep = panelStepMap[step];
+  const handlePanelAdvance = async (forced?: Exclude<WizardStep, 'done'>) => {
+    const panelStep = forced || panelStepMap[step];
     if (!panelStep) return;
     setBusy(true);
     setError('');
@@ -135,7 +135,7 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
       if (panelStep === 'decide') {
         if (out.decision === 'AUTO_APPROVE') {
           setStep('done');
-          setSuccess('Verified. Check your email and sign in from the home page.');
+          setSuccess('Verified. Check your email and log in from the home page.');
           onVerified?.();
         } else {
           setError(out.reason || 'Verification did not pass.');
@@ -243,8 +243,6 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
     }
   };
 
-  const handleSkipPayment = () => { setStep('decide'); };
-
   const handleDecide = async () => {
     setBusy(true); setError(''); setSuccess('');
     try {
@@ -262,7 +260,7 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
       if (out.decision === 'AUTO_APPROVE') {
         if (useKycToken || out.sessionAction === 'sign_in_required') {
           setSuccess(
-            `Identity verified (${out.score}% confidence). We emailed ${applicantEmail || user.email}. Sign in when ready.`,
+            `Identity verified (${out.score}% confidence). We emailed ${applicantEmail || user.email}. Log in when ready.`,
           );
         } else {
           setSuccess(`Identity verified with ${out.score}% confidence. You are now a verified counsel on Ordinex.`);
@@ -289,67 +287,52 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
 
   const pill = statusPill(state.status);
   const v = state.verification;
-
-  const renderStatusHeader = () => (
-    <div className="lawyer-verify-status">
-      <div className={`lawyer-verify-status__pill lawyer-verify-status__pill--${pill.tone}`}>
-        <span className="material-symbols-outlined" aria-hidden>
-          {pill.tone === 'ok' ? 'verified' : pill.tone === 'bad' ? 'gpp_bad' : 'gpp_maybe'}
-        </span>
-        <span>{pill.label}</span>
-      </div>
-      {state.score != null && (
-        <p className="lawyer-verify-status__score">
-          AI confidence: <strong>{state.score}%</strong> (high ≥ {state.thresholds.high}%, medium ≥ {state.thresholds.medium}%)
-        </p>
-      )}
-      {state.rejectionReason && (
-        <p className="lawyer-verify-status__reason">{state.rejectionReason}</p>
-      )}
-      {state.cooldownUntil && (
-        <p className="lawyer-verify-status__reason">
-          Cooldown until {new Date(state.cooldownUntil).toLocaleDateString()}.
-        </p>
-      )}
-    </div>
-  );
+  const rollDone = !!v?.rollMatchHit;
+  const idDone = !!v?.govIdUrl;
+  const selfieDone = !!(v?.selfieUrl && v?.challengeCodeMatched);
+  const paymentDone = v?.paymentNameMatchScore != null;
+  const verified = state.status === 'VERIFIED' || step === 'done';
 
   return (
     <div className={`lawyer-verify-wizard${variant === 'page' ? ' lawyer-verify-wizard--page' : ''}`}>
-      {renderStatusHeader()}
+      <div className="lawyer-verify-status">
+        <div className={`lawyer-verify-status__pill lawyer-verify-status__pill--${pill.tone}`}>
+          <span className="material-symbols-outlined" aria-hidden>
+            {pill.tone === 'ok' ? 'verified' : pill.tone === 'bad' ? 'gpp_bad' : 'gpp_maybe'}
+          </span>
+          <span>{pill.label}</span>
+        </div>
+        {state.score != null && (
+          <p className="lawyer-verify-status__score">
+            AI confidence: <strong>{state.score}%</strong> (high ≥ {state.thresholds.high}%, medium ≥ {state.thresholds.medium}%)
+          </p>
+        )}
+        {state.rejectionReason && (
+          <p className="lawyer-verify-status__reason">{state.rejectionReason}</p>
+        )}
+        {state.cooldownUntil && (
+          <p className="lawyer-verify-status__reason">
+            Cooldown until {new Date(state.cooldownUntil).toLocaleDateString()}.
+          </p>
+        )}
+      </div>
 
-      <ol className="lawyer-verify-steps">
-        {(['roll', 'id', 'selfie', 'payment', 'decide'] as WizardStep[]).map((s, idx) => {
-          const reached =
-            (s === 'roll') ||
-            (s === 'id' && !!v?.rollMatchHit) ||
-            (s === 'selfie' && !!v?.govIdUrl) ||
-            (s === 'payment' && !!v?.selfieUrl) ||
-            (s === 'decide' && !!v?.selfieUrl);
-          const active = step === s;
-          const cls = `lawyer-verify-steps__item${active ? ' is-active' : ''}${reached ? ' is-reached' : ''}`;
-          const labels = ['Roll match', 'Government ID', 'ID-in-hand photo', 'Payment name', 'AI decide'];
-          return (
-            <li key={s} className={cls}>
-              <span className="lawyer-verify-steps__num">{idx + 1}</span>
-              <span className="lawyer-verify-steps__lbl">{labels[idx]}</span>
-            </li>
-          );
-        })}
-      </ol>
+      {error && <p className="landing-form-error" role="alert">{error}</p>}
+      {success && <p className="landing-form-success" role="status">{success}</p>}
 
-      {step === 'roll' && (
+      <section className="lawyer-verify-block">
+        <h3 className="lawyer-verify-block__title">Roll match</h3>
+        {rollDone ? <p className="lawyer-verify-block__done">Done — roll number matched.</p> : null}
         <form onSubmit={handleStart} className="lawyer-verify-form">
           <p className="workbench-panel-helper">
             Enter your full legal name and SC Roll number exactly as printed on your bar admission record.
-            We cross-check against the seeded Roll of Attorneys before allowing ID upload.
           </p>
-          <label className="ox-label">Full legal name</label>
-          <input className="ox-input" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          <label className="ox-label">SC Roll number</label>
-          <input className="ox-input" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} placeholder="e.g. 12345" />
+          <label className="ox-label" htmlFor="lv-name">Full legal name</label>
+          <input id="lv-name" className="ox-input" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <label className="ox-label" htmlFor="lv-roll">SC Roll number</label>
+          <input id="lv-roll" className="ox-input" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} placeholder="e.g. 12345" />
           {panelMode ? (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePanelAdvance()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePanelAdvance('roll'); }}>
               {busy ? 'Advancing…' : 'Next step (demo)'}
             </button>
           ) : (
@@ -358,69 +341,44 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
             </button>
           )}
         </form>
-      )}
+      </section>
 
-      {step === 'id' && (
-        <div className="lawyer-verify-form">
+      <section className={`lawyer-verify-block${!rollDone ? ' is-locked' : ''}`}>
+        <h3 className="lawyer-verify-block__title">Government ID</h3>
+        {idDone ? <p className="lawyer-verify-block__done">Done — ID uploaded.</p> : null}
+        {!rollDone && <p className="workbench-panel-helper">Check roll match first.</p>}
+        <fieldset disabled={!rollDone} className="lawyer-verify-form" style={{ border: 'none', padding: 0, margin: 0 }}>
           <p className="workbench-panel-helper">
-            Upload a clear photo of the FRONT of your government-issued ID. Best results: bright, no glare,
-            corners visible, name readable. <strong>Recommended for lawyers: IBP Lawyer ID or PRC ID.</strong>
+            Upload a clear photo of the front of your government-issued ID. Recommended: IBP Lawyer ID or PRC ID.
           </p>
-          <label className="ox-label">ID type</label>
-          <select className="ox-select" value={govIdType} onChange={(e) => setGovIdType(e.target.value as GovIdType)}>
+          <label className="ox-label" htmlFor="lv-id-type">ID type</label>
+          <select id="lv-id-type" className="ox-select" value={govIdType} onChange={(e) => setGovIdType(e.target.value as GovIdType)}>
             {ID_OPTIONS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
           </select>
-          <input
-            ref={idInputRef}
-            type="file"
-            accept="image/*"
-            onChange={(e) => setIdFile(e.target.files?.[0] || null)}
-          />
+          <input ref={idInputRef} type="file" accept="image/*" onChange={(e) => setIdFile(e.target.files?.[0] || null)} />
           {idFile && (
             <p className="lawyer-verify-form__hint">{idFile.name} ({(idFile.size / 1024).toFixed(0)} KB)</p>
           )}
           {panelMode ? (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePanelAdvance()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePanelAdvance('id'); }}>
               {busy ? 'Advancing…' : 'Next step (demo)'}
             </button>
           ) : (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handleUploadId()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handleUploadId(); }}>
               {busy ? 'Uploading…' : 'Upload ID'}
             </button>
           )}
-        </div>
-      )}
+        </fieldset>
+      </section>
 
-      {step === 'selfie' && (
-        <div className="lawyer-verify-form">
-          <div className="lawyer-verify-selfie-guide">
-            <h3 className="lawyer-verify-selfie-guide__title">Verification photo (required)</h3>
-            <p className="lawyer-verify-selfie-guide__lead">
-              This is <strong>not</strong> a plain selfie. Write <strong>only</strong> the security code Ordinex shows
-              below on blank paper — <strong>not</strong> your name, signature, or bar number.
-            </p>
-            <ol className="lawyer-verify-selfie-guide__list">
-              <li>Hold the <strong>same government ID</strong> you uploaded (front visible, not covered by fingers).</li>
-              <li>Hold a <strong>handwritten note</strong> with <strong>only</strong> today&apos;s security code (large, readable).</li>
-              <li>Your <strong>face</strong> clearly visible — good lighting, no filters, sunglasses, or hats.</li>
-            </ol>
-            <div className="lawyer-verify-selfie-guide__diagram" aria-hidden>
-              <svg viewBox="0 0 280 120" width="280" height="120" role="img">
-                <circle cx="55" cy="42" r="22" fill="rgba(26,92,71,0.15)" stroke="rgba(13,59,46,0.35)" />
-                <text x="55" y="48" textAnchor="middle" fontSize="11" fill="rgba(13,59,46,0.7)">Face</text>
-                <rect x="105" y="28" width="52" height="34" rx="4" fill="rgba(184,146,46,0.2)" stroke="rgba(154,122,36,0.5)" />
-                <text x="131" y="50" textAnchor="middle" fontSize="10" fill="rgba(13,59,46,0.7)">ID</text>
-                <rect x="175" y="22" width="88" height="48" rx="3" fill="#fffefb" stroke="rgba(13,59,46,0.35)" />
-                <text x="219" y="42" textAnchor="middle" fontSize="9" fill="rgba(13,59,46,0.65)">ORD-…</text>
-                <text x="219" y="58" textAnchor="middle" fontSize="8" fill="rgba(13,59,46,0.5)">code only</text>
-              </svg>
-            </div>
-            <ul className="lawyer-verify-selfie-guide__dont">
-              <li>Do not use an old photo or screenshot.</li>
-              <li>The code you type below must match the note in your photo.</li>
-            </ul>
-          </div>
-
+      <section className={`lawyer-verify-block${!idDone ? ' is-locked' : ''}`}>
+        <h3 className="lawyer-verify-block__title">ID-in-hand photo</h3>
+        {selfieDone ? <p className="lawyer-verify-block__done">Done — photo and code matched.</p> : null}
+        {!idDone && <p className="workbench-panel-helper">Upload your government ID first.</p>}
+        <fieldset disabled={!idDone} className="lawyer-verify-form" style={{ border: 'none', padding: 0, margin: 0 }}>
+          <p className="lawyer-verify-selfie-guide__lead">
+            Write only the security code on paper. Hold the same ID and the note in one photo with your face visible.
+          </p>
           {v?.challengeCode && (
             <div className="lawyer-verify-code">
               <span className="material-symbols-outlined">edit_note</span>
@@ -428,22 +386,21 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
                 <span className="lawyer-verify-code__label">Write this on your note</span>
                 <code>{v.challengeCode}</code>
               </div>
-              <button type="button" className="ox-btn ox-btn-ghost" disabled={busy} onClick={() => void handleReissueCode()}>
+              <button type="button" className="ox-btn ox-btn-ghost" disabled={busy} onClick={() => { void handleReissueCode(); }}>
                 Reissue
               </button>
             </div>
           )}
-
           <ImageCaptureField
             label="Verification photo"
             file={selfieFile}
             onFileChange={setSelfieFile}
-            disabled={busy}
+            disabled={busy || !idDone}
             captureFileName="verification-selfie.jpg"
           />
-
-          <label className="ox-label">Type the code from your handwritten note</label>
+          <label className="ox-label" htmlFor="lv-code">Type the code from your handwritten note</label>
           <input
+            id="lv-code"
             className="ox-input"
             value={reportedCode}
             onChange={(e) => setReportedCode(e.target.value)}
@@ -451,61 +408,66 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
             autoComplete="off"
             spellCheck={false}
           />
-
           {panelMode ? (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePanelAdvance()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePanelAdvance('selfie'); }}>
               {busy ? 'Advancing…' : 'Next step (demo)'}
             </button>
           ) : (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handleUploadSelfie()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handleUploadSelfie(); }}>
               {busy ? 'Uploading…' : 'Upload verification photo'}
             </button>
           )}
-        </div>
-      )}
+        </fieldset>
+      </section>
 
-      {step === 'payment' && (
-        <div className="lawyer-verify-form">
+      <section className={`lawyer-verify-block${!selfieDone ? ' is-locked' : ''}`}>
+        <h3 className="lawyer-verify-block__title">Payment name</h3>
+        {paymentDone ? <p className="lawyer-verify-block__done">Done — payout name on file.</p> : null}
+        {!selfieDone && <p className="workbench-panel-helper">Finish the ID-in-hand photo first.</p>}
+        <fieldset disabled={!selfieDone} className="lawyer-verify-form" style={{ border: 'none', padding: 0, margin: 0 }}>
           <p className="workbench-panel-helper">
-            Optional but recommended: name on your GCash or bank account. We compare it against your SC Roll
-            entry — banks already do strong KYC, so a match adds a second layer of identity proof.
+            Optional: name on your GCash or bank account. We compare it to your roll entry. You can skip this and run the final check.
           </p>
-          <label className="ox-label">Payment account name</label>
+          <label className="ox-label" htmlFor="lv-pay">Payment account name</label>
           <input
+            id="lv-pay"
             className="ox-input"
             value={paymentAccountName}
             onChange={(e) => setPaymentAccountName(e.target.value)}
             placeholder="Juan Dela Cruz"
           />
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {panelMode ? (
-              <>
-                <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePanelAdvance()}>
-                  {busy ? 'Advancing…' : 'Next step (demo)'}
-                </button>
-                <button type="button" className="ox-btn ox-btn-ghost" onClick={handleSkipPayment}>
-                  Skip
-                </button>
-              </>
-            ) : (
-              <>
-                <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePayment()}>
-                  {busy ? 'Saving…' : 'Save & continue'}
-                </button>
-                <button type="button" className="ox-btn ox-btn-ghost" onClick={handleSkipPayment}>
-                  Skip
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+          {panelMode ? (
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePanelAdvance('payment'); }}>
+              {busy ? 'Advancing…' : 'Next step (demo)'}
+            </button>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePayment(); }}>
+                {busy ? 'Saving…' : 'Save payout name'}
+              </button>
+              <button
+                type="button"
+                className="ox-btn ox-btn-ghost"
+                disabled={busy}
+                onClick={() => {
+                  setError('');
+                  setSuccess('Skipped. Run the final check below.');
+                  setStep('decide');
+                }}
+              >
+                Skip
+              </button>
+            </div>
+          )}
+        </fieldset>
+      </section>
 
-      {step === 'decide' && (
-        <div className="lawyer-verify-form">
+      <section className={`lawyer-verify-block${!selfieDone ? ' is-locked' : ''}`}>
+        <h3 className="lawyer-verify-block__title">Final check</h3>
+        {!selfieDone && <p className="workbench-panel-helper">Finish the ID-in-hand photo first. Payment name is optional.</p>}
+        <fieldset disabled={!selfieDone} className="lawyer-verify-form" style={{ border: 'none', padding: 0, margin: 0 }}>
           <p className="workbench-panel-helper">
-            Run the AI confidence aggregation. We combine face match, ID OCR name match, SC Roll match,
-            challenge code, and (if provided) payment name into a single score.
+            Run the identity check. We combine face match, ID name, SC Roll, challenge code, and payout name if you added it.
           </p>
           {v && (
             <ul className="lawyer-verify-signals">
@@ -518,28 +480,28 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
             </ul>
           )}
           {panelMode ? (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handlePanelAdvance()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handlePanelAdvance('decide'); }}>
               {busy ? 'Running…' : 'Run verification (demo)'}
             </button>
           ) : (
-            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => void handleDecide()}>
+            <button type="button" className="ox-btn ox-btn-primary" disabled={busy} onClick={() => { void handleDecide(); }}>
               {busy ? 'Running AI check…' : 'Run final verification'}
             </button>
           )}
-        </div>
-      )}
+        </fieldset>
+      </section>
 
-      {step === 'done' && (
-        <div className="lawyer-verify-form">
+      {verified && (
+        <section className="lawyer-verify-block">
           {tier === 'high' && (
             <>
               <p className="callout-success__text" style={{ color: 'var(--color-ox-emerald)' }}>
                 {useKycToken
-                  ? 'Auto-approved. Check your email and sign in from the home page.'
+                  ? 'Auto-approved. Check your email and log in from the home page.'
                   : 'Auto-approved. Your verified counsel badge is now visible to citizens.'}
               </p>
               {variant === 'page' && !useKycToken && (
-                <div className="lawyer-onboarding-done-actions" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                   <a href="/settings" className="ox-btn ox-btn-secondary">Complete public profile</a>
                   <button type="button" className="ox-btn ox-btn-primary" onClick={() => onVerified?.()}>
                     Go to dashboard
@@ -554,25 +516,17 @@ export const LawyerVerificationWizard: React.FC<Props> = ({
             </>
           )}
           {tier === 'medium' && (
-            <>
-              <p className="lawyer-verify-status__reason">
-                Borderline match — please re-upload your ID and selfie under better lighting, then run final check again.
-              </p>
-              <button type="button" className="ox-btn ox-btn-primary" onClick={() => setStep('id')}>
-                Re-upload ID
-              </button>
-            </>
+            <p className="lawyer-verify-status__reason">
+              Borderline match — re-upload your ID and selfie under better lighting, then run final check again.
+            </p>
           )}
           {tier === 'low' && (
             <p className="lawyer-verify-status__reason">
               Verification was rejected. You may try again after the cooldown period above.
             </p>
           )}
-        </div>
+        </section>
       )}
-
-      {error && <p className="landing-form-error">{error}</p>}
-      {success && <p className="landing-form-success">{success}</p>}
     </div>
   );
 };

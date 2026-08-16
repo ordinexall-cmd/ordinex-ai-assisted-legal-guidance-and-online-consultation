@@ -1,4 +1,6 @@
 import type { NavItem } from '../types';
+import type { UserProfile } from '../services/api';
+import { isCitizenBookingUnlocked } from './trustScore';
 
 export const CITIZEN_DASHBOARD_PATH = '/dashboard';
 
@@ -6,13 +8,16 @@ export function getCitizenDashboardPath(): string {
   return CITIZEN_DASHBOARD_PATH;
 }
 
-export function getCitizenNav(): readonly NavItem[] {
+export function getCitizenNav(userOrUnlocked: UserProfile | boolean | null | undefined = false): readonly NavItem[] {
+  const unlocked = typeof userOrUnlocked === 'boolean'
+    ? userOrUnlocked
+    : isCitizenBookingUnlocked(userOrUnlocked);
+
   return [
     { label: 'Home', icon: 'home', path: CITIZEN_DASHBOARD_PATH },
     { label: 'Analysis', icon: 'grid_view', path: '/ai-analysis' },
-    { label: 'History', icon: 'history', path: '/history' },
-    { label: 'Schedule', icon: 'calendar_today', path: '/schedule-calendar' },
-    { label: 'Lawyers', icon: 'gavel', path: '/lawyers' },
+    { label: 'Schedule', icon: 'calendar_today', path: '/schedule-calendar', locked: !unlocked },
+    { label: 'Directory', icon: 'gavel', path: '/directory', locked: !unlocked },
     { label: 'Settings', icon: 'settings', path: '/settings' },
   ];
 }

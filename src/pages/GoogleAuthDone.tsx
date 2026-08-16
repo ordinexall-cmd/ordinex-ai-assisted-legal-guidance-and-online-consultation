@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { setToken } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getCitizenPostAuthPath } from '../constants/guestDraft';
 
 export const GoogleAuthDone: React.FC = () => {
   const [params] = useSearchParams();
@@ -19,17 +20,17 @@ export const GoogleAuthDone: React.FC = () => {
     refreshUser()
       .then(() => {
         if (onboard === 'lawyer') {
-          navigate('/lawyer/register?phase=kyc', { replace: true });
+          navigate('/settings?tab=verification', { replace: true });
           return;
         }
-        navigate('/dashboard', { replace: true });
+        navigate(getCitizenPostAuthPath(), { replace: true });
       })
       .catch(() => navigate('/?authError=session_failed', { replace: true }));
   }, [params, navigate, refreshUser]);
 
   return (
     <div className="analysis-empty" style={{ minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p>Signing you in with Google…</p>
+      <p>Continuing with Google…</p>
     </div>
   );
 };

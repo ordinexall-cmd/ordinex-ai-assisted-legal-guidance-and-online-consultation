@@ -19,42 +19,31 @@
 // Manual: node src/jobs/lawScraper.js
 // ============================================================
 import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from '../config/env.js';
-import { embedQuery } from '../services/embeddings.js';
+import { prisma } from '../config/prisma.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const SOURCES = {
   officialGazette: {
     name: 'Official Gazette',
     baseUrl: 'https://www.officialgazette.gov.ph',
-    feedPath: '/section/laws/republic-acts/',
-    domain: 'officialgazette.gov.ph',
+    feedPath: '/section/republic-acts/',
   },
   lawPhil: {
-    name: 'LawPhil',
-    baseUrl: 'https://lawphil.net',
+    name: 'LawPhil Project',
+    baseUrl: 'https://www.lawphil.net',
     feedPath: '/statutes/repacts/',
-    domain: 'lawphil.net',
   },
   scELibrary: {
-    name: 'Supreme Court E-Library',
+    name: 'SC E-Library',
     baseUrl: 'https://elibrary.judiciary.gov.ph',
     feedPath: '/thebookshelf/docmonth/category/',
-    domain: 'elibrary.judiciary.gov.ph',
   },
 };
-
-import { prisma } from '../config/prisma.js';
-
-/**
- * Get a Supabase client for scraper operations.
- */
-function getSupabaseClient() {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
-    return null;
-  }
-  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-}
 
 /**
  * Fetch HTML from a URL with a polite timeout and user-agent.
@@ -494,6 +483,37 @@ export async function runLawScraper() {
   );
   console.log(`[lawScraper] Per-source:`, JSON.stringify(results, null, 2));
   console.log(`[lawScraper] ════════════════════════════════════════\n`);
+
+  // ── Dual Sync: export DB corpus to local JSON cache so local dev stays in sync ──
+  if (aggregate.added > 0 || aggregate.amended > 0) {
+    try {
+      const allLaws = await prisma.lawReference.findMany({
+        select: {
+          name: true,
+          category: true,
+          keywords: true,
+          fullText: true,
+          link: true,
+        },
+      });
+      if (allLaws.length > 0) {
+        const jsonEntries = allLaws.map((law) => ({
+          name: law.name,
+          category: law.category,
+          keywords: law.keywords,
+          fullText: law.fullText,
+          link: law.link,
+          region: 'National',
+          priority: 'medium',
+        }));
+        const outPath = path.join(__dirname, '../../prisma/phLawsExtended.json');
+        fs.writeFileSync(outPath, JSON.stringify(jsonEntries, null, 2), 'utf-8');
+        console.log(`[lawScraper] ✅ Dual sync: exported ${jsonEntries.length} laws to phLawsExtended.json`);
+      }
+    } catch (syncErr) {
+      console.warn(`[lawScraper] Dual sync to local JSON skipped: ${syncErr.message}`);
+    }
+  }
 
   return {
     total: aggregate.added + aggregate.amended,

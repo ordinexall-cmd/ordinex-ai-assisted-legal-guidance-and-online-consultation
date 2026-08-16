@@ -76,6 +76,16 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
           <span className="pao-side-nav-mark" aria-hidden>{markFromLabel(item.label)}</span>
         ) : null}
         {showLabels ? <span>{item.label}</span> : null}
+        {item.locked ? (
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '15px', color: '#94a3b8', marginLeft: showLabels ? 'auto' : 0 }}
+            title="Profile verification required"
+            aria-hidden
+          >
+            lock
+          </span>
+        ) : null}
       </>
     );
 
@@ -85,9 +95,9 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
         to={item.path}
         end={end}
         className={({ isActive }) =>
-          `pao-side-nav-link${isActive ? ' active' : ''}`
+          `pao-side-nav-link${isActive ? ' active' : ''}${item.locked ? ' is-locked' : ''}`
         }
-        title={!showLabels ? item.label : undefined}
+        title={!showLabels ? `${item.label}${item.locked ? ' (Verification required)' : ''}` : undefined}
         aria-label={item.label}
         onClick={closeDrawer}
       >
@@ -167,10 +177,11 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
             type="button"
             className="pao-side-nav-link"
             onClick={() => { logout(); navigate('/'); closeDrawer(); }}
-            aria-label="Sign out"
+            aria-label="Log out"
           >
-            {!showLabels ? <span className="pao-side-nav-mark" aria-hidden>SO</span> : null}
-            {showLabels ? <span>Sign out</span> : null}
+            <span className="material-symbols-outlined" aria-hidden>logout</span>
+            {!showLabels ? <span className="pao-side-nav-mark" aria-hidden>LO</span> : null}
+            {showLabels ? <span>Log out</span> : null}
           </button>
         </div>
       </aside>

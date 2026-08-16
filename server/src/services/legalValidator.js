@@ -34,6 +34,8 @@ export const legalAnalysisSchema = z.object({
   lawyerSpecialty: z.string().optional().default(''),
   matchSpecialty: z.string().optional().default(''),
   costBallpark: z.string().optional().default(''),
+  possibleDeadline: z.string().optional().default(''),
+  cautions: z.array(z.string()).max(6).optional().default([]),
   systemDisclaimer: z.string().min(1),
 });
 

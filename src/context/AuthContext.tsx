@@ -91,9 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const verifyOtp = useCallback(async (phone: string, code: string): Promise<UserProfile> => {
     const response = await authApi.verifyOtp({ phone, code });
-    if (response.kycRequired && response.kycToken) {
+    if (response.kycToken) {
       setKycToken(response.kycToken);
-      return response.user;
     }
     if (response.token) {
       setToken(response.token);

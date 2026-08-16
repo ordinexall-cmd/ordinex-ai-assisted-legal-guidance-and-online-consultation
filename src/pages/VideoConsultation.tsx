@@ -5,7 +5,7 @@ import { LegacyVideoConsultRedirect } from '../routes/LegacyVideoConsultRedirect
 import { useAuth } from '../context/AuthContext';
 import { bookingsApi, type Booking } from '../services/api';
 import { getCitizenNav } from '../utils/citizenWorkspace';
-import { lawyerNav } from '../utils/lawyerWorkspace';
+import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
 import { statusChipClass, statusChipLabel } from '../utils/bookingStatusChip';
@@ -48,7 +48,7 @@ const VideoConsultation: React.FC = () => {
   if (!user) return <Navigate to="/" replace />;
 
   const isLawyer = user.role === 'LAWYER';
-  const nav = isLawyer ? lawyerNav : getCitizenNav();
+  const nav = isLawyer ? getLawyerNav(user) : getCitizenNav(user);
   const backTo = getAppBackFallback(isLawyer);
 
   return (
@@ -84,7 +84,7 @@ const VideoConsultation: React.FC = () => {
                   : 'Book a lawyer from the directory, then join from here or the booking page.'}
               </p>
               {!isLawyer && (
-                <Link to="/lawyers" className="ox-btn ox-btn-primary" style={{ marginTop: 12 }}>
+                <Link to="/directory" className="ox-btn ox-btn-primary" style={{ marginTop: 12 }}>
                   Browse lawyers
                 </Link>
               )}

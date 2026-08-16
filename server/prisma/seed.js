@@ -77,7 +77,7 @@ async function main() {
   }
 
   console.log('👤 Seeding demo accounts...');
-  const { lawyer, publicLawyer } = await syncDemoAccounts(prisma, {
+  const { lawyer } = await syncDemoAccounts(prisma, {
     log: (msg) => console.log(`   ✅ ${msg}`),
     resetPasswords: true,
   });
@@ -85,24 +85,21 @@ async function main() {
 
   console.log('\n📅 Seeding availability slots...');
   let lawyerSlots = 0;
-  let publicSlots = 0;
   try {
-    const publicLawyerId = publicLawyer?.id || null;
-    ({ lawyerSlots, publicSlots } = await seedAvailabilitySlots(prisma, lawyer.id, publicLawyerId));
+    ({ lawyerSlots } = await seedAvailabilitySlots(prisma, lawyer.id));
   } catch (slotErr) {
     console.warn('\n⚠️  Demo accounts were created, but availability seeding failed.');
     console.warn(`   Reason: ${slotErr.message}`);
     console.warn('   This is non-critical — demo accounts still work.\n');
   }
-  if (lawyerSlots) console.log(`   ✅ ${lawyerSlots} slots for lawyer@test.com`);
-  if (publicSlots) console.log(`   ✅ ${publicSlots} slots for publiclawyer@test.com\n`);
+  if (lawyerSlots) console.log(`   ✅ ${lawyerSlots} slots for lawyer@ordinex.test\n`);
 
   console.log('═══════════════════════════════════════');
   console.log('🎉 Database seeded successfully!');
   console.log('═══════════════════════════════════════');
   console.log('\nTest accounts (all use password: password123):');
-  console.log('  Citizen (Free Account): citizen@test.com');
-  console.log('  Lawyer (Verified):      lawyer@test.com');
+  console.log('  Citizen (Free Account): citizen@ordinex.test');
+  console.log('  Lawyer (Verified):      lawyer@ordinex.test');
 }
 
 main()

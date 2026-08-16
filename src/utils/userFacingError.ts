@@ -21,27 +21,34 @@ export function toUserFacingError(
   }
 
   if (err instanceof Error && err.name === 'ApiError') {
-    const apiErr = err as Error & { status?: number };
+    const apiErr = err as Error & { status?: number; data?: any };
+    if (apiErr.data && typeof apiErr.data.error === 'string' && !isTechnicalMessage(apiErr.data.error)) {
+      return apiErr.data.error;
+    }
+    if (apiErr.message && !isTechnicalMessage(apiErr.message)) {
+      return apiErr.message;
+    }
     if (apiErr.status === 0) {
-      return err.message && !isTechnicalMessage(err.message)
-        ? err.message
-        : 'API server is not running. Start it with npm run server:dev.';
+      return 'API server is not running. Please check your connection.';
     }
     if (apiErr.status === 401) {
-      return err.message && !isTechnicalMessage(err.message)
-        ? err.message
-        : 'You need to sign in again.';
+      return 'Invalid credentials. Please check your email and password.';
     }
-    if (apiErr.status === 403) return err.message && !isTechnicalMessage(err.message) ? err.message : 'You do not have access to do that.';
-    if (apiErr.status === 404) return err.message && !isTechnicalMessage(err.message) ? err.message : 'We could not find what you were looking for.';
-    if (apiErr.status === 409) return err.message && !isTechnicalMessage(err.message) ? err.message : 'That action could not be completed.';
+    if (apiErr.status === 403) return 'You do not have access to do that.';
+    if (apiErr.status === 404) return 'We could not find what you were looking for.';
+    if (apiErr.status === 409) {
+      if (typeof apiErr.data?.error === 'string' && !isTechnicalMessage(apiErr.data.error)) {
+        return apiErr.data.error;
+      }
+      return 'An account with this email or phone already exists. Log in instead.';
+    }
     if (apiErr.status === 413) return 'The file is too large. Maximum size is 10MB.';
   }
 
   const message = err instanceof Error ? err.message : '';
 
   if (/isAdmin|does not exist in the current database/i.test(message)) {
-    return 'Sign-in is temporarily unavailable. Please try again in a moment.';
+    return 'Log-in is temporarily unavailable. Please try again in a moment.';
   }
 
   if (isTechnicalMessage(message)) {

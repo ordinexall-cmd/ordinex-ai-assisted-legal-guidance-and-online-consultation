@@ -19,7 +19,10 @@ import { seedAvailabilitySlots } from '../prisma/seedAvailability.js';
 const PANEL_EMAIL = 'panel-lawyer@ordinex.demo';
 
 const DEMO_PHONES = [
+  '09170011001',
+  '09190022002',
   '09171234567',
+  '09171234568',
   '09181234567',
   '09191234567',
   '09201234567',
@@ -158,20 +161,15 @@ async function main() {
   }
 
   console.log('\n👤 Syncing demo accounts...');
-  const { lawyer, publicLawyer } = await syncDemoAccounts(prisma, {
+  const { lawyer } = await syncDemoAccounts(prisma, {
     log: (msg) => console.log(`   ✅ ${msg}`),
     resetPasswords: true,
   });
   await setStoredDemoVersion(prisma, DEMO_SEED_VERSION);
 
   console.log('\n📅 Seeding availability slots...');
-  const { lawyerSlots, publicSlots } = await seedAvailabilitySlots(
-    prisma,
-    lawyer.id,
-    publicLawyer.id,
-  );
-  console.log(`   ✅ ${lawyerSlots} slots for lawyer@test.com`);
-  console.log(`   ✅ ${publicSlots} slots for publiclawyer@test.com`);
+  const { lawyerSlots } = await seedAvailabilitySlots(prisma, lawyer.id);
+  console.log(`   ✅ ${lawyerSlots} slots for ${lawyer.email}`);
 
   console.log('\n✅ Demo state reset complete (password: password123)');
   console.log('   Panel walkthrough: clear done — use /lawyer/register?panel=1');

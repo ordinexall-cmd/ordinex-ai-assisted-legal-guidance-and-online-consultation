@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { authApi, profileApi, type PaymentMethod } from '../../services/api';
+import { authApi, type PaymentMethod } from '../../services/api';
 import { getErrorMessage } from '../../utils/userFacingError';
 import { PaymentMethodFields } from '../payment/PaymentMethodFields';
 import {
@@ -46,7 +46,6 @@ export const LawyerBookingSettings: React.FC<{
   const [ewallet, setEwallet] = useState<PaymentMethod>(() => emptyPaymentMethod('ewallet', 'pm-ewallet'));
   const [bank, setBank] = useState<PaymentMethod>(() => emptyPaymentMethod('bank', 'pm-bank'));
   const [saving, setSaving] = useState(false);
-  const [qrBusy, setQrBusy] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -89,19 +88,6 @@ export const LawyerBookingSettings: React.FC<{
       onFeedback(getErrorMessage(err, 'Save failed. Please try again.'), false);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const uploadQr = async (file: File) => {
-    setQrBusy(true);
-    try {
-      const { qrUrl } = await profileApi.uploadPaymentQr(file);
-      setEwallet((prev) => ({ ...prev, qrUrl }));
-      onFeedback('QR uploaded. Save booking settings to keep it.', true);
-    } catch (err) {
-      onFeedback(getErrorMessage(err, 'QR upload failed.'), false);
-    } finally {
-      setQrBusy(false);
     }
   };
 
@@ -153,9 +139,9 @@ export const LawyerBookingSettings: React.FC<{
       </section>
 
       <section className="settings-editor__section">
-        <h3 className="settings-section-title">Payment for consultations</h3>
+        <h3 className="settings-section-title">Payout destination</h3>
         <p className="profile-email settings-practice-summary__hint" style={{ marginBottom: 10 }}>
-          Optional: your bank/e-wallet details for payout withdrawals. Citizens pay through Ordinex checkout (GCash via PayMongo) — a 10% platform fee is deducted from your quote, and 90% goes to your wallet.
+          These numbers are for Ordinex to send your 85% after the consult. Citizens pay through Ordinex checkout (PayMongo/GCash), not your personal wallet. Details are stored for payout only and are not shown on your public directory. The remaining 15% is the platform fee.
         </p>
 
         <div className="settings-segment payment-type-segment" role="tablist" aria-label="Payment type">
@@ -178,13 +164,11 @@ export const LawyerBookingSettings: React.FC<{
             type={paymentTab}
             value={activeMethod}
             onChange={(patch) => setActiveMethod((prev) => ({ ...prev, ...patch }))}
-            qrBusy={paymentTab === 'ewallet' && qrBusy}
-            onUploadQr={paymentTab === 'ewallet' ? uploadQr : undefined}
             idPrefix="settings"
           />
         </div>
         <p className="profile-email settings-practice-summary__hint" style={{ marginTop: 8 }}>
-          Fill in payment details for payout withdrawals. Your earnings are visible in the Earnings tab.
+          Save e-wallet or bank details, then request a withdrawal from the Earnings tab.
         </p>
       </section>
 

@@ -11,9 +11,9 @@ function ordinexApiHealthCheck(): Plugin {
         // eslint-disable-next-line no-console
         console.warn(
           '\n\u26a0\ufe0f  Ordinex API is not reachable at http://localhost:5000\n' +
-            '   Seeded logins and /api routes will fail until the API is running.\n' +
-            '   Start API:  npm run server:dev\n' +
-            '   Both apps:  npm run dev:all\n',
+          '   Seeded logins and /api routes will fail until the API is running.\n' +
+          '   Start API:  npm run server:dev\n' +
+          '   Both apps:  npm run dev:all\n',
         );
       };
       fetch('http://localhost:5000/api/health')

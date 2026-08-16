@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
+import { useAuth } from '../context/AuthContext';
 import { bookingsApi, type Booking } from '../services/api';
-import { lawyerNav } from '../utils/lawyerWorkspace';
+import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { getAppBackFallback } from '../utils/navigation';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
@@ -19,6 +20,7 @@ function fmtSlot(b: Booking) {
 }
 
 export const LawyerActivityHistory: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab');
@@ -80,7 +82,7 @@ export const LawyerActivityHistory: React.FC = () => {
     <AppShell
       variant="flow"
       title="History"
-      navItems={lawyerNav}
+      navItems={getLawyerNav(user)}
       stepLabel="Activity"
       backTo={getAppBackFallback(true)}
     >

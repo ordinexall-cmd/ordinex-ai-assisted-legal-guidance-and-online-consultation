@@ -71,9 +71,9 @@ export const LawyerEarningsTab: React.FC<{
       <div className="wallet-prototype-note" role="note">
         <span className="material-symbols-outlined" aria-hidden>account_balance</span>
         <p>
-          Wallet balance is a <strong>platform ledger (prototype)</strong>. Earnings are recorded after
-          confirmed payments; payout requests are manual in this version. Automated PayMongo payouts
-          are future work.
+          Wallet balance is a <strong>platform ledger (prototype)</strong>. After a consult, 85% of the
+          citizen’s Ordinex payment is recorded here. Request a payout to the e-wallet or bank account
+          saved on the Practice tab. Automated PayMongo payouts are future work.
         </p>
       </div>
 

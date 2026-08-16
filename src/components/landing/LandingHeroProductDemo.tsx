@@ -1,13 +1,16 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { BrandLogo } from '../brand/BrandLogo';
-import { outlookPill } from '../dashboard/outlookPill';
 import {
   ApiError,
   consultationApi,
-  type CourtWinLevel,
   type GuestPreviewResult,
 } from '../../services/api';
 import { setGuestDraft } from '../../constants/guestDraft';
+import { CASE_ANALYSIS_CATEGORIES, type CaseAnalysisCategory } from '../../constants/legalCategories';
+import { PreGuidanceResult } from '../analysis/PreGuidanceResult';
+import { guestPreviewToAnalysis } from '../../utils/guestPreviewToAnalysis';
+import { SITUATION_PLACEHOLDER } from '../../constants/situationPrompt';
+import { assessDescriptionFacts } from '../../utils/situationFacts';
 
 const MIN_CHARS = 40;
 const MAX_CHARS = 2000;
@@ -17,18 +20,6 @@ const STEP_META = [
   { num: 2, title: 'Review', hint: 'We outline the key points' },
   { num: 3, title: 'Get clarity', hint: 'Plain language summary' },
 ] as const;
-
-const TRUST_PILLS = [
-  { icon: 'shield', title: 'Private & secure', text: 'Your data is encrypted.' },
-  { icon: 'schedule', title: 'Fast & easy', text: 'Results in minutes.' },
-  { icon: 'person', title: 'Lawyer-ready', text: 'Share with confidence.' },
-];
-
-const LOCKED_SECTIONS = [
-  { title: 'Situation summary', lines: ['Timeline of events and parties involved…', 'Key facts organized for counsel…'] },
-  { title: 'Issues identified', lines: ['Labor Code notice requirements…', 'Potential procedural gaps…'] },
-  { title: 'Suggested next steps', lines: ['Documents to gather before consult…', 'Questions to ask your lawyer…'] },
-];
 
 type DemoState = 'describe' | 'analyzing' | 'preview' | 'error';
 type StepUiState = 'active' | 'next' | 'done' | 'todo';
@@ -51,25 +42,50 @@ export interface LandingHeroProductDemoProps {
 
 export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
   onSignUp,
-  onSignIn,
 }) => {
   const [demoState, setDemoState] = useState<DemoState>('describe');
   const [description, setDescription] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<CaseAnalysisCategory>('unsure');
   const [preview, setPreview] = useState<GuestPreviewResult | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [missingFacts, setMissingFacts] = useState<string[]>([]);
 
   const charCount = description.length;
   const canSubmit = charCount >= MIN_CHARS && charCount <= MAX_CHARS && demoState !== 'analyzing';
+  const categoryForApi = selectedCategory;
 
   const stepStates = useMemo(() => stepStatesFor(demoState), [demoState]);
+  const analysis = preview && !preview.requiresLogin && !preview.needsMoreDetail
+    ? guestPreviewToAnalysis(preview)
+    : null;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setErrorMessage('');
+    const facts = assessDescriptionFacts(description.trim());
+    if (!facts.ready) {
+      setMissingFacts(facts.missing.map((m) => m.label));
+      setPreview(null);
+      setDemoState('describe');
+      return;
+    }
+    setMissingFacts([]);
     setDemoState('analyzing');
     try {
-      const result = await consultationApi.preview({ description: description.trim() });
-      setGuestDraft({ description: description.trim() });
+      const result = await consultationApi.preview({
+        description: description.trim(),
+        category: categoryForApi,
+      });
+      if (result.needsMoreDetail) {
+        setMissingFacts(result.missingFacts || facts.missing.map((m) => m.label));
+        setPreview(null);
+        setDemoState('describe');
+        return;
+      }
+      setGuestDraft({
+        description: description.trim(),
+        category: categoryForApi,
+      });
       setPreview(result);
       setDemoState('preview');
     } catch (err) {
@@ -80,9 +96,44 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
       setErrorMessage(msg);
       setDemoState('error');
     }
-  }, [canSubmit, description]);
+  }, [canSubmit, description, categoryForApi]);
 
-  const outlookLevel = preview?.outlookLevel as CourtWinLevel | undefined;
+  const restartDescribe = () => {
+    setPreview(null);
+    setMissingFacts([]);
+    setDemoState('describe');
+  };
+
+  const persistDraft = (opts: { autoAnalyze?: boolean; intent?: 'analyze' | 'lawyers' } = {}) => {
+    setGuestDraft({
+      description: description.trim(),
+      category: categoryForApi || preview?.matchSpecialty,
+      autoAnalyze: Boolean(opts.autoAnalyze),
+      intent: opts.intent || 'analyze',
+    });
+  };
+
+  const unlockWithDraft = (opts: { autoAnalyze?: boolean; intent?: 'analyze' | 'lawyers' } = {}) => {
+    persistDraft(opts);
+    onSignUp();
+  };
+
+  const needsLogin = Boolean(preview?.requiresLogin);
+
+  const loginFooter = (
+    <div className="landing-product-demo__post-actions">
+      <button
+        type="button"
+        className="ox-btn ox-btn-primary"
+        onClick={() => unlockWithDraft({ autoAnalyze: true, intent: 'analyze' })}
+      >
+        Sign in
+      </button>
+      <button type="button" className="ox-btn ox-btn-outline landing-product-demo__restart-btn" onClick={restartDescribe}>
+        Analyze another situation
+      </button>
+    </div>
+  );
 
   return (
     <div
@@ -119,68 +170,59 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
 
       <div className="landing-product-demo__main">
         {demoState === 'preview' && preview ? (
-          <>
-            <div className="landing-product-demo__preview-head">
-              <h2 className="landing-product-demo__heading">Your preview</h2>
-              {preview.caseHint ? (
-                <span className="landing-product-demo__case-hint">{preview.caseHint}</span>
-              ) : null}
-            </div>
-            <div
-              className="landing-product-demo__preview-line"
-              aria-live="polite"
-              role="status"
-            >
-              <p>{preview.previewLine}</p>
-              <p className="landing-product-demo__preview-law-hint">
-                {preview.lawHintLine ||
-                  'Possible legal basis identified. Sign in to view the exact law references and full reasoning.'}
-              </p>
-              <div className="landing-product-demo__preview-outlook">
-                {outlookPill(outlookLevel)}
+          needsLogin ? (
+            <>
+              <div className="landing-product-demo__preview-head">
+                <h2 className="landing-product-demo__heading">No preloaded match</h2>
               </div>
-            </div>
-            <div className="landing-product-demo__locked-wrap">
-              {LOCKED_SECTIONS.map((section) => (
-                <div key={section.title} className="landing-product-demo__locked-section">
-                  <h3>{section.title}</h3>
-                  {section.lines.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </div>
-              ))}
-              <div className="landing-product-demo__locked-overlay">
-                <p>Sign in to unlock your full analysis</p>
-                <button type="button" className="ox-btn ox-btn-primary" onClick={onSignUp}>
-                  Create free account
-                </button>
-                {onSignIn ? (
-                  <button
-                    type="button"
-                    className="landing-product-demo__signin-link"
-                    onClick={onSignIn}
-                  >
-                    Already have an account? Sign in
-                  </button>
-                ) : null}
+              <div className="landing-product-demo__analysis-section">
+                <h3>Sign in to continue</h3>
+                <p className="landing-product-demo__complex-desc">
+                  This situation is not covered by our preloaded Philippine case guides. Create a free account so we can search official sources (Official Gazette, LawPhil, Supreme Court e-Library), save your history, and match you with a verified lawyer.
+                </p>
+                {loginFooter}
               </div>
-            </div>
-            {preview.disclaimer ? (
-              <p className="landing-product-demo__disclaimer">{preview.disclaimer}</p>
-            ) : null}
-          </>
+            </>
+          ) : analysis ? (
+            <PreGuidanceResult
+              ar={analysis}
+              category={categoryForApi || preview.matchSpecialty}
+              variant="landing"
+              onConsultLawyer={() => unlockWithDraft({ autoAnalyze: false, intent: 'lawyers' })}
+              onAnalyzeAnother={restartDescribe}
+            />
+          ) : null
         ) : (
           <>
             <h2 className="landing-product-demo__heading">What happened?</h2>
+
+            <label className="landing-demo-category">
+              <span className="landing-demo-category__label">Legal category</span>
+              <span className="landing-demo-category__hint">This helps match the right Philippine rules.</span>
+              <select
+                className="landing-demo-category__select"
+                value={selectedCategory}
+                disabled={demoState === 'analyzing'}
+                aria-label="Legal category"
+                onChange={(e) => setSelectedCategory(e.target.value as CaseAnalysisCategory)}
+              >
+                {CASE_ANALYSIS_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div className="landing-product-demo__field">
               <textarea
                 id="landing-demo-description"
                 className="landing-product-demo__textarea"
                 aria-label="Describe your situation"
-                placeholder="Type your situation in your own words…"
+                placeholder={SITUATION_PLACEHOLDER}
                 value={description}
                 maxLength={MAX_CHARS}
-                rows={5}
+                rows={6}
                 disabled={demoState === 'analyzing'}
                 onChange={(e) => {
                   setDescription(e.target.value);
@@ -189,15 +231,26 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
                 aria-describedby="landing-demo-char-count"
                 aria-invalid={demoState === 'error'}
               />
-              <span
-                id="landing-demo-char-count"
-                className={`landing-product-demo__count${
-                  charCount < MIN_CHARS ? ' landing-product-demo__count--low' : ''
-                }`}
-              >
-                {charCount} / {MAX_CHARS}
-              </span>
             </div>
+            <span
+              id="landing-demo-char-count"
+              className={`landing-product-demo__count${
+                charCount < MIN_CHARS ? ' landing-product-demo__count--low' : ''
+              }`}
+            >
+              {charCount} / {MAX_CHARS}
+            </span>
+
+            {missingFacts.length > 0 ? (
+              <div className="landing-product-demo__missing" role="status">
+                <strong>Add these details for an accurate outline</strong>
+                <ul>
+                  {missingFacts.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {demoState === 'error' && errorMessage ? (
               <p className="landing-product-demo__error" role="alert">
@@ -225,20 +278,6 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
                 </span>
               </button>
             )}
-
-            <div className="landing-product-demo__pills">
-              {TRUST_PILLS.map((pill) => (
-                <div key={pill.title} className="landing-product-demo__pill">
-                  <span className="material-symbols-outlined" aria-hidden>
-                    {pill.icon}
-                  </span>
-                  <span className="landing-product-demo__pill-copy">
-                    <strong>{pill.title}</strong>
-                    <span className="landing-product-demo__pill-desc">{pill.text}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
           </>
         )}
       </div>

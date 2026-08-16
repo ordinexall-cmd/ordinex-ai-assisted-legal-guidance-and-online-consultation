@@ -3,19 +3,21 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { paymentsApi, type CheckoutContext } from '../services/api';
 import { getErrorMessage } from '../utils/userFacingError';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 
 const peso = (n: number) => `₱${n.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [params] = useSearchParams();
   const type = params.get('type') as 'booking' | null;
   const bookingId = params.get('bookingId') || undefined;
   const paymongoSession = params.get('paymongo_session') || undefined;
   const cancelled = params.get('cancelled') === '1';
 
-  const nav = getCitizenNav();
+  const nav = getCitizenNav(user);
 
   const [ctx, setCtx] = useState<CheckoutContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,8 +170,7 @@ export const CheckoutPage: React.FC = () => {
                 </p>
               ) : (
                 <p className="checkout-method__note" style={{ marginTop: 12 }}>
-                  Payment is held by Ordinex until the consultation finishes — not sent to the lawyer immediately.
-                  Cancel before the session for a refund.
+                  Pay only through Ordinex. Do not send GCash to the lawyer. Funds are held until the session ends; 15% is the platform fee.
                 </p>
               )}
             </div>
@@ -183,8 +184,8 @@ export const CheckoutPage: React.FC = () => {
                 </button>
               </div>
               <p className="checkout-method__note">
-                GCash is the primary payment method in the Philippines. Maya may appear as a secondary
-                option on the PayMongo checkout screen.
+                Pay only through Ordinex (PayMongo). Do not send GCash to the lawyer directly.
+                Maya may appear as a secondary option on the PayMongo checkout screen.
               </p>
             </div>
 
@@ -230,7 +231,7 @@ export const CheckoutPage: React.FC = () => {
               By continuing, you agree to the Ordinex{' '}
               <Link to="/terms" className="link-inline">Terms of Service</Link>
               . Fees are quoted by your lawyer after reviewing your case.
-              Your payment is safely held by Ordinex and will only be credited to the lawyer after your consultation is completed (pending verification of any reports or issues). In case a problem or cancellation occurs, your payment will be immediately refunded to you.
+              Pay only in Ordinex. Funds are held until the session ends; 15% is the platform fee and 85% is paid to the lawyer after the consult. Do not send GCash to the lawyer’s personal wallet. If a problem or cancellation occurs, you are refunded.
             </p>
           </>
         )}

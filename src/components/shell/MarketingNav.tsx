@@ -88,7 +88,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
             className="marketing-btn marketing-btn-secondary marketing-btn-sm"
             onClick={onSignIn}
           >
-            Sign in
+            Log in
           </button>
         )}
         {authActions === 'both' && onGetStarted && (
@@ -153,7 +153,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
                     onSignIn();
                   }}
                 >
-                  Sign in
+                  Log in
                 </button>
               )}
               {authActions === 'both' && onGetStarted && (

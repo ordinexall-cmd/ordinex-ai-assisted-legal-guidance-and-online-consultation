@@ -9,10 +9,18 @@ import { env } from './env.js';
 
 const globalForPrisma = globalThis;
 
-export const prisma =
-  globalForPrisma.__ordinexPrisma ??
-  new PrismaClient({
+function createPrisma() {
+  return new PrismaClient({
     log: env.isDev ? ['warn', 'error'] : ['error'],
   });
+}
+
+function clientHasBriefs(client) {
+  return typeof client?.caseBrief?.findMany === 'function'
+    && typeof client?.briefInquiry?.findMany === 'function';
+}
+
+const existing = globalForPrisma.__ordinexPrisma;
+export const prisma = clientHasBriefs(existing) ? existing : createPrisma();
 
 if (env.isDev) globalForPrisma.__ordinexPrisma = prisma;

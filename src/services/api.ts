@@ -142,8 +142,15 @@ async function request<T>(
             ? 'We could not find that.'
             : 'Something went wrong. Please try again.';
 
+    const rawError =
+      typeof data.error === 'string' && data.error.trim()
+        ? data.error
+        : typeof data.message === 'string' && data.message.trim()
+          ? data.message
+          : fallback;
+
     throw new ApiError(
-      toUserFacingError(data.error || '', fallback),
+      toUserFacingError(rawError, fallback),
       response.status,
       data.code,
       data
@@ -174,18 +181,44 @@ export const authApi = {
     address?: string;
     civilStatus?: string;
     occupation?: string;
+    // Security question for password reset
+    securityQuestion?: string;
+    securityAnswer?: string;
   }) => request<{ message: string; phone: string; devOtp?: string }>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(body),
   }),
 
-  resendOtp: (body: { phone: string; purpose?: 'REGISTER' | 'RESET_PASSWORD' }) =>
-    request<{ message: string; phone: string; devOtp?: string }>('/auth/resend-otp', {
+  resendOtp: (body: { phone?: string; email?: string; purpose?: 'REGISTER' | 'RESET_PASSWORD' }) =>
+    request<{ message: string; phone?: string; email?: string; devOtp?: string }>('/auth/resend-otp', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
-  verifyOtp: (body: { phone: string; code: string }) =>
+  forgotPassword: (body: { email?: string; phone?: string }) =>
+    request<{
+      message: string;
+      securityQuestion?: string | null;
+      hasSecurityQuestion?: boolean;
+      requiresSecurityAnswer?: boolean;
+    }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  forgotPasswordVerifySecurity: (body: { email: string; securityAnswer: string }) =>
+    request<{ message: string; devOtp?: string }>('/auth/forgot-password/verify-security', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  forgotPasswordSendCode: (body: { email: string }) =>
+    request<{ message: string; devOtp?: string }>('/auth/forgot-password/send-code', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  verifyOtp: (body: { phone?: string; email?: string; code: string }) =>
     request<{
       message: string;
       token?: string;
@@ -203,13 +236,24 @@ export const authApi = {
       body: JSON.stringify(body),
     }),
 
-  forgotPassword: (body: { phone: string }) =>
-    request<{ message: string; devOtp?: string }>('/auth/forgot-password', {
+  verifyResetCode: (body: { email?: string; phone?: string; code: string }) =>
+    request<{
+      valid: boolean;
+      message: string;
+      securityQuestion?: string | null;
+      hasSecurityQuestion?: boolean;
+    }>('/auth/verify-reset-code', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
-  resetPassword: (body: { phone: string; code: string; newPassword: string }) =>
+  resetPassword: (body: {
+    email?: string;
+    phone?: string;
+    code: string;
+    securityAnswer?: string;
+    newPassword: string;
+  }) =>
     request<{ message: string }>('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -218,9 +262,57 @@ export const authApi = {
   getProfile: () =>
     request<{ user: UserProfile }>('/auth/me'),
 
-  updateProfile: (body: Partial<UserProfile>) =>
+  updateProfile: (body: Partial<UserProfile> & { currentPassword?: string }) =>
     request<{ message: string; user: UserProfile }>('/auth/me', {
       method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  requestChangeOtp: (body: {
+    purpose: 'CHANGE_PASSWORD' | 'CHANGE_EMAIL' | 'CHANGE_PHONE';
+    currentPassword?: string;
+    newEmail?: string;
+    newPhone?: string;
+  }) =>
+    request<{ message: string; devOtp?: string }>('/auth/me/request-change-otp', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  changePassword: (body: {
+    securityAnswer?: string;
+    code: string;
+    newPassword: string;
+  }) =>
+    request<{ message: string; user: UserProfile }>('/auth/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  changeEmail: (body: {
+    currentPassword: string;
+    securityAnswer?: string;
+    code: string;
+    newEmail: string;
+  }) =>
+    request<{ message: string; user: UserProfile }>('/auth/me/email', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  changePhone: (body: {
+    currentPassword: string;
+    code: string;
+    newPhone: string;
+  }) =>
+    request<{ message: string; user: UserProfile }>('/auth/me/phone', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  verifyCurrentPassword: (body: { currentPassword: string }) =>
+    request<{ verified: boolean; message: string }>('/auth/me/verify-password', {
+      method: 'POST',
       body: JSON.stringify(body),
     }),
 
@@ -229,17 +321,52 @@ export const authApi = {
 
   googleStartUrl: (role: 'CITIZEN' | 'LAWYER' = 'CITIZEN') =>
     `/api/auth/google/start?role=${role}`,
+
+  submitCitizenVerification: (formData: FormData) =>
+    request<{ message: string; user: UserProfile; ocrExtracted?: { fullName: string; idNumber: string; idType: string } }>(
+      '/auth/me/citizen-verification',
+      {
+        method: 'POST',
+        body: formData,
+      },
+    ),
 };
 
 // ======================== CONSULTATION API ========================
 
+export type GuestPreviewCase = {
+  name: string;
+  confidenceScore: number;
+  explanation: string;
+  applicableLaw?: string;
+};
+
 export type GuestPreviewResult = {
-  previewLine: string;
-  lawHintLine: string;
+  userConcernSummary: string;
+  situationSummary: string;
+  possibleLegalCases: GuestPreviewCase[];
+  suggestedNextSteps: string[];
+  penalties?: string;
   outlookLevel: CourtWinLevel;
   caseHint: string;
+  matchSpecialty?: string;
+  lawyerSpecialty?: string;
+  recommendedAgency?: string;
+  costBallpark?: string;
+  possibleDeadline?: string;
+  cautions?: string[];
+  factorsFor?: string[];
+  factorsAgainst?: string[];
+  missingFacts?: string[];
   disclaimer: string;
+  requiresDeepSearch?: boolean;
+  isComplex?: boolean;
+  requiresLogin?: boolean;
+  needsMoreDetail?: boolean;
+  /** Full identification payload for the shared pre-guidance card. */
+  analysis?: LegalAnalysisResult;
 };
+
 
 export const consultationApi = {
   preview: (body: { description: string; category?: string }) =>
@@ -251,7 +378,9 @@ export const consultationApi = {
   analyze: (formData: FormData) =>
     request<{
       message: string;
-      consultation: ConsultationResult;
+      consultation: ConsultationResult | null;
+      needsMoreDetail?: boolean;
+      missingFacts?: string[];
       meta?: ConsultationAnalysisMeta;
       trialsRemaining: number | string;
     }>('/consultation/analyze', {
@@ -361,6 +490,8 @@ export interface LawyerCardSummary {
   isVerified: boolean;
   rating: number;
   ratingCount: number;
+  city?: string | null;
+  province?: string | null;
   openSlots: number;
   hasAvailability: boolean;
 }
@@ -419,6 +550,61 @@ export const lawyersApi = {
     if (to) qs.set('to', to);
     return request<{ slots: AvailabilitySlot[] }>(`/lawyers/${id}/availability?${qs.toString()}`);
   },
+};
+
+export interface CitizenBrief {
+  id: string;
+  category: string;
+  summary: string;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  city: string | null;
+  province: string | null;
+  displayName: string;
+  anonymous?: boolean;
+  status?: string;
+  createdAt: string;
+  myOfferStatus?: string | null;
+}
+
+export interface BriefInquiry {
+  id: string;
+  message: string | null;
+  status: string;
+  createdAt: string;
+  lawyer: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    specializations: string | null;
+    fee: number | null;
+  };
+}
+
+export const briefsApi = {
+  getMine: () => request<{ brief: CitizenBrief | null }>('/briefs/mine'),
+  saveMine: (body: {
+    category: string;
+    summary: string;
+    budgetMin?: number | null;
+    budgetMax?: number | null;
+    anonymous?: boolean;
+  }) => request<{ brief: CitizenBrief }>('/briefs/mine', { method: 'PUT', body: JSON.stringify(body) }),
+  closeMine: () => request<{ brief: CitizenBrief | null }>('/briefs/mine/close', { method: 'POST' }),
+  listInquiries: () => request<{ inquiries: BriefInquiry[] }>('/briefs/inquiries'),
+  acceptInquiry: (id: string) => request<{ lawyerId: string }>(`/briefs/inquiries/${id}/accept`, { method: 'POST' }),
+  declineInquiry: (id: string) => request<{ ok: boolean }>(`/briefs/inquiries/${id}/decline`, { method: 'POST' }),
+  listOpen: (params: { search?: string; category?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.search) qs.set('search', params.search);
+    if (params.category) qs.set('category', params.category);
+    return request<{ briefs: CitizenBrief[] }>(`/briefs?${qs.toString()}`);
+  },
+  offer: (id: string, message?: string) =>
+    request<{ inquiry: { id: string; status: string } }>(`/briefs/${id}/offer`, {
+      method: 'POST',
+      body: JSON.stringify({ message: message || '' }),
+    }),
 };
 
 // ======================== AVAILABILITY API (Lawyer) ========================
@@ -989,6 +1175,11 @@ export interface UserProfile {
   phone: string;
   role: 'CITIZEN' | 'LAWYER';
   name: string;
+  firstName?: string | null;
+  middleName?: string | null;
+  lastName?: string | null;
+  suffix?: string | null;
+  aliases?: string | null;
   language: string;
   isPremium: boolean;
   trialsUsed: number;
@@ -997,6 +1188,13 @@ export interface UserProfile {
   createdAt: string;
   // Lawyer fields
   barNumber?: string;
+  barAdmissionYear?: number | null;
+  ibpChapter?: string | null;
+  ibpIdNumber?: string | null;
+  mcleComplianceNo?: string | null;
+  ptrNumber?: string | null;
+  ptrLgu?: string | null;
+  lawFirmName?: string | null;
   specializations?: string[];
   consultationFee?: number;
   consultationFeeMin?: number;
@@ -1025,12 +1223,35 @@ export interface UserProfile {
     endDate: string;
     price: number;
   } | null;
-  // Citizen expanded-profile fields
+  // Citizen expanded-profile & demographics
   dob?: string | null;
   gender?: string | null;
-  address?: string | null;
+  citizenship?: string | null;
   civilStatus?: string | null;
   occupation?: string | null;
+  indigencyTier?: string | null;
+  // Structured PSGC address
+  region?: string | null;
+  province?: string | null;
+  city?: string | null;
+  barangay?: string | null;
+  streetAddress?: string | null;
+  zipCode?: string | null;
+  address?: string | null;
+  // Citizen ID & emergency contact
+  citizenIdType?: string | null;
+  citizenIdNumber?: string | null;
+  citizenIdUrl?: string | null;
+  citizenIdBackUrl?: string | null;
+  citizenSelfieUrl?: string | null;
+  citizenVerificationStatus?: 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+  emailVerified?: boolean;
+  suspensionUntil?: string | null;
+  suspensionReason?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyRelationship?: string | null;
+  securityQuestion?: string | null;
 }
 
 export type CourtWinLevel = 'Weak' | 'Moderate' | 'Strong' | 'Uncertain';
@@ -1068,6 +1289,8 @@ export interface LegalAnalysisResult {
   /** Canonical English specialty for directory matching */
   matchSpecialty?: string;
   costBallpark?: string;
+  possibleDeadline?: string;
+  cautions?: string[];
   systemDisclaimer: string;
   _complexCase?: boolean;
   _supersededWarning?: boolean;
@@ -1099,6 +1322,7 @@ export interface ConsultationAnalysisMeta {
   corpusHealth?: CorpusHealthMeta;
   supersededWarning?: boolean;
   usedMock: boolean;
+  retrievedSources?: Array<{ name: string; citation?: string; url?: string }>;
 }
 
 export interface ConsultationResult {

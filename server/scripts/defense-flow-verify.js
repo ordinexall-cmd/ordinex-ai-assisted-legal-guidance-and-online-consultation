@@ -3,7 +3,7 @@
  * Requires API running. Usage: node scripts/defense-flow-verify.js [baseUrl]
  */
 import 'dotenv/config';
-import { DEMO_PASSWORD } from '../prisma/demoAccounts.js';
+import { DEMO_PASSWORD, DEMO_CITIZEN_EMAIL, DEMO_LAWYER_EMAIL } from '../prisma/demoAccounts.js';
 
 const base = (process.argv[2] || process.env.API_VERIFY_URL || 'http://localhost:5000').replace(/\/$/, '');
 
@@ -46,10 +46,10 @@ async function main() {
   console.log(`Defense flow verification against ${base}\n`);
   let allOk = true;
 
-  const premiumToken = await login('premium@test.com');
-  const lawyerToken = await login('lawyer@test.com');
+  const citizenToken = await login(DEMO_CITIZEN_EMAIL);
+  const lawyerToken = await login(DEMO_LAWYER_EMAIL);
 
-  const analyze = await authFetch('/api/consultation/analyze', premiumToken, {
+  const analyze = await authFetch('/api/consultation/analyze', citizenToken, {
     method: 'POST',
     body: JSON.stringify({
       category: 'Labor and Employment',
@@ -71,7 +71,7 @@ async function main() {
     process.exit(1);
   }
 
-  const lawyers = await authFetch('/api/lawyers', premiumToken);
+  const lawyers = await authFetch('/api/lawyers', citizenToken);
   const lawyerList = lawyers.data?.lawyers || lawyers.data || [];
   const privateLawyer = Array.isArray(lawyerList)
     ? lawyerList.find((l) => l.practiceType === 'PRIVATE' && (l.consultationFee ?? 0) > 0)
@@ -87,11 +87,11 @@ async function main() {
   const lawyerUserId = lawyerMe.data?.user?.id || lawyerMe.data?.id;
   if (lawyerUserId && lawyerUserId !== privateLawyer.id) {
     console.warn(
-      '  WARN private lawyer differs from lawyer@test.com — using booking lawyer for linked-analysis',
+      `  WARN private lawyer differs from ${DEMO_LAWYER_EMAIL} — using booking lawyer for linked-analysis`,
     );
   }
 
-  const slots = await authFetch(`/api/lawyers/${privateLawyer.id}/availability`, premiumToken);
+  const slots = await authFetch(`/api/lawyers/${privateLawyer.id}/availability`, citizenToken);
   const slotList = slots.data?.slots || slots.data?.availability || slots.data || [];
   const slot = Array.isArray(slotList) ? slotList.find((s) => !s.isBooked) : null;
   allOk = ok('GET lawyer availability', slots.status === 200 && !!slot?.id) && allOk;
@@ -100,7 +100,7 @@ async function main() {
     process.exit(1);
   }
 
-  const book = await authFetch('/api/bookings', premiumToken, {
+  const book = await authFetch('/api/bookings', citizenToken, {
     method: 'POST',
     body: JSON.stringify({
       availabilityId: slot.id,

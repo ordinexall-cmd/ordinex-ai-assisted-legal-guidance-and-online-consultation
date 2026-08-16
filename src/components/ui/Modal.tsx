@@ -5,7 +5,7 @@ interface ModalProps {
   readonly onClose: () => void;
   readonly children: React.ReactNode;
   readonly title?: string;
-  readonly size?: 'sm' | 'md' | 'lg';
+  readonly size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const Modal: React.FC<ModalProps> = ({ open, onClose, children, title, size = 'md' }) => {

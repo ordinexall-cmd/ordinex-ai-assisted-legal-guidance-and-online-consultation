@@ -10,11 +10,12 @@ import './styles/citizen-shell.css';
 import './styles/ordinex-portal-layout.css';
 import './styles/pwa-mobile.css';
 import './styles/account-ui.css';
+import './styles/docked-messenger.css';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import CitizenDashboard from './pages/CitizenDashboardPremium';
 import AiCaseAnalysis from './pages/AiCaseAnalysis';
-import LawyerDirectory from './pages/LawyerDirectory';
+import DirectoryPage, { DirectorySearchRedirect } from './pages/DirectoryPage';
 import LawyerProfile from './pages/LawyerProfile';
 import LawyerBookConsultation from './pages/LawyerBookConsultation';
 import ScheduleConsultation from './pages/ScheduleConsultation';
@@ -23,8 +24,7 @@ import {
   LegacyPaymentRedirect,
   LegacyBookingConfirmationRedirect,
 } from './routes/LegacyRedirects';
-import LawyerRegister from './pages/LawyerRegister';
-import CitizenRegister from './pages/CitizenRegister';
+import RegisterPage from './pages/RegisterPage';
 import AccountSettings from './pages/AccountSettings';
 import AdminKycPage from './pages/AdminKycPage';
 import LawyerDashboard from './pages/LawyerDashboard';
@@ -62,8 +62,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/licenses" element={<LicensesPage />} />
-        <Route path="/register" element={<CitizenRegister />} />
-        <Route path="/lawyer/register" element={<LawyerRegister />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/lawyer/register" element={<RegisterPage defaultRole="LAWYER" />} />
         <Route path="/auth/google/done" element={<GoogleAuthDone />} />
 
         {/* Citizen Workspace */}
@@ -95,27 +95,32 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/schedule-calendar" element={
-          <ProtectedRoute requiredRole="CITIZEN">
+          <ProtectedRoute requiredRole="CITIZEN" requireCitizenVerified>
             <ScheduleCalendar />
           </ProtectedRoute>
         } />
+        <Route path="/directory" element={
+          <ProtectedRoute>
+            <DirectoryPage />
+          </ProtectedRoute>
+        } />
         <Route path="/lawyers" element={
-          <ProtectedRoute requiredRole="CITIZEN">
-            <LawyerDirectory />
+          <ProtectedRoute>
+            <DirectorySearchRedirect />
           </ProtectedRoute>
         } />
         <Route path="/lawyers/:id" element={
-          <ProtectedRoute requiredRole="CITIZEN">
+          <ProtectedRoute requiredRole="CITIZEN" requireCitizenVerified>
             <LawyerProfile />
           </ProtectedRoute>
         } />
         <Route path="/lawyers/:id/book" element={
-          <ProtectedRoute requiredRole="CITIZEN">
+          <ProtectedRoute requiredRole="CITIZEN" requireCitizenVerified>
             <LawyerBookConsultation />
           </ProtectedRoute>
         } />
         <Route path="/schedule" element={
-          <ProtectedRoute requiredRole="CITIZEN">
+          <ProtectedRoute requiredRole="CITIZEN" requireCitizenVerified>
             <ScheduleConsultation />
           </ProtectedRoute>
         } />
@@ -144,6 +149,7 @@ function App() {
             <AccountSettings />
           </ProtectedRoute>
         } />
+        <Route path="/profile/complete" element={<Navigate to="/settings?tab=verification" replace />} />
         <Route path="/admin/kyc" element={
           <ProtectedRoute>
             <AdminKycPage />
@@ -176,6 +182,11 @@ function App() {
         <Route path="/lawyer/schedule" element={
           <ProtectedRoute requiredRole="LAWYER">
             <LawyerSchedule />
+          </ProtectedRoute>
+        } />
+        <Route path="/lawyer/requests" element={
+          <ProtectedRoute requiredRole="LAWYER">
+            <Navigate to="/directory" replace />
           </ProtectedRoute>
         } />
         <Route path="/lawyer/history" element={

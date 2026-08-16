@@ -7,7 +7,7 @@ import { onBookingUpdated } from '../services/appSocket';
 import { BookingDetailSkeleton } from '../components/booking/BookingDetailSkeleton';
 import { BookingManageView } from '../components/booking/BookingManageView';
 import { getCitizenNav } from '../utils/citizenWorkspace';
-import { lawyerNav } from '../utils/lawyerWorkspace';
+import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { getErrorMessage } from '../utils/userFacingError';
 import { useBookingDock } from '../context/BookingDockContext';
 import { isDockableBooking } from '../utils/dockableBooking';
@@ -17,7 +17,7 @@ export const BookingDetail: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isLawyer = user?.role === 'LAWYER';
-  const nav = isLawyer ? lawyerNav : getCitizenNav();
+  const nav = isLawyer ? getLawyerNav(user) : getCitizenNav(user);
   const backTo = isLawyer ? '/lawyer/dashboard' : '/dashboard';
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);

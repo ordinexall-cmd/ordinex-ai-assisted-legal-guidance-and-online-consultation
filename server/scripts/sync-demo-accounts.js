@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 // Force demo account sync (ignores stored version). Usage: npm run db:sync-demo
 import { prisma } from '../src/config/prisma.js';
-import { syncDemoAccountsIfNeeded } from '../prisma/demoAccounts.js';
+import {
+  DEMO_SEED_VERSION,
+  DEMO_PASSWORD,
+  syncDemoAccounts,
+  setStoredDemoVersion,
+} from '../prisma/demoAccounts.js';
 
-const result = await syncDemoAccountsIfNeeded(prisma, { force: true, log: console.log });
-if (!result.ran && result.reason === 'disabled') {
-  console.log('Demo sync disabled (SYNC_DEMO_ACCOUNTS=false).');
-}
+console.log(`\n🔄 Syncing demo accounts (force v${DEMO_SEED_VERSION})...`);
+await syncDemoAccounts(prisma, {
+  log: (msg) => console.log(`   ✅ ${msg}`),
+  resetPasswords: true,
+});
+await setStoredDemoVersion(prisma, DEMO_SEED_VERSION);
+console.log(`✅ Demo accounts synced to v${DEMO_SEED_VERSION} (password: ${DEMO_PASSWORD})\n`);
 await prisma.$disconnect();

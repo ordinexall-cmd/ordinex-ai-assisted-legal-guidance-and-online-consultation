@@ -4,6 +4,7 @@
  */
 import { preprocessConcern } from './textPreprocess.js';
 import { llmChatWithMeta, llmChat } from './llmClient.js';
+import { env } from '../config/env.js';
 import {
   retrieveLegalContext,
   formatChunksForPrompt,
@@ -11,6 +12,7 @@ import {
   getLocalCorpusStats,
 } from './legalCorpus.js';
 import { validateAndFilterAnalysis } from './legalValidator.js';
+import { retrieveLiveLegalContext } from './liveLegalSearch.js';
 
 const SYSTEM = `You are ORDINEX, an AI-assisted legal guidance system for the Philippines (Davao City and national law).
 You provide pre-guidance only — NOT legal advice. Never claim to be a lawyer.
@@ -19,9 +21,15 @@ RULES:
 - Use ONLY laws/cases grounded in ALLOWED_LEGAL_SOURCES below.
 - Each source carries a Status (ACTIVE | AMENDED | SUPERSEDED | REPEALED). PREFER ACTIVE/AMENDED sources. Avoid relying on SUPERSEDED or REPEALED sources — if you must mention one, explicitly note that it has been superseded.
 - Each source has Priority (high | medium | low). Prefer high-priority curated sources when both apply.
-- possibleLegalCases: ONLY distinct legal case TYPES or causes of action (e.g. VAWC, unjust dismissal, estafa). Do NOT list procedural remedies, protective orders, petitions, or filing steps here (e.g. BPO, TPO, "file a complaint") — those belong in suggestedNextSteps.
+- possibleLegalCases: ONLY distinct legal case TYPES. Do NOT list procedural remedies, protective orders, petitions, or filing steps here — those belong in suggestedNextSteps.
+- name must be everyday words a non-lawyer understands (e.g. "Recovering land you already bought"). Put Latin or formal titles only in applicableLaw (e.g. Civil Code Art. 434, accion reivindicatoria).
 - Do not list two possibleLegalCases for the same underlying statute when one is only a remedy or procedure under the other.
-- Return at most 3 possibleLegalCases; prefer 1–2 unless a third is a clearly different case type.
+- Return at most 2 possibleLegalCases; prefer 1 unless a second is a clearly different case type.
+- userConcernSummary: one short restatement. courtWinOutlook.summary must add new information — do not repeat the summary.
+- factorsFor / factorsAgainst: ONLY facts the citizen actually wrote. Never invent documents (deed, title, contract) they did not mention.
+- Do not write "court win outlook", "plaintiff", "cause of action", or "accion" in citizen-facing sentences unless you explain the term once in parentheses.
+- possibleDeadline: plain-language time limit only if ALLOWED_LEGAL_SOURCES state a period. If unknown, say a lawyer should confirm the deadline — never guess a number of years.
+- cautions: 2–4 "what not to do yet" items (do not sign a waiver you do not understand, do not ignore a summons, do not post the dispute publicly, do not confront someone if it is unsafe).
 - confidenceScore is 0-100 for how well the user's facts match that case type (not guaranteed court win).
 - In each possibleLegalCases explanation, briefly state what the law covers and why it connects to this situation in plain language.
 - Each possibleLegalCases item should include the strongest matching citation context available from ALLOWED_LEGAL_SOURCES (law title, article/section if provided).
@@ -32,7 +40,7 @@ RULES:
 - suggestedNextSteps: practical and actionable. Include at least one document-preparation step when relevant (e.g., IDs, contracts, screenshots, receipts, affidavits, police/barangay records), plus agencies like PAO/DOLE/PNP/DSWD/barangay/prosecutor when relevant.
 - Output valid JSON only.
 - LANGUAGE LOCK: The pipeline tells you the DETECTED_LANGUAGE of the USER CONCERN (en = English, tl = Tagalog, ceb = Cebuano).
-- You MUST write ALL citizen-facing textual fields ("userConcernSummary", "penalties", "courtWinOutlook.summary", "courtWinOutlook.factorsFor", "courtWinOutlook.factorsAgainst", "courtWinOutlook.missingFacts", each "possibleLegalCases.explanation", and "suggestedNextSteps") ONLY in that DETECTED_LANGUAGE.
+- You MUST write ALL citizen-facing textual fields ("userConcernSummary", "penalties", "courtWinOutlook.summary", "courtWinOutlook.factorsFor", "courtWinOutlook.factorsAgainst", "courtWinOutlook.missingFacts", each "possibleLegalCases.explanation", "suggestedNextSteps", "possibleDeadline", and "cautions") ONLY in that DETECTED_LANGUAGE.
 - If DETECTED_LANGUAGE is en, write in clear English — never Tagalog or Cebuano, even when the topic is Philippine family law.
 - If DETECTED_LANGUAGE is tl, write in Tagalog. If ceb, write in Cebuano.
 - Keep official legal names/citations (e.g. "Republic Act No. 9262", "Revised Penal Code") in English/original.`;
@@ -63,11 +71,14 @@ const OUTPUT_SCHEMA = `{
   "lawyerSpecialty": "short English description of lawyer type, e.g. family law attorney",
   "matchSpecialty": "ONE of: Family|Criminal|Labor|Property|Consumer|Cybercrime|Data Privacy|General",
   "costBallpark": "string",
+  "possibleDeadline": "plain-language time limit from sources, or a short note that a lawyer should confirm",
+  "cautions": ["what not to do yet"],
   "systemDisclaimer": "This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney."
 }`;
 
 export async function extractKeywordsGroq({ category, description }) {
   const { text, provider } = await llmChatWithMeta({
+    model: env.GROQ_LIGHT_MODEL,
     jsonMode: true,
     maxTokens: 512,
     temperature: 0.2,
@@ -89,16 +100,14 @@ export async function analyzeLegalCase({
   description,
   extractedText,
   isPremium,
+  liveSearch = false,
+  corpusOnly = false,
 }) {
   const providersUsed = [];
-  const detectedLang = await detectLanguage(description);
-
   const pre = preprocessConcern(description);
   if (pre.isVague) {
-    const rawResult = buildVagueResult(pre.normalized);
-    const translatedResult = await translateAnalysisResultJSON(rawResult, detectedLang);
     return {
-      result: translatedResult,
+      result: buildVagueResult(pre.normalized, pre.missingFacts),
       meta: {
         outcomeType: 'needs_detail',
         providersUsed: ['rules'],
@@ -107,6 +116,8 @@ export async function analyzeLegalCase({
       },
     };
   }
+
+  const detectedLang = await detectLanguage(description);
 
   let keywords = [];
   try {
@@ -117,14 +128,43 @@ export async function analyzeLegalCase({
     console.warn('[ai] keyword extraction failed:', e.message);
   }
 
+  const searchCategory = !category || category === 'unsure' || category === 'General' ? undefined : category;
+
   const searchText = [pre.normalized, extractedText?.slice(0, 3000), keywords.join(' ')].filter(Boolean).join(' ');
-  const { chunks, source: corpusSource } = await retrieveLegalContext({
-    category,
+  let { chunks, source: corpusSource } = await retrieveLegalContext({
+    category: searchCategory,
     description: searchText,
     limit: 8,
   });
 
+  if (!chunks.length && liveSearch) {
+    try {
+      const liveChunks = await retrieveLiveLegalContext({
+        keywords,
+        description: pre.normalized,
+      });
+      if (liveChunks.length) {
+        chunks = liveChunks;
+        corpusSource = 'live';
+        providersUsed.push('live-gov-search');
+      }
+    } catch (e) {
+      console.warn('[ai] live legal search failed:', e.message);
+    }
+  }
+
   if (!chunks.length) {
+    if (corpusOnly) {
+      return {
+        result: buildNoCorpusResult(pre.normalized),
+        meta: {
+          outcomeType: 'requires_login',
+          providersUsed,
+          corpusSource,
+          usedMock: false,
+        },
+      };
+    }
     const rawResult = buildNoCorpusResult(pre.normalized);
     const translatedResult = await translateAnalysisResultJSON(rawResult, detectedLang);
     return {
@@ -156,6 +196,7 @@ ${OUTPUT_SCHEMA}`;
   let raw;
   try {
     const { text, provider } = await llmChatWithMeta({
+      model: env.GROQ_MODEL,
       jsonMode: true,
       maxTokens: 4096,
       temperature: isPremium ? 0.3 : 0.25,
@@ -194,6 +235,12 @@ ${OUTPUT_SCHEMA}`;
 
   const finalResult = await translateAnalysisResultJSON(result, detectedLang);
 
+  const retrievedSources = (chunks || []).slice(0, 12).map((c) => ({
+    name: c.name || c.citation || 'Legal reference',
+    citation: c.citation || c.name || '',
+    url: c.source_url || c.url || c.link || '',
+  })).filter((s) => s.name);
+
   return {
     result: finalResult,
     meta: {
@@ -204,11 +251,16 @@ ${OUTPUT_SCHEMA}`;
       corpusHealth,
       supersededWarning: !!result._supersededWarning,
       usedMock: false,
+      retrievedSources,
     },
   };
 }
 
-function buildVagueResult(summary) {
+function buildVagueResult(summary, missingFacts = []) {
+  const gaps = (missingFacts || []).map((m) => m.label || m).filter(Boolean);
+  const listed = gaps.length
+    ? gaps
+    : ['When it happened (date and time)', 'Where it happened', 'What happened', 'Who was involved'];
   return {
     userConcernSummary: summary,
     extractedKeywords: ['needs-detail'],
@@ -216,11 +268,13 @@ function buildVagueResult(summary) {
     penalties: '',
     courtWinOutlook: {
       level: 'Uncertain',
-      summary: 'Please provide more specific facts: what happened, when, who was involved, and what outcome you want.',
+      summary: 'Add the missing facts below so we can match the right Philippine guidance. We have not used an AI analysis yet.',
       factorsFor: [],
       factorsAgainst: [],
-      missingFacts: ['Timeline of events', 'Names or roles of parties', 'Location in Davao or elsewhere', 'Any documents or reports filed'],
+      missingFacts: listed,
     },
+    possibleDeadline: '',
+    cautions: [],
     suggestedNextSteps: [
       'Rewrite your concern with dates and specific actions taken by each party.',
       'Gather any contracts, messages, receipts, or police/barangay records.',
@@ -289,6 +343,7 @@ export async function detectLanguage(text) {
   // Fall back to LLM for ambiguous text
   try {
     const response = await llmChat({
+      model: env.GROQ_LIGHT_MODEL,
       maxTokens: 10,
       temperature: 0.1,
       messages: [
@@ -319,7 +374,7 @@ export async function translateAnalysisResultJSON(result, targetLang) {
   const targetName = targetLang === 'tl' ? 'Tagalog' : 'Cebuano';
   const prompt = `You are a translator. Translate this legal analysis JSON object from English to ${targetName}.
 Rules:
-1. Translate all textual values: summaries, explanations, penalties, next steps, disclaimers, agency names, lawyer specialty, cost ballpark, missing facts, factors.
+1. Translate all textual values: summaries, explanations, penalties, next steps, disclaimers, agency names, lawyer specialty, cost ballpark, missing facts, factors, possibleDeadline, cautions.
 2. DO NOT translate these fields — keep them EXACTLY as-is:
    - "courtWinOutlook.level" (must remain one of: "Weak", "Moderate", "Strong", "Uncertain")
    - "confidenceScore" (number)
@@ -363,4 +418,33 @@ ${JSON.stringify(result, null, 2)}`;
     console.warn('[translate-result] translation failed, returning original:', err);
     return result;
   }
+}
+
+/**
+ * Follow-up Q&A on an existing analysis result (Groq Llama primary).
+ */
+export async function followUpWithGroq({ originalResult, history, question }) {
+  const context = JSON.stringify(originalResult, null, 2);
+  const prior = (history || [])
+    .slice(-10)
+    .map((m) => `${m.role === 'user' ? 'Citizen' : 'Assistant'}: ${m.content}`)
+    .join('\n');
+
+  const response = await llmChat({
+    maxTokens: 1024,
+    temperature: 0.3,
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You are Ordinex, a Philippine legal guidance assistant. Answer follow-up questions based on the prior analysis. Be concise, plain-language, and never claim to be a licensed attorney. If unsure, recommend booking a lawyer.',
+      },
+      {
+        role: 'user',
+        content: `Prior analysis JSON:\n${context}\n\nConversation so far:\n${prior || '(none)'}\n\nFollow-up question: ${question}`,
+      },
+    ],
+  });
+
+  return (response || '').trim() || 'I could not generate a follow-up answer. Please consult a licensed lawyer.';
 }

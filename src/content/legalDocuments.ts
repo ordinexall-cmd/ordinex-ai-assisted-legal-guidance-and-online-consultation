@@ -66,7 +66,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
         'PayMongo — to process GCash / checkout payments',
         'Supabase — cloud database and file storage when the project is configured for production hosting',
         'Google — sign-in, fonts/icons, and helping video calls connect',
-        'SMS or email providers (such as Semaphore or Resend) — for one-time codes or notifications when enabled',
+        'Email / SMS providers (such as Google SMTP or Semaphore) — for one-time codes or notifications when enabled',
         'PeerJS network defaults — to help video consultation connect across different networks',
       ],
     },
@@ -127,7 +127,7 @@ export const TERMS_DOCUMENT: LegalDocument = {
     {
       heading: 'Paying for bookings',
       paragraphs: [
-        'You pay when you book — there is no monthly Ordinex membership fee. From the lawyer’s quoted fee, Ordinex keeps 10% as a platform fee; the rest is credited to the lawyer in the app.',
+        'You pay when you book — there is no monthly Ordinex membership fee. From the lawyer’s quoted fee, Ordinex keeps 15% as a platform fee; the rest is credited to the lawyer in the app.',
         'Checkout may use PayMongo (for example GCash). Capstone demos often use test mode or a simulated payment. Refunds and real bank payouts may be limited in this prototype.',
       ],
     },

@@ -10,6 +10,13 @@ export interface ScheduleCalendarEvent {
   readonly onClick?: () => void;
 }
 
+export function localDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function monthDays(year: number, month: number) {
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
@@ -20,19 +27,21 @@ function monthDays(year: number, month: number) {
   return days;
 }
 
-function localDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 interface Props {
   readonly events: ScheduleCalendarEvent[];
   readonly emptyHint?: string;
+  readonly compact?: boolean;
+  readonly selectedDate?: string | null;
+  readonly onSelectDate?: (dateKey: string) => void;
 }
 
-export const ScheduleMonthGrid: React.FC<Props> = ({ events, emptyHint }) => {
+export const ScheduleMonthGrid: React.FC<Props> = ({
+  events,
+  emptyHint,
+  compact = false,
+  selectedDate = null,
+  onSelectDate,
+}) => {
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -63,7 +72,7 @@ export const ScheduleMonthGrid: React.FC<Props> = ({ events, emptyHint }) => {
   };
 
   return (
-    <div className="staff-panel schedule-calendar-grid">
+    <div className={`staff-panel schedule-calendar-grid${compact ? ' schedule-calendar-grid--compact' : ''}`}>
       <div className="schedule-calendar-grid__head">
         <button type="button" className="schedule-calendar-grid__nav" onClick={prevMonth} aria-label="Previous month">
           <span className="material-symbols-outlined">chevron_left</span>
@@ -87,25 +96,65 @@ export const ScheduleMonthGrid: React.FC<Props> = ({ events, emptyHint }) => {
           }
           const key = localDateKey(day);
           const dayEvents = byDate.get(key) || [];
-          return (
-            <div key={key} className="schedule-calendar-grid__cell">
+          const isSelected = selectedDate === key;
+          const cellClass = [
+            'schedule-calendar-grid__cell',
+            compact ? 'schedule-calendar-grid__cell--pick' : '',
+            isSelected ? 'is-selected' : '',
+            dayEvents.length ? 'has-events' : '',
+          ].filter(Boolean).join(' ');
+
+          const inner = (
+            <>
               <span className="schedule-calendar-grid__day-num">{day.getDate()}</span>
-              <div className="schedule-calendar-grid__events">
-                {dayEvents.map((ev) => {
-                  const variant = ev.colorVariant || 'green';
-                  const isCompleted = ev.completed;
-                  return (
-                    <button
+              {compact ? (
+                <div className="schedule-calendar-grid__dots" aria-hidden>
+                  {dayEvents.slice(0, 3).map((ev) => (
+                    <span
                       key={ev.id}
-                      type="button"
-                      className={`schedule-calendar-grid__event schedule-calendar-grid__event--${variant}${isCompleted ? ' schedule-calendar-grid__event--done' : ''}`}
-                      onClick={ev.onClick}
-                    >
-                      {ev.label}
-                    </button>
-                  );
-                })}
-              </div>
+                      className={`schedule-calendar-grid__dot schedule-calendar-grid__dot--${ev.colorVariant || 'green'}`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="schedule-calendar-grid__events">
+                  {dayEvents.map((ev) => {
+                    const variant = ev.colorVariant || 'green';
+                    const isCompleted = ev.completed;
+                    return (
+                      <button
+                        key={ev.id}
+                        type="button"
+                        className={`schedule-calendar-grid__event schedule-calendar-grid__event--${variant}${isCompleted ? ' schedule-calendar-grid__event--done' : ''}`}
+                        onClick={ev.onClick}
+                      >
+                        {ev.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          );
+
+          if (compact && onSelectDate) {
+            return (
+              <button
+                key={key}
+                type="button"
+                className={cellClass}
+                onClick={() => onSelectDate(key)}
+                aria-pressed={isSelected}
+                aria-label={`${day.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' })}${dayEvents.length ? `, ${dayEvents.length} bookings` : ''}`}
+              >
+                {inner}
+              </button>
+            );
+          }
+
+          return (
+            <div key={key} className={cellClass}>
+              {inner}
             </div>
           );
         })}

@@ -165,10 +165,93 @@ export async function expireUnpaidApprovedBookings() {
   return { expired: stale.length };
 }
 
+function getSlotStartDateTime(date, startTimeStr) {
+  const d = new Date(date);
+  if (!startTimeStr) return d;
+  const match = startTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if (!match) return d;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const meridiem = match[3]?.toUpperCase();
+  if (meridiem === 'PM' && hours < 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+  d.setHours(hours, minutes, 0, 0);
+  return d;
+}
+
+/**
+ * 15-Minute consultation reminders sweep.
+ * Runs every 5 minutes; detects CONFIRMED sessions starting in the next ~15-20 min.
+ */
+export async function send15MinConsultationReminders() {
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      status: 'CONFIRMED',
+      reminder15MinSent: false,
+      availability: {
+        date: { gte: todayStart, lte: todayEnd },
+      },
+    },
+    include: {
+      availability: true,
+      citizen: { select: { id: true, name: true, email: true, phone: true } },
+      lawyer: { select: { id: true, name: true, email: true, phone: true } },
+    },
+  });
+
+  if (bookings.length === 0) return { reminded: 0 };
+
+  let count = 0;
+  for (const b of bookings) {
+    const slotStart = getSlotStartDateTime(b.availability.date, b.availability.startTime);
+    const diffMs = slotStart.getTime() - now.getTime();
+    const diffMins = diffMs / (60 * 1000);
+
+    if (diffMins >= -5 && diffMins <= 20) {
+      await prisma.booking.update({
+        where: { id: b.id },
+        data: { reminder15MinSent: true },
+      });
+
+      // Send citizen in-app notification
+      createNotification({
+        userId: b.citizenId,
+        title: 'Consultation starting soon',
+        message: `Your video consultation with Atty. ${b.lawyer.name} starts in ~15 minutes (${b.availability.startTime}). Preflight check is now open.`,
+        type: 'CONSULTATION_REMINDER',
+        linkTo: `/booking/${b.id}`,
+      }).catch(() => {});
+
+      // Send lawyer in-app notification
+      createNotification({
+        userId: b.lawyerId,
+        title: 'Consultation starting soon',
+        message: `Your consultation with ${b.citizen.name} starts in ~15 minutes (${b.availability.startTime}). Please prepare your session.`,
+        type: 'CONSULTATION_REMINDER',
+        linkTo: `/booking/${b.id}`,
+      }).catch(() => {});
+
+      count++;
+    }
+  }
+
+  if (count > 0) {
+    console.log(`[scheduler] Sent 15-min reminders for ${count} consultation(s).`);
+  }
+  return { reminded: count };
+}
+
 /**
  * Wire all scheduled jobs. Call once at server startup.
  *   - Daily 02:00 PHT: subscription expiry
  *   - Every 30 min:    booking auto-cancel
+ *   - Every 5 min:     15-min consultation reminders
  *
  * In dev mode both run once at startup so testing doesn't have
  * to wait until the next tick.
@@ -202,6 +285,13 @@ export function startScheduler() {
   cron.schedule('*/15 * * * *', () => {
     purgeExpiredAuthTokens().catch((err) =>
       console.error('[scheduler] purgeExpiredAuthTokens failed:', err.message)
+    );
+  });
+
+  // Check 15-minute consultation reminders every 5 minutes
+  cron.schedule('*/5 * * * *', () => {
+    send15MinConsultationReminders().catch((err) =>
+      console.error('[scheduler] send15MinConsultationReminders failed:', err.message)
     );
   });
 

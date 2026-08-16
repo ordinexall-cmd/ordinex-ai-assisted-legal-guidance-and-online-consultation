@@ -1,17 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { LawyerCardSummary } from '../../services/api';
-import { appendConsultationIdToPath, buildLawyerBookPath } from '../../constants/legalCategories';
-import { LawyerPracticeBadge } from './LawyerPracticeBadge';
+import { appendConsultationIdToPath, buildLawyerBookPath, specialtyDisplayLabel } from '../../constants/legalCategories';
 
-const peso = (n: number | null) => (n == null ? 'Ask' : n === 0 ? 'Free' : `₱${n.toLocaleString()}`);
+function lawyerLocation(l: LawyerCardSummary): string {
+  const parts = [l.city, l.province].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Philippines';
+}
 
-function lawyerFeeLabel(l: LawyerCardSummary): string {
+function feeLabel(l: LawyerCardSummary): string | null {
   const min = l.consultationFeeMin ?? l.consultationFee;
-  const max = l.consultationFeeMax ?? min;
-  if (min == null) return 'Ask';
-  if (max != null && max !== min) return `₱${min.toLocaleString()}–₱${max.toLocaleString()}`;
-  return peso(min);
+  const max = l.consultationFeeMax;
+  if (min == null && max == null) return null;
+  if (min != null && max != null && min !== max) {
+    return `₱${min.toLocaleString()}–₱${max.toLocaleString()}`;
+  }
+  const n = min ?? max;
+  return n == null ? null : `₱${n.toLocaleString()}`;
 }
 
 export interface LawyerDirectoryCardProps {
@@ -28,52 +33,49 @@ export const LawyerDirectoryCard: React.FC<LawyerDirectoryCardProps> = ({
   const navigate = useNavigate();
   const profilePath = appendConsultationIdToPath(`/lawyers/${l.id}`, consultationId);
   const bookPath = buildLawyerBookPath(l.id, consultationId);
+  const fee = feeLabel(l);
+  const primarySpec = l.specializations[0]
+    ? specialtyDisplayLabel(l.specializations[0])
+    : 'General practice';
 
   return (
-    <article className={`marketplace-lawyer-row${l.hasAvailability ? '' : ' marketplace-lawyer-row--muted'}`}>
-      <div className="marketplace-lawyer-row__avatar">
-        {l.avatarUrl ? (
-          <img src={l.avatarUrl} alt="" />
-        ) : (
-          <span className="marketplace-lawyer-row__initials" aria-hidden>
-            {(l.name || '?').slice(0, 1).toUpperCase()}
-          </span>
-        )}
-      </div>
+    <article className={`dir-lawyer-card${l.hasAvailability ? '' : ' dir-lawyer-card--muted'}`}>
+      {l.ratingCount > 0 && (
+        <span className="dir-lawyer-card__rating">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden>star</span>
+          {l.rating.toFixed(1)}
+        </span>
+      )}
+      {matchBadge ? (
+        <span className="dir-lawyer-card__match">{matchBadge === 'top' ? 'Top match' : 'Good match'}</span>
+      ) : null}
 
-      <div className="marketplace-lawyer-row__main">
-        <div className="marketplace-lawyer-row__name-row">
-          <h3 className="marketplace-lawyer-row__name">{l.name}</h3>
-          {l.isVerified && (
-            <span
-              className="marketplace-lawyer-row__verified-text"
-              title="Ordinex verified counsel — roll check + ID KYC. You may still confirm with IBP yourself."
-            >
-              Verified counsel
-            </span>
-          )}
-          {matchBadge ? (
-            <span className="marketplace-lawyer-row__match">
-              {matchBadge === 'top' ? 'Top match' : 'Good match'}
-            </span>
-          ) : null}
-          <LawyerPracticeBadge practiceType={l.practiceType} />
-        </div>
-        <p className="marketplace-lawyer-row__spec">
-          {l.specializations.slice(0, 3).join(' · ') || 'General practice'}
-        </p>
-        <div className="marketplace-lawyer-row__meta">
-          <span>Fee: <strong className="marketplace-lawyer-row__fee">{lawyerFeeLabel(l)}</strong></span>
-          <span>Open slots: <strong>{l.hasAvailability ? l.openSlots : 'None'}</strong></span>
-          {l.ratingCount > 0 && (
-            <span>
-              Rating <strong>{l.rating.toFixed(1)}</strong> ({l.ratingCount})
-            </span>
+      <button
+        type="button"
+        className="dir-lawyer-card__body"
+        onClick={() => navigate(profilePath)}
+      >
+        <div className="dir-lawyer-card__avatar">
+          {l.avatarUrl ? (
+            <img src={l.avatarUrl} alt="" />
+          ) : (
+            <span aria-hidden>{(l.name || '?').slice(0, 1).toUpperCase()}</span>
           )}
         </div>
-      </div>
+        <h3 className="dir-lawyer-card__name">
+          {l.name}
+          <span className="material-symbols-outlined dir-lawyer-card__check" title="Verified counsel">verified</span>
+        </h3>
+        <p className="dir-lawyer-card__loc">{lawyerLocation(l)}</p>
+        <span className="dir-lawyer-card__spec">{primarySpec}</span>
+        {fee ? <p className="dir-lawyer-card__fee">{fee}</p> : null}
+      </button>
 
-      <div className="marketplace-lawyer-row__actions">
+      <div className="dir-lawyer-card__footer">
+        <span className="dir-lawyer-card__avail">
+          <span className="material-symbols-outlined" aria-hidden>calendar_month</span>
+          {l.hasAvailability ? `${l.openSlots} open` : 'No slots'}
+        </span>
         <button
           type="button"
           className="ox-btn ox-btn-primary ox-btn-sm"
@@ -82,13 +84,6 @@ export const LawyerDirectoryCard: React.FC<LawyerDirectoryCardProps> = ({
           title={l.hasAvailability ? undefined : 'No open slots'}
         >
           Book
-        </button>
-        <button
-          type="button"
-          className="ox-btn ox-btn-ghost ox-btn-sm"
-          onClick={() => navigate(profilePath)}
-        >
-          Profile
         </button>
       </div>
     </article>

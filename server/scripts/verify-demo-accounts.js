@@ -3,7 +3,7 @@
  * Requires API running: npm run dev (server) then node scripts/verify-demo-accounts.js
  */
 import 'dotenv/config';
-import { DEMO_EMAILS, DEMO_PASSWORD } from '../prisma/demoAccounts.js';
+import { DEMO_EMAILS, DEMO_PASSWORD, DEMO_CITIZEN_EMAIL, DEMO_LAWYER_EMAIL } from '../prisma/demoAccounts.js';
 
 const base = (process.argv[2] || process.env.API_VERIFY_URL || 'http://localhost:5000').replace(
   /\/$/,
@@ -45,10 +45,8 @@ async function availability(token) {
 }
 
 const expectations = {
-  'citizen@test.com': { role: 'CITIZEN', isPremium: false },
-  'premium@test.com': { role: 'CITIZEN', isPremium: true },
-  'lawyer@test.com': { role: 'LAWYER', isVerified: true, practiceType: 'PRIVATE' },
-  'publiclawyer@test.com': { role: 'LAWYER', isVerified: true, practiceType: 'PUBLIC' },
+  [DEMO_CITIZEN_EMAIL]: { role: 'CITIZEN', isPremium: false },
+  [DEMO_LAWYER_EMAIL]: { role: 'LAWYER', isVerified: true, practiceType: 'PRIVATE' },
 };
 
 async function main() {
@@ -75,15 +73,15 @@ async function main() {
       (exp.practiceType === undefined || user?.practiceType === exp.practiceType);
     results.push({ name: `me ${email}`, ok: okMe, detail: user?.role });
 
-    if (email === 'premium@test.com') {
+    if (email === DEMO_CITIZEN_EMAIL) {
       const lawRes = await lawyers(loginRes.data.token);
       results.push({
-        name: 'premium GET /api/lawyers',
+        name: 'citizen GET /api/lawyers',
         ok: lawRes.status === 200 && Array.isArray(lawRes.data?.lawyers),
       });
     }
 
-    if (email === 'lawyer@test.com' || email === 'publiclawyer@test.com') {
+    if (email === DEMO_LAWYER_EMAIL) {
       const avRes = await availability(loginRes.data.token);
       const slots = avRes.data?.slots;
       results.push({

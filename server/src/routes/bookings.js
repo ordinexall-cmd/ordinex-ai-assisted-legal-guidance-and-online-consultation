@@ -9,7 +9,7 @@ import { isDemoEmail } from '../../prisma/demoAccounts.js';
 import { canJoinBookingVideo } from '../utils/bookingSlotWindow.js';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { requireCitizen } from '../middleware/premium.js';
+import { requireCitizen, requireCitizenVerified, requireLawyerVerified } from '../middleware/premium.js';
 import { STATUS, checkTransition, isChatOpen } from '../services/bookingState.js';
 import {
   emitBookingChatMessage,
@@ -57,7 +57,7 @@ router.get('/translate/languages', requireAuth, async (req, res) => {
  *
  * Logged-in citizens only. Uses optimistic locking on Availability.version.
  */
-router.post('/', requireAuth, requireCitizen, async (req, res, next) => {
+router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
     const { availabilityId, consultationId, caseDescription } = req.body;
 
@@ -142,7 +142,7 @@ router.post('/', requireAuth, requireCitizen, async (req, res, next) => {
 });
 
 // ======================== LAWYER: APPROVE ========================
-router.patch('/:id/approve', requireAuth, async (req, res, next) => {
+router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res, next) => {
   try {
     const booking = await loadOwnedBooking(req, 'lawyer');
     if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
@@ -233,7 +233,7 @@ router.patch('/:id/approve', requireAuth, async (req, res, next) => {
 });
 
 // ======================== LAWYER: DECLINE ========================
-router.patch('/:id/decline', requireAuth, async (req, res, next) => {
+router.patch('/:id/decline', requireAuth, requireLawyerVerified, async (req, res, next) => {
   try {
     const booking = await loadOwnedBooking(req, 'lawyer');
     if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
@@ -269,7 +269,7 @@ router.patch('/:id/decline', requireAuth, async (req, res, next) => {
 });
 
 // ======================== LAWYER: CONFIRM PAYMENT ========================
-router.patch('/:id/confirm-payment', requireAuth, async (req, res, next) => {
+router.patch('/:id/confirm-payment', requireAuth, requireLawyerVerified, async (req, res, next) => {
   try {
     const booking = await loadOwnedBooking(req, 'lawyer');
     if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
@@ -454,6 +454,19 @@ router.patch('/:id/cancel-refund', requireAuth, async (req, res, next) => {
       return res.status(409).json({
         error: 'Cancel is not available after the live session has started. Use no-show or close case instead.',
       });
+    }
+
+    // Citizens may only cancel before the scheduled consultation day.
+    if (actor === 'citizen' && booking.data.availability?.date) {
+      const sessionDay = new Date(booking.data.availability.date);
+      sessionDay.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (today >= sessionDay) {
+        return res.status(409).json({
+          error: 'Cancellation is only allowed before the day of your consultation. Contact the lawyer or use no-show if they do not appear.',
+        });
+      }
     }
 
     await refundBookingPayment(booking.data, {

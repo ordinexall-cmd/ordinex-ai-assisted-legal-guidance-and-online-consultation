@@ -1,23 +1,13 @@
 /**
- * Legal knowledge retrieval — Supabase first, Prisma LawReference fallback.
+ * Legal knowledge retrieval — Prisma (Neon PostgreSQL) primary, local JSON fallback.
  */
-import { createClient } from '@supabase/supabase-js';
-import { env } from '../config/env.js';
 import { prisma } from '../config/prisma.js';
 import { tokenizeForMatch } from './textPreprocess.js';
-import { embedQuery } from './embeddings.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-let sb = null;
-function getSupabase() {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
-  if (!sb) sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-  return sb;
-}
 
 function scoreChunk(chunk, tokens, category) {
   const hay = `${chunk.keywords} ${chunk.content} ${chunk.name} ${chunk.citation} ${chunk.category}`.toLowerCase();
@@ -32,147 +22,7 @@ function scoreChunk(chunk, tokens, category) {
   return score;
 }
 
-async function retrieveFromSupabaseVector({ description, limit = 8 }) {
-  const client = getSupabase();
-  if (!client) return null;
 
-  const vector = await embedQuery(description);
-  if (!vector) return null;
-
-  const { data, error } = await client.rpc('match_legal_chunks', {
-    query_embedding: vector,
-    match_count: limit,
-  });
-
-  if (error) {
-    if (error.code === 'PGRST202' || error.message?.includes('match_legal_chunks')) return null;
-    throw error;
-  }
-  if (!data?.length) return null;
-
-  return data.map((row) => ({
-    id: row.id,
-    content: row.content,
-    keywords: row.keywords,
-    region: row.region,
-    name: row.name,
-    citation: row.citation,
-    category: row.category,
-    source_url: row.source_url,
-    // Freshness metadata (from migration 004). May be null on older schemas.
-    status: row.status || 'ACTIVE',
-    priority: row.priority || 'medium',
-    last_changed_at: row.last_changed_at || null,
-    superseded_by: row.superseded_by || null,
-    score: row.similarity ?? 1,
-  }));
-}
-
-async function retrieveFromSupabase({ category, description, limit = 8 }) {
-  const client = getSupabase();
-  if (!client) return null;
-
-  try {
-    const vectorHits = await retrieveFromSupabaseVector({ description, limit });
-    if (vectorHits?.length) return vectorHits;
-  } catch (e) {
-    console.warn('[legalCorpus] vector retrieve failed:', e.message);
-  }
-
-  // Pull the freshness columns when available; gracefully degrade if not.
-  const richSelect = `
-    id,
-    content,
-    keywords,
-    region,
-    legal_sources (
-      id,
-      name,
-      citation,
-      category,
-      region,
-      source_url,
-      status,
-      priority,
-      last_changed_at,
-      superseded_by
-    )
-  `;
-  const legacySelect = `
-    id,
-    content,
-    keywords,
-    region,
-    legal_sources (
-      id,
-      name,
-      citation,
-      category,
-      region,
-      source_url
-    )
-  `;
-
-  let { data, error } = await client.from('legal_chunks').select(richSelect).limit(100);
-  if (error && /status|priority|last_changed_at|superseded_by/i.test(error.message || '')) {
-    ({ data, error } = await client.from('legal_chunks').select(legacySelect).limit(100));
-  }
-  if (error) {
-    if (error.code === 'PGRST205') return null;
-    throw error;
-  }
-  if (!data?.length) return null;
-
-  // Exclude rows whose source has been superseded or repealed (older schemas
-  // won't have a status, so default to ACTIVE).
-  const liveData = data.filter((row) => {
-    const status = row.legal_sources?.status || 'ACTIVE';
-    return status !== 'SUPERSEDED' && status !== 'REPEALED';
-  });
-  const pool = liveData.length ? liveData : data;
-
-  const tokens = tokenizeForMatch(description);
-  const toChunk = (row, score) => {
-    const src = row.legal_sources;
-    return {
-      id: row.id,
-      content: row.content,
-      keywords: row.keywords,
-      region: row.region,
-      name: src?.name,
-      citation: src?.citation,
-      category: src?.category,
-      source_url: src?.source_url,
-      status: src?.status || 'ACTIVE',
-      priority: src?.priority || 'medium',
-      last_changed_at: src?.last_changed_at || null,
-      superseded_by: src?.superseded_by || null,
-      score,
-    };
-  };
-
-  const scored = pool
-    .map((row) => {
-      const src = row.legal_sources;
-      const score = scoreChunk({
-        keywords: row.keywords,
-        content: row.content,
-        name: src?.name,
-        citation: src?.citation,
-        category: src?.category,
-        region: row.region,
-      }, tokens, category);
-      // Soft boost for high-priority entries so curated concerns rise to the top.
-      const priorityBoost = (src?.priority === 'high') ? 2 : 0;
-      return toChunk(row, score + priorityBoost);
-    })
-    .filter((r) => r.score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  const top = (scored.length ? scored : pool.map((row) => toChunk(row, 1))).slice(0, limit);
-
-  return top;
-}
 
 async function retrieveFromPrisma({ category, description, limit = 8 }) {
   const where = category && category !== 'unsure' ? { category: { contains: category } } : {};
@@ -198,16 +48,24 @@ async function retrieveFromPrisma({ category, description, limit = 8 }) {
         region: 'National',
       }, tokens, category),
     }))
+    .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
 
 let localCorpusCache = null;
+let localCorpusStamp = '';
 function loadLocalCorpus() {
-  if (localCorpusCache) return localCorpusCache;
-  const corpus = [];
   const basePath = path.join(__dirname, '../../prisma/phLaws.json');
   const extPath = path.join(__dirname, '../../prisma/phLawsExtended.json');
+  const stamp = [
+    fs.existsSync(basePath) ? fs.statSync(basePath).mtimeMs : 0,
+    fs.existsSync(extPath) ? fs.statSync(extPath).mtimeMs : 0,
+  ].join(':');
+  if (localCorpusCache && stamp === localCorpusStamp) return localCorpusCache;
+  localCorpusStamp = stamp;
+  localCorpusCache = null;
+  const corpus = [];
   const davaoPath = path.join(__dirname, '../../data/davaoLegalSeed.json');
 
   const tryRead = (p) => {
@@ -251,7 +109,7 @@ export function getLocalCorpusStats() {
     total: laws.length,
     highPriority,
     byCategory,
-    meetsMinimum: laws.length >= 200,
+    meetsMinimum: laws.length >= 300,
   };
 }
 
@@ -279,36 +137,35 @@ async function retrieveFromLocalJson({ category, description, limit = 8 }) {
         region: law.region || 'National',
       }, tokens, category),
     }))
+    .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
 
 /**
- * @returns {Promise<{ chunks: object[], source: 'supabase'|'prisma'|'local' }>}
+ * Retrieve legal context — Prisma (Neon PostgreSQL) primary, local JSON fallback.
+ * @returns {Promise<{ chunks: object[], source: 'prisma'|'local' }>}
  */
 export async function retrieveLegalContext({ category, description, limit = 8 }) {
+  let fromDb = [];
   try {
-    const vectorHits = await retrieveFromSupabaseVector({ description, limit });
-    if (vectorHits?.length) {
-      return { chunks: vectorHits, source: 'supabase-vector' };
-    }
-    const fromSb = await retrieveFromSupabase({ category, description, limit });
-    if (fromSb?.length) {
-      return { chunks: fromSb, source: 'supabase' };
-    }
-  } catch (e) {
-    console.warn('[legalCorpus] Supabase retrieve failed:', e.message);
-  }
-
-  try {
-    const fromDb = await retrieveFromPrisma({ category, description, limit });
-    if (fromDb?.length) return { chunks: fromDb, source: 'prisma' };
+    fromDb = await retrieveFromPrisma({ category, description, limit }) || [];
   } catch (e) {
     console.warn('[legalCorpus] Prisma retrieve failed:', e.message);
   }
 
   const local = await retrieveFromLocalJson({ category, description, limit });
-  return { chunks: local, source: 'local' };
+  const byName = new Map();
+  for (const chunk of [...fromDb, ...local]) {
+    const key = (chunk.name || chunk.citation || '').toLowerCase().trim();
+    if (!key) continue;
+    const prev = byName.get(key);
+    if (!prev || (chunk.score || 0) > (prev.score || 0)) byName.set(key, chunk);
+  }
+  const chunks = [...byName.values()]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, limit);
+  return { chunks, source: fromDb.length ? 'prisma' : 'local' };
 }
 
 export function formatChunksForPrompt(chunks) {
@@ -362,4 +219,64 @@ export function summarizeChunkFreshness(chunks) {
     highPriority,
     oldestDays: oldestMs == null ? null : Math.floor(oldestMs / (24 * 60 * 60 * 1000)),
   };
+}
+
+/**
+ * Nourish the legal knowledge base from validated citizen consultations.
+ * If a validated case has new keywords or represents an unusual legal scenario,
+ * this automatically updates the database and local JSON cache.
+ */
+export async function nourishCorpusFromConsultation({ category, aiResult, description }) {
+  try {
+    if (!aiResult || !Array.isArray(aiResult.possibleLegalCases) || aiResult.possibleLegalCases.length === 0) {
+      return;
+    }
+    const topCase = aiResult.possibleLegalCases[0];
+    if ((topCase.confidenceScore || 0) < 65 || !topCase.name) {
+      return;
+    }
+
+    const keywords = (aiResult.extractedKeywords || [])
+      .map((k) => (k || '').trim().toLowerCase())
+      .filter((k) => k.length > 2);
+
+    if (keywords.length === 0) return;
+
+    // 1. Check if law already exists in Prisma DB
+    const existing = await prisma.lawReference.findFirst({
+      where: {
+        OR: [
+          { name: { equals: topCase.name } },
+          { name: { contains: topCase.name } },
+        ],
+      },
+    });
+
+    if (existing) {
+      const existingKw = (existing.keywords || '').split(',').map((k) => k.trim().toLowerCase());
+      const newKw = keywords.filter((k) => !existingKw.includes(k));
+      if (newKw.length > 0) {
+        const mergedKw = [...existingKw, ...newKw].join(', ');
+        await prisma.lawReference.update({
+          where: { id: existing.id },
+          data: { keywords: mergedKw },
+        });
+        console.log(`[legalCorpus] 🧠 Nourished existing law "${existing.name}" with keywords: ${newKw.join(', ')}`);
+      }
+    } else if (topCase.applicableLaw && topCase.explanation) {
+      // Create a new LawReference entry for this unusual scenario
+      const created = await prisma.lawReference.create({
+        data: {
+          category: category || 'General',
+          name: topCase.name,
+          fullText: `${topCase.applicableLaw}: ${topCase.explanation}`,
+          link: topCase.sourceLink || null,
+          keywords: keywords.join(', '),
+        },
+      });
+      console.log(`[legalCorpus] 🧠 Added new verified legal reference "${created.name}" from citizen consultation.`);
+    }
+  } catch (err) {
+    console.warn('[legalCorpus] Corpus nourishment skipped:', err.message);
+  }
 }

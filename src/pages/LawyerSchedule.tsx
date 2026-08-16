@@ -4,7 +4,7 @@ import { AppShell } from '../components/shell/AppShell';
 import { useAuth } from '../context/AuthContext';
 import { availabilityApi, bookingsApi, type AvailabilitySlot, type Booking } from '../services/api';
 import { onAvailabilityChanged, onBookingUpdated } from '../services/appSocket';
-import { lawyerNav } from '../utils/lawyerWorkspace';
+import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { getAppBackFallback } from '../utils/navigation';
 import { getErrorMessage } from '../utils/userFacingError';
 import { ScheduleMonthGrid, type ScheduleCalendarEvent } from '../components/schedule/ScheduleMonthGrid';
@@ -152,7 +152,7 @@ export const LawyerSchedule: React.FC = () => {
     <AppShell
       variant="flow"
       title="Duty schedule"
-      navItems={lawyerNav}
+      navItems={getLawyerNav(user)}
       stepLabel="Schedule"
       backTo={getAppBackFallback(true)}
     >

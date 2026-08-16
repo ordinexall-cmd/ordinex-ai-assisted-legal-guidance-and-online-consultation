@@ -5,18 +5,23 @@ import { getErrorMessage } from '../../utils/userFacingError';
 import { PasswordInput } from '../PasswordInput';
 import { Modal } from '../ui/Modal';
 import { BrandLogo } from '../brand/BrandLogo';
-import { PhoneInput } from '../ui/PhoneInput';
 import { OtpCodeInput } from '../ui/OtpCodeInput';
 import {
-  localPartToFullPhone,
-  isValidPhilippinePhoneLocal,
   formatPhilippinePhoneDisplay,
 } from '../../utils/phonePhilippines';
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { authApi } from '../../services/api';
 import { getCitizenPostAuthPath } from '../../constants/guestDraft';
 
-export type AuthView = 'login' | 'register' | 'otp' | 'forgot' | 'reset';
+export type AuthView =
+  | 'login'
+  | 'register'
+  | 'otp'
+  | 'forgot'
+  | 'reset_code'
+  | 'reset_security'
+  | 'reset_password'
+  | 'reset';
 
 const inputClass = 'landing-input';
 const labelClass = 'landing-label';
@@ -45,13 +50,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  const [otpPhone, setOtpPhone] = useState('');
+  const [otpPhone, _setOtpPhone] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpTimer, setOtpTimer] = useState(300);
 
-  const [forgotPhoneLocal, setForgotPhoneLocal] = useState('');
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
+  const [requiresSecurityAnswer, setRequiresSecurityAnswer] = useState(false);
+  const [securityQuestionPrompt, setSecurityQuestionPrompt] = useState('');
+  const [securityAnswer, setSecurityAnswer] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
   const navigate = useNavigate();
@@ -64,9 +72,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoginEmail('');
     setLoginPassword('');
     setOtpCode('');
-    setForgotPhoneLocal('');
-    setDevOtpHint(null);
+    setForgotEmail('');
+    setResetEmail('');
     setResetCode('');
+    setRequiresSecurityAnswer(false);
+    setSecurityQuestionPrompt('');
+    setSecurityAnswer('');
     setNewPassword('');
   };
 
@@ -84,7 +95,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (isAuthenticated && user) {
       if (user.role === 'LAWYER') {
         // Send unverified lawyers straight to the verification wizard.
-        if (!user.isVerified) navigate('/lawyer/register?phase=kyc');
+        if (!user.isVerified) navigate('/settings?tab=verification');
         else navigate('/lawyer/dashboard');
       } else {
         navigate(getCitizenPostAuthPath());
@@ -105,7 +116,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const redirectAfterAuth = (usr: { role: string; isVerified?: boolean }) => {
     if (usr.role === 'LAWYER') {
-      if (!usr.isVerified) navigate('/lawyer/register?phase=kyc');
+      if (!usr.isVerified) navigate('/settings?tab=verification');
       else navigate('/lawyer/dashboard');
     } else {
       navigate(getCitizenPostAuthPath());
@@ -133,7 +144,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const usr = await verifyOtp(otpPhone, otpCode);
       if (usr.role === 'LAWYER') {
-        navigate('/lawyer/register?phase=kyc');
+        navigate('/settings?tab=verification');
       } else {
         navigate(getCitizenPostAuthPath());
       }
@@ -148,14 +159,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setError('');
     setLoading(true);
     try {
-      const { phone, devOtp } = await authApi.resendOtp({ phone: otpPhone, purpose });
-      setOtpPhone(phone);
-      setOtpTimer(300);
-      if (devOtp) {
-        setOtpCode(devOtp);
-        setDevOtpHint(devOtp);
-      }
-      setSuccessMsg('A new code was sent.');
+      const body = purpose === 'RESET_PASSWORD'
+        ? { email: resetEmail, purpose }
+        : { phone: otpPhone, purpose };
+      await authApi.resendOtp(body);
+      if (purpose === 'REGISTER') setOtpTimer(300);
+      setOtpCode('');
+      setSuccessMsg('A new verification code was sent to your email.');
     } catch (err) {
       setError(getErrorMessage(err, 'Could not resend code.'));
     } finally {
@@ -165,28 +175,74 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValidPhilippinePhoneLocal(forgotPhoneLocal)) {
-      setError('Enter a valid mobile number.');
-      return;
-    }
-    const phoneFull = localPartToFullPhone(forgotPhoneLocal);
-    if (!phoneFull) {
-      setError('Enter a valid mobile number.');
+    const emailClean = forgotEmail.trim().toLowerCase();
+    if (!emailClean || !emailClean.includes('@')) {
+      setError('Enter a valid email address.');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      const { devOtp } = await authApi.forgotPassword({ phone: phoneFull });
-      setSuccessMsg('If an account exists, a code has been sent.');
-      setOtpPhone(phoneFull);
-      if (devOtp) {
-        setResetCode(devOtp);
-        setDevOtpHint(devOtp);
-      }
-      setAuthView('reset');
+      const res = await authApi.forgotPassword({ email: emailClean });
+      setResetEmail(emailClean);
+      setResetCode('');
+      setSecurityAnswer('');
+      setRequiresSecurityAnswer(Boolean(res.requiresSecurityAnswer ?? res.hasSecurityQuestion));
+      setSecurityQuestionPrompt('');
+      setSuccessMsg('A 6-digit code has been sent to your email.');
+      setAuthView('reset_code');
     } catch (err) {
-      setError(getErrorMessage(err, 'Could not send verification code. Check your number and try again.'));
+      setError(getErrorMessage(err, 'Could not start password reset. Check your email and try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSecurityAnswerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!securityAnswer.trim()) {
+      setError('Please answer your security question.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await authApi.forgotPasswordVerifySecurity({
+        email: resetEmail,
+        securityAnswer: securityAnswer.trim(),
+      });
+      setSuccessMsg('Security answer verified. Set a new password.');
+      setAuthView('reset_password');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Incorrect security answer. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetCode.trim().length !== 6) {
+      setError('Please enter the complete 6-digit code.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const res = await authApi.verifyResetCode({
+        email: resetEmail,
+        code: resetCode.trim(),
+      });
+      setRequiresSecurityAnswer(Boolean(res.hasSecurityQuestion));
+      setSecurityQuestionPrompt(res.securityQuestion || '');
+      if (res.hasSecurityQuestion) {
+        setSuccessMsg('Email verified. Answer your security question next.');
+        setAuthView('reset_security');
+      } else {
+        setAuthView('reset_password');
+      }
+    } catch (err) {
+      setError(getErrorMessage(err, 'Invalid or expired verification code.'));
     } finally {
       setLoading(false);
     }
@@ -194,14 +250,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
-      await authApi.resetPassword({ phone: otpPhone, code: resetCode, newPassword });
-      setSuccessMsg('Password reset! You can now sign in.');
+      await authApi.resetPassword({
+        email: resetEmail,
+        code: resetCode.trim(),
+        securityAnswer: securityAnswer.trim() || undefined,
+        newPassword,
+      });
+      setSuccessMsg('Password reset successfully! You can now log in.');
       setTimeout(() => switchView('login'), 2000);
     } catch (err) {
-      setError(getErrorMessage(err, 'Password reset failed. Please try again.'));
+      setError(getErrorMessage(err, 'Password reset failed. Please check your details and try again.'));
+      // If error mentions security question, jump back to security step
+      if (err instanceof Error && err.message.toLowerCase().includes('security')) {
+        setAuthView('reset_security');
+      }
     } finally {
       setLoading(false);
     }
@@ -219,11 +288,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               Code sent to +63 {formatPhilippinePhoneDisplay(otpPhone)}
             </p>
           </div>
-          {devOtpHint && (
-            <p className="landing-dev-otp" role="status">
-              Dev code: <strong>{devOtpHint}</strong> (also in server console)
-            </p>
-          )}
+
           <div className="landing-auth-field">
             <label className={labelClass}>6-digit code</label>
             <OtpCodeInput value={otpCode} onChange={setOtpCode} disabled={loading || otpTimer <= 0} />
@@ -246,69 +311,131 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           >
             Resend code
           </button>
-          <p className="landing-auth-muted-link" onClick={() => switchView('register')}>
-            ← Back to register
-          </p>
+          <button type="button" className="landing-auth-muted-link" onClick={() => switchView('register')}>
+            Back to register
+          </button>
         </form>
       );
     }
 
     if (authView === 'forgot') {
       return (
-        <form onSubmit={handleForgotPassword}>
-          <div className="landing-auth-heading">
-            <h3>Reset password</h3>
-            <p className="landing-auth-hint">We will text a code to the number on your account.</p>
-          </div>
+        <form onSubmit={handleForgotPassword} className="landing-auth-stack">
           <div className="landing-auth-field">
-            <label className={labelClass}>Phone number</label>
-            <PhoneInput
-              value={forgotPhoneLocal}
-              onChange={setForgotPhoneLocal}
-              inputClassName={inputClass}
+            <label className={labelClass}>Email address</label>
+            <input
+              type="email"
+              className={inputClass}
+              placeholder="name@email.com"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
               required
+              autoFocus
             />
           </div>
           {error && <p className="landing-form-error">{error}</p>}
           {successMsg && <p className="landing-form-success">{successMsg}</p>}
           <button type="submit" disabled={loading} className="landing-submit">
-            {loading ? 'Sending…' : 'Send code'}
+            {loading ? 'Checking…' : 'Continue'}
           </button>
-          <p className="landing-auth-muted-link" onClick={() => switchView('login')}>
-            ← Back to sign in
-          </p>
+          <button type="button" className="landing-auth-muted-link" onClick={() => switchView('login')}>
+            Back to log in
+          </button>
         </form>
       );
     }
 
-    if (authView === 'reset') {
+    if (authView === 'reset_code') {
       return (
-        <form onSubmit={handleResetPassword}>
-          <div className="landing-auth-heading">
-            <h3>Pick a new password</h3>
-          </div>
-          <div className="landing-auth-stack">
-            <div className="landing-auth-field">
-              <label className={labelClass}>Code from SMS</label>
-              <OtpCodeInput value={resetCode} onChange={setResetCode} disabled={loading} />
-            </div>
-            <div className="landing-auth-field">
-              <label className={labelClass}>New password</label>
-              <PasswordInput
-                placeholder="At least 8 characters"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                inputClassName={inputClass}
-                required
-                minLength={8}
-              />
-            </div>
+        <form onSubmit={handleVerifyResetCode} className="landing-auth-stack">
+          <div className="landing-auth-field">
+            <label className={labelClass}>6-digit code from email</label>
+            <OtpCodeInput value={resetCode} onChange={setResetCode} disabled={loading} />
           </div>
           {error && <p className="landing-form-error">{error}</p>}
           {successMsg && <p className="landing-form-success">{successMsg}</p>}
-          <button type="submit" disabled={loading} className="landing-submit">
-            {loading ? 'Saving…' : 'Save password'}
+          <button type="submit" disabled={loading || resetCode.length !== 6} className="landing-submit">
+            {loading ? 'Verifying…' : 'Continue'}
           </button>
+          <button
+            type="button"
+            className="landing-auth-resend"
+            disabled={loading}
+            onClick={() => { void handleResendOtp('RESET_PASSWORD'); }}
+          >
+            Resend code to email
+          </button>
+          <button type="button" className="landing-auth-muted-link" onClick={() => setAuthView('forgot')}>
+            Change email
+          </button>
+        </form>
+      );
+    }
+
+    if (authView === 'reset_security') {
+      return (
+        <form onSubmit={handleSecurityAnswerSubmit} className="landing-auth-stack">
+          <div className="landing-auth-field">
+            <label className={labelClass}>Security Question</label>
+            <div style={{
+              padding: '11px 14px',
+              background: 'var(--surface-sunken, #f4f6f8)',
+              borderRadius: '8px',
+              border: '1px solid var(--border-subtle, #e0e0e0)',
+              margin: '4px 0 14px',
+              fontSize: '13.5px',
+              fontWeight: 600,
+              color: 'var(--text-primary, #111827)'
+            }}>
+              {securityQuestionPrompt || 'What was the name of your first elementary school?'}
+            </div>
+            <label className={labelClass}>Your Secret Answer</label>
+            <input
+              type="text"
+              className={inputClass}
+              placeholder="Enter your secret answer"
+              value={securityAnswer}
+              onChange={(e) => setSecurityAnswer(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+          {error && <p className="landing-form-error">{error}</p>}
+          <button type="submit" disabled={loading || !securityAnswer.trim()} className="landing-submit">
+            {loading ? 'Verifying…' : 'Continue'}
+          </button>
+          <button type="button" className="landing-auth-muted-link" onClick={() => setAuthView('forgot')}>
+            Back
+          </button>
+        </form>
+      );
+    }
+
+    if (authView === 'reset_password' || authView === 'reset') {
+      return (
+        <form onSubmit={handleResetPassword} className="landing-auth-stack">
+          <div className="landing-auth-field">
+            <label className={labelClass}>New password</label>
+            <PasswordInput
+              placeholder="At least 8 characters"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              inputClassName={inputClass}
+              required
+              minLength={8}
+              autoFocus
+            />
+          </div>
+          {error && <p className="landing-form-error">{error}</p>}
+          {successMsg && <p className="landing-form-success">{successMsg}</p>}
+          <button type="submit" disabled={loading || newPassword.length < 8} className="landing-submit">
+            {loading ? 'Saving…' : 'Save new password'}
+          </button>
+          {requiresSecurityAnswer && (
+            <button type="button" className="landing-auth-muted-link" onClick={() => setAuthView('reset_security')}>
+              Back to security question
+            </button>
+          )}
         </form>
       );
     }
@@ -332,9 +459,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </Link>
           <GoogleSignInButton role="LAWYER" />
           <p className="landing-auth-footer">
-            Already registered?{' '}
+            Already have an account?{' '}
             <button type="button" className="landing-auth-link-inline" onClick={() => switchView('login')}>
-              Sign in
+              Log in
             </button>
           </p>
         </div>
@@ -360,9 +487,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </Link>
           <GoogleSignInButton role="CITIZEN" />
           <p className="landing-auth-footer">
-            Already registered?{' '}
+            Already have an account?{' '}
             <button type="button" className="landing-auth-link-inline" onClick={() => switchView('login')}>
-              Sign in
+              Log in
             </button>
           </p>
         </div>
@@ -401,7 +528,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
         {error && <p className="landing-form-error landing-form-error--center">{error}</p>}
         <button type="submit" disabled={loading} className="landing-submit">
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? 'Logging in…' : 'Log in'}
         </button>
         <GoogleSignInButton role={authTab === 'lawyer' ? 'LAWYER' : 'CITIZEN'} />
         <p className="landing-auth-footer">
@@ -414,7 +541,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               navigate(authTab === 'lawyer' ? '/lawyer/register' : '/register');
             }}
           >
-            Create an account
+            Sign in
           </button>
         </p>
       </form>
@@ -426,9 +553,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       ? 'Verify phone'
       : authView === 'register'
         ? 'Create an account'
-        : authView === 'forgot' || authView === 'reset'
+        : authView === 'forgot'
           ? 'Reset password'
-          : 'Welcome back';
+          : authView === 'reset_code'
+            ? 'Verify email code'
+            : authView === 'reset_security'
+              ? 'Security question'
+              : authView === 'reset_password' || authView === 'reset'
+                ? 'Set new password'
+                : 'Welcome back';
 
   const modalSubtitle =
     authView === 'register'
@@ -438,10 +571,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         : authView === 'login'
           ? 'Use the email and password from signup.'
           : authView === 'forgot'
-            ? 'We will send a short code by SMS.'
-            : authView === 'reset'
-              ? 'Choose a new password, then sign in as usual.'
-              : '';
+            ? 'Enter the email on your Ordinex account. We send a code, then ask your security question.'
+            : authView === 'reset_code'
+              ? `Enter the 6-digit code sent to ${resetEmail || 'your email'}.`
+              : authView === 'reset_security'
+                ? 'Answer the security question you set during registration.'
+                : authView === 'reset_password' || authView === 'reset'
+                  ? 'Choose a strong new password with at least 8 characters.'
+                  : '';
 
   return (
     <Modal open={open} onClose={onClose} size="md" title={modalTitle}>

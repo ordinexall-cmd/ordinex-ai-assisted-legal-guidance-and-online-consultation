@@ -44,7 +44,7 @@ Logged-in app pages use a **vertical icon sidebar** (`AppSideNav`) with labels o
 | `npm run server:verify` | Check server env |
 | `npm run server:test:smoke` | DB + optional health smoke |
 | `npm run server:test:api` | HTTP API checks (server must be running) |
-| `npm run server:test:demo` | Login + role checks for all four demo accounts |
+| `npm run server:test:demo` | Login + role checks for the citizen and lawyer demo accounts |
 | `npm run server:test:socket` | Socket.IO connect smoke (server must be running) |
 | `npm run test:e2e` | Playwright smoke (starts Vite dev server) |
 

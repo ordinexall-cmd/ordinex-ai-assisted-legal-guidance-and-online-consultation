@@ -12,6 +12,8 @@ import { DashHistorySkeleton } from '../components/dashboard/DashHistorySkeleton
 import { statusChipLabel } from '../utils/bookingStatusChip';
 import { useBookingDock } from '../context/BookingDockContext';
 import { canJoinBookingVideo } from '../utils/bookingSlotWindow';
+import { CitizenBriefPanel } from '../components/citizen/CitizenBriefPanel';
+import { OxStatusCallout } from '../components/ui/OxStatusCallout';
 
 function fmtSlot(b: Booking) {
   const dateStr = new Date(b.availability.date).toLocaleDateString('en-PH', {
@@ -65,17 +67,37 @@ export const CitizenDashboard: React.FC = () => {
   const userName = user?.name?.split(' ')[0] || 'User';
 
   return (
-    <AppShell title="Dashboard" navItems={getCitizenNav()} hidePageHeader>
+    <AppShell title="Dashboard" navItems={getCitizenNav(user)} hidePageHeader>
       <div className="dash-layout dash-layout--premium">
         <DashWelcome
           userName={userName}
           subtitle="Browse lawyers, book consults, and keep your case history in one place."
         />
 
+        <CitizenBriefPanel />
+
+        {!user?.isVerified && (
+          <OxStatusCallout
+            variant="verify"
+            title="Profile verification required to access the lawyer directory"
+            action={(
+              <button
+                type="button"
+                className="ox-btn ox-btn-primary ox-btn-sm"
+                onClick={() => navigate('/settings?tab=verification')}
+              >
+                Complete profile
+              </button>
+            )}
+          >
+            <p>Complete your domicile address and government ID to unlock lawyer scheduling.</p>
+          </OxStatusCallout>
+        )}
+
         {loadError && <ApiLoadBanner message={loadError} onRetry={loadData} />}
 
         {loading ? (
-          <DashHistorySkeleton />
+          <DashHistorySkeleton label="Loading dashboard" />
         ) : (
           <>
             <p className="acct-stat-line">
@@ -95,7 +117,7 @@ export const CitizenDashboard: React.FC = () => {
                   {active.length === 0 ? (
                     <p className="acct-empty">
                       No active consultations.{' '}
-                      <Link to="/lawyers" className="list-panel__link">Find a lawyer</Link>
+                      <Link to="/directory" className="list-panel__link">Find a lawyer</Link>
                     </p>
                   ) : (
                     active.slice(0, 3).map((b) => {
@@ -170,19 +192,6 @@ export const CitizenDashboard: React.FC = () => {
                         </button>
                       ))
                     )}
-                  </div>
-                </div>
-
-                <div className="acct-section">
-                  <div className="acct-section__head">
-                    <h2 className="acct-section__title">Quick actions</h2>
-                  </div>
-                  <div className="acct-section__body" style={{ padding: '0.85rem 1rem' }}>
-                    <div className="dash-quick-actions">
-                      <Link to="/lawyers" className="ox-btn ox-btn-primary ox-btn-sm">Find a lawyer</Link>
-                      <Link to="/ai-analysis" className="ox-btn ox-btn-ghost ox-btn-sm">New AI analysis</Link>
-                      <Link to="/schedule-calendar" className="ox-btn ox-btn-ghost ox-btn-sm">Calendar</Link>
-                    </div>
                   </div>
                 </div>
               </div>

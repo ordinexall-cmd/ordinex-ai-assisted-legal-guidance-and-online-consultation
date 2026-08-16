@@ -18,7 +18,7 @@ export const ScheduleConsultation: React.FC = () => {
     return <Navigate to={target} replace />;
   }
 
-  return <Navigate to="/lawyers" replace />;
+  return <Navigate to="/directory" replace />;
 };
 
 export default ScheduleConsultation;

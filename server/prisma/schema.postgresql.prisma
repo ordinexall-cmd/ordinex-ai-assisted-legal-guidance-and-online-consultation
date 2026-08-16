@@ -29,8 +29,20 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
+  // Structured Legal Name
+  firstName         String?
+  middleName        String?
+  lastName          String?
+  suffix            String?
+  aliases           String? // A.K.A. / Maiden Name
+
   // Lawyer-specific fields
   barNumber         String?
+  barAdmissionYear  Int?
+  ibpChapter        String?
+  ibpIdNumber       String?
+  mcleComplianceNo  String?
+  lawFirmName       String?
   specializations   String? // JSON array string: ["Criminal","Family"]
   consultationFee   Float? // legacy; synced from consultationFeeMin
   consultationFeeMin Float?
@@ -51,12 +63,45 @@ model User {
   walletBalance     Float          @default(0) // withdrawable after COMPLETED
   walletPending     Float          @default(0) // held until consultation COMPLETED
 
-  // Citizen personal-profile fields (expanded registration)
+  // Citizen personal-profile & legal capacity fields
   dob               String?
   gender            String?
-  address           String?
+  citizenship       String?        @default("Filipino")
   civilStatus       String?
   occupation        String?
+  indigencyTier     String?        @default("STANDARD") // INDIGENT_PAO | LOW_INCOME | STANDARD | HIGH_NET_WORTH
+
+  // Structured Philippine Address (PSGC)
+  region            String?
+  province          String?
+  city              String?
+  barangay          String?
+  streetAddress     String?
+  zipCode           String?
+  address           String? // Full formatted address string
+
+  // Citizen Identification & Emergency Contact
+  citizenIdType         String? // PHILID | PASSPORT | DRIVERS_LICENSE | UMID | POSTAL | PRC | VOTER | STUDENT_ID | OTHER_GOV
+  citizenIdNumber       String?
+  citizenIdUrl          String?
+  citizenIdBackUrl      String?
+  citizenSelfieUrl      String?
+  citizenVerificationStatus String @default("NOT_STARTED") // NOT_STARTED | PENDING | VERIFIED | REJECTED
+  emailVerified         Boolean        @default(false)
+  suspensionUntil       DateTime?
+  suspensionReason      String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  emergencyRelationship String?
+
+  // Legal Compliance & Audit Trail (RA 10173)
+  registrationIp    String?
+  privacyConsentAt  DateTime?      @default(now())
+  privacyConsentVer String?        @default("1.0")
+
+  // Security question & hashed answer for 2-factor password reset
+  securityQuestion    String?
+  securityAnswerHash  String?
 
   // Lawyer KYC / identity-verification status machine.
   lawyerVerificationStatus        String   @default("NOT_STARTED")
@@ -202,6 +247,7 @@ model Booking {
   transcript        String?      // Call transcript
   recordingUrl      String?      // Uploaded consultation recording (internal path)
   consultConsentAt  DateTime?    // Server-audited preflight consent timestamp
+  reminder15MinSent Boolean      @default(false)
   chatMessages      String?      // JSON array of messages
   chatClosedAt      DateTime?
   noShowParty       String?      // "CITIZEN" | "LAWYER"

@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { lawyersApi, type LawyerProfile as LawyerProfileT, type LawyerReview } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getErrorMessage } from '../utils/userFacingError';
-import { LawyerPracticeBadge } from '../components/lawyer/LawyerPracticeBadge';
 import { LawyerProfileSkeleton } from '../components/dashboard/LawyerProfileSkeleton';
 import { buildLawyerBookPath } from '../constants/legalCategories';
 import { BookingFlowStepper } from '../components/booking/BookingFlowStepper';
+
+import { LinkedInProfileHeader } from '../components/profile/LinkedInProfileHeader';
 
 const peso = (n: number | null) => (n == null ? 'Ask' : n === 0 ? 'Free' : `₱${n.toLocaleString()}`);
 const feeRangeStr = (l: LawyerProfileT) => {
@@ -23,7 +25,8 @@ export const LawyerProfile: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const linkedConsultationId = searchParams.get('consultationId')?.trim() || '';
-  const navItems = getCitizenNav();
+  const { user } = useAuth();
+  const navItems = getCitizenNav(user);
   const [data, setData] = useState<{ lawyer: LawyerProfileT; reviews: LawyerReview[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,7 +40,7 @@ export const LawyerProfile: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (!id) return <Navigate to="/lawyers" replace />;
+  if (!id) return <Navigate to="/directory" replace />;
 
   const bookPath = buildLawyerBookPath(id, linkedConsultationId || undefined);
 
@@ -47,7 +50,7 @@ export const LawyerProfile: React.FC = () => {
       title="Lawyer profile"
       navItems={navItems}
       stepLabel="Lawyer"
-      backTo="/lawyers"
+      backTo="/directory"
     >
       <div className="staff-workspace marketplace">
         <div className="marketplace-profile-stepper">
@@ -59,7 +62,7 @@ export const LawyerProfile: React.FC = () => {
         {error && !loading && (
           <div className="staff-panel">
             <p className="staff-alert staff-alert--error">{error}</p>
-            <button type="button" className="ox-btn ox-btn-ghost" onClick={() => navigate('/lawyers')}>
+            <button type="button" className="ox-btn ox-btn-ghost" onClick={() => navigate('/directory')}>
               Back to directory
             </button>
           </div>
@@ -67,53 +70,44 @@ export const LawyerProfile: React.FC = () => {
 
         {data && !loading && (() => {
           const { lawyer, reviews } = data;
+          const trustScore = lawyer.isVerified ? 100 : (lawyer.ratingCount > 0 ? 80 : 60);
 
           return (
-            <div className="staff-page-grid staff-page-grid--2">
-              <div>
-                <div className="staff-panel">
-                  <div className="marketplace-profile-hero">
-                    <div className="marketplace-profile-hero__avatar">
-                      {lawyer.avatarUrl ? (
-                        <img src={lawyer.avatarUrl} alt={lawyer.name} />
-                      ) : (
-                        <span className="material-symbols-outlined">person</span>
+            <div>
+              <LinkedInProfileHeader
+                name={lawyer.name}
+                role="LAWYER"
+                avatarUrl={lawyer.avatarUrl}
+                isVerified={lawyer.isVerified}
+                trustScore={trustScore}
+                headline={lawyer.specializations.join(' · ') || 'General practice attorney'}
+                practiceType={lawyer.practiceType}
+                barNumber={lawyer.barNumber}
+                isOwnProfile={false}
+              />
+
+              <div className="staff-page-grid staff-page-grid--2">
+                <div>
+                  <div className="staff-panel">
+                    <div className="marketplace-profile-stats" style={{ marginBottom: '1rem' }}>
+                      <span>Fee: <strong>{feeRangeStr(lawyer)}</strong></span>
+                      <span>
+                        Rating: <strong>{lawyer.rating > 0 ? lawyer.rating.toFixed(1) : 'New'}</strong>
+                        {lawyer.ratingCount > 0 ? ` (${lawyer.ratingCount})` : ''}
+                      </span>
+                      {lawyer.yearsOfExperience != null && (
+                        <span>Experience: <strong>{lawyer.yearsOfExperience} yr</strong></span>
+                      )}
+                      {lawyer.barNumber && (
+                        <span>Roll / IBP: <strong>{lawyer.barNumber}</strong></span>
                       )}
                     </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <h1 className="marketplace-profile-hero__name">{lawyer.name}</h1>
-                        {lawyer.isVerified && (
-                          <span className="material-symbols-outlined marketplace-lawyer-row__verified" title="Verified">
-                            verified
-                          </span>
-                        )}
-                        <LawyerPracticeBadge practiceType={lawyer.practiceType} />
-                      </div>
-                      <p className="marketplace-profile-hero__spec">
-                        {lawyer.specializations.join(' · ') || 'General practice'}
-                      </p>
-                      <div className="marketplace-profile-stats">
-                        <span>Fee: <strong>{feeRangeStr(lawyer)}</strong></span>
-                        <span>
-                          Rating: <strong>{lawyer.rating > 0 ? lawyer.rating.toFixed(1) : 'New'}</strong>
-                          {lawyer.ratingCount > 0 ? ` (${lawyer.ratingCount})` : ''}
-                        </span>
-                        {lawyer.yearsOfExperience != null && (
-                          <span>Experience: <strong>{lawyer.yearsOfExperience} yr</strong></span>
-                        )}
-                        {lawyer.barNumber && (
-                          <span>IBP: <strong>{lawyer.barNumber}</strong></span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
 
-                  {lawyer.bio && <p className="marketplace-profile-bio">{lawyer.bio}</p>}
+                    {lawyer.bio && <p className="marketplace-profile-bio">{lawyer.bio}</p>}
 
-                  <h3 className="staff-panel__title" style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                    Credentials
-                  </h3>
+                    <h3 className="staff-panel__title" style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      Verified Credentials
+                    </h3>
                   {lawyer.credentials.length === 0 ? (
                     <p className="staff-empty-hint">No credential documents uploaded yet.</p>
                   ) : (
@@ -185,8 +179,9 @@ export const LawyerProfile: React.FC = () => {
                 </div>
               </div>
             </div>
-          );
-        })()}
+          </div>
+        );
+      })()}
       </div>
     </AppShell>
   );

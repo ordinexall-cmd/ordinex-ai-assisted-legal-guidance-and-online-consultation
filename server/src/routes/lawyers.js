@@ -7,7 +7,7 @@
 import { Router } from 'express';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { requireCitizen } from '../middleware/premium.js';
+import { requireCitizen, requireCitizenVerified } from '../middleware/premium.js';
 import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
 
 const router = Router();
@@ -21,7 +21,7 @@ const MAX_PAGE_SIZE = 50;
  * flag computed from the Availability table so the UI can grey
  * out lawyers with no open slots.
  */
-router.get('/', requireAuth, requireCitizen, async (req, res, next) => {
+router.get('/', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(req.query.limit) || 12));
@@ -74,6 +74,8 @@ router.get('/', requireAuth, requireCitizen, async (req, res, next) => {
           isVerified: true,
           rating: true,
           ratingCount: true,
+          city: true,
+          province: true,
           lawyerVerification: { select: { submittedRollNumber: true } },
         },
       }),
@@ -143,6 +145,8 @@ router.get('/', requireAuth, requireCitizen, async (req, res, next) => {
           isVerified: l.isVerified,
           rating: l.rating,
           ratingCount: l.ratingCount,
+          city: l.city || null,
+          province: l.province || null,
           openSlots,
           hasAvailability: openSlots > 0,
           _specialtyHit: specialtyHit,
@@ -262,7 +266,7 @@ router.get('/:id', async (req, res, next) => {
  * Open (unbooked) future slots for a lawyer.
  * Auth-gated because this is normally only useful right before booking.
  */
-router.get('/:id/availability', requireAuth, requireCitizen, async (req, res, next) => {
+router.get('/:id/availability', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

@@ -18,14 +18,11 @@
     "server:reset-demo": "npm run db:reset-demo --prefix server",
     "server:defense-reset": "npm run db:defense-reset --prefix server",
     "server:verify": "npm run verify:env --prefix server",
-    "server:seed-legal": "npm run seed:legal --prefix server",
     "server:test:smoke": "npm run test:smoke --prefix server",
     "server:test:api": "npm run test:api --prefix server",
     "server:test:demo": "npm run test:demo --prefix server",
     "server:test:defense-flow": "npm run test:defense-flow --prefix server",
     "server:test:socket": "npm run test:socket --prefix server",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
     "licenses:generate": "node scripts/generate-third-party-notices.mjs"
   },
   "dependencies": {
@@ -37,7 +34,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.52.0",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",

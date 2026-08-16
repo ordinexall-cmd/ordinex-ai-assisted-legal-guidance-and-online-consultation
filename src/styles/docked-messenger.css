@@ -1,0 +1,383 @@
+/* ─── DockedMessenger — LinkedIn-style floating chat widget ─── */
+
+/* FAB (Floating Action Button) */
+.docked-messenger__fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9000;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.docked-messenger__fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.docked-messenger__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid #ffffff;
+}
+
+/* Panel */
+.docked-messenger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9001;
+  width: 360px;
+  max-height: 520px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  animation: docked-messenger-slide-up 0.25s ease-out;
+}
+
+@keyframes docked-messenger-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.docked-messenger__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.docked-messenger__header strong {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.docked-messenger__back,
+.docked-messenger__close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.docked-messenger__back:hover,
+.docked-messenger__close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.docked-messenger__close {
+  margin-left: auto;
+}
+
+/* Peer info in header */
+.docked-messenger__peer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.docked-messenger__peer-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.docked-messenger__peer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body */
+.docked-messenger__body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+  max-height: 380px;
+}
+
+/* Empty state */
+.docked-messenger__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.docked-messenger__empty p {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Thread List */
+.docked-messenger__thread-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.docked-messenger__thread-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
+  width: 100%;
+}
+
+.docked-messenger__thread-row:hover {
+  background: #f8fafc;
+}
+
+.docked-messenger__thread-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f766e, #047857);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.docked-messenger__thread-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.docked-messenger__thread-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.docked-messenger__thread-name {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.docked-messenger__thread-name strong {
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.docked-messenger__thread-time {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.docked-messenger__thread-preview {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docked-messenger__unread-dot {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--color-ox-emerald-mid, #1A5C47);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Chat View */
+.docked-messenger__chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.docked-messenger__messages {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+}
+
+.docked-messenger__msg {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.docked-messenger__msg--own {
+  justify-content: flex-end;
+}
+
+.docked-messenger__msg-bubble {
+  max-width: 80%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 14px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.docked-messenger__msg--own .docked-messenger__msg-bubble {
+  background: linear-gradient(135deg, #0f766e, #047857);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.docked-messenger__msg:not(.docked-messenger__msg--own) .docked-messenger__msg-bubble {
+  border-bottom-left-radius: 4px;
+}
+
+.docked-messenger__msg-bubble p {
+  margin: 0;
+}
+
+.docked-messenger__msg-time {
+  display: block;
+  font-size: 0.65rem;
+  margin-top: 0.2rem;
+  opacity: 0.65;
+}
+
+/* Input Bar */
+.docked-messenger__input-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+
+.docked-messenger__input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.82rem;
+  background: #ffffff;
+  transition: border-color 0.15s;
+}
+
+.docked-messenger__input:focus {
+  outline: none;
+  border-color: #0f766e;
+}
+
+.docked-messenger__send {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-ox-emerald-mid, #1A5C47);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.docked-messenger__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.docked-messenger__send:not(:disabled):hover {
+  opacity: 0.85;
+}
+
+/* Mobile responsive */
+@media (max-width: 420px) {
+  .docked-messenger {
+    width: calc(100vw - 16px);
+    right: 8px;
+    bottom: 8px;
+    max-height: calc(100vh - 80px);
+    border-radius: 12px;
+  }
+
+  .docked-messenger__fab {
+    bottom: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+}

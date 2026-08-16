@@ -14,7 +14,7 @@ export async function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required. Please sign in.' });
+      return res.status(401).json({ error: 'Authentication required. Please log in.' });
     }
 
     const token = authHeader.split(' ')[1];
@@ -24,7 +24,7 @@ export async function requireAuth(req, res, next) {
       decoded = verifyToken(token);
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ error: 'Session expired. Please sign in again.' });
+        return res.status(401).json({ error: 'Session expired. Please log in again.' });
       }
       return res.status(401).json({ error: 'Invalid authentication token.' });
     }
@@ -43,10 +43,10 @@ export async function requireAuth(req, res, next) {
       return res.status(403).json({ error: 'Your account has been suspended.' });
     }
 
-    if (user.role === 'LAWYER' && !user.isVerified) {
+    if (user.suspensionUntil && new Date(user.suspensionUntil) > new Date()) {
       return res.status(403).json({
-        error: 'Your counsel account is not verified yet. Complete your application or sign in after you receive the approval email.',
-        code: 'LAWYER_PENDING_VERIFICATION',
+        error: `Your account is temporarily restricted until ${new Date(user.suspensionUntil).toLocaleDateString()}. Reason: ${user.suspensionReason || 'Policy violation'}.`,
+        code: 'ACCOUNT_RESTRICTED',
       });
     }
 

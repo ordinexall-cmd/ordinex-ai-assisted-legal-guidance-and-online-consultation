@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { consultationApi, consultationDisplayTitle } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { AnalysisResultsCitizen } from '../components/analysis/AnalysisResultsCitizen';
-import { outlookPill } from '../components/dashboard/outlookPill';
 import { ConsultationRowActions } from '../components/ConsultationRowActions';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
@@ -12,6 +12,7 @@ import { buildLawyersPath, resolveMatchSpecialty } from '../constants/legalCateg
 
 export const AnalysisDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,7 +33,7 @@ export const AnalysisDetail: React.FC = () => {
     <AppShell
       variant="flow"
       title="Analysis detail"
-      navItems={getCitizenNav()}
+      navItems={getCitizenNav(user)}
       stepLabel="Detail"
       backTo="/analyses"
     >
@@ -54,7 +55,6 @@ export const AnalysisDetail: React.FC = () => {
               <span className="label">Analysis</span>
               <p style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <strong>{consultationDisplayTitle(item)}</strong>
-                {outlookPill(ar.courtWinOutlook.level)}
               </p>
               <p className="analysis-detail-clean__meta" style={{ marginTop: 4, marginBottom: 0 }}>
                 {item.category} · {new Date(item.createdAt).toLocaleString()}

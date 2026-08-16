@@ -7,9 +7,8 @@ import multer from 'multer';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { aiLimiter, guestPreviewLimiter } from '../middleware/rateLimiter.js';
-import { analyzeLegalCase } from '../services/aiOrchestrator.js';
+import { analyzeLegalCase, followUpWithGroq } from '../services/aiOrchestrator.js';
 import { analyzeGuestPreview } from '../services/guestPreview.js';
-import { followUpWithGroq } from '../services/legalAnalysisFollowUp.js';
 import { hydrateCitizenGuidance } from '../services/legalValidator.js';
 import { extractTextFromBuffer } from '../services/docParser.js';
 import { persistUploadedFile } from '../services/uploads.js';
@@ -17,6 +16,9 @@ import { createNotification } from '../services/notify.js';
 import { validateLegalDocumentBuffer } from '../utils/validateUploadBuffer.js';
 import { daysRemainingInTrash, trashCutoffDate, TRASH_RETENTION_DAYS } from '../services/recycleBin.js';
 import { translateText, isTranslateAvailable, getTranslateLanguages } from '../services/groqTranslate.js';
+import { checkUserDailyQuota } from '../services/llmClient.js';
+import { nourishCorpusFromConsultation } from '../services/legalCorpus.js';
+import { assessDescriptionFacts } from '../services/textPreprocess.js';
 
 const router = Router();
 
@@ -66,24 +68,54 @@ const upload = multer({
 // ======================== GUEST PREVIEW ========================
 /**
  * POST /api/consultation/preview
- * Anonymous one-sentence teaser for landing (no auth, no DB).
+ * Anonymous one-sentence teaser for landing (no auth, no DB write).
  */
 router.post('/preview', guestPreviewLimiter, async (req, res, next) => {
   try {
     const { category, description } = req.body;
-
     if (!description || description.trim().length < 40) {
       return res.status(400).json({
         error: 'Please provide a detailed description (at least 40 characters).',
       });
     }
 
+    const facts = assessDescriptionFacts(description);
+    if (!facts.ready) {
+      return res.json({
+        needsMoreDetail: true,
+        missingFacts: facts.missing.map((m) => m.label),
+        userConcernSummary: '',
+        situationSummary: '',
+        possibleLegalCases: [],
+        suggestedNextSteps: [],
+        penalties: '',
+        outlookLevel: 'Uncertain',
+        caseHint: '',
+        disclaimer: '',
+        requiresLogin: false,
+      });
+    }
+
+    const quotaId = `ip:${req.ip || req.socket?.remoteAddress || 'anon'}`;
+    const quota = checkUserDailyQuota(quotaId, 5);
+    if (!quota.allowed) {
+      return res.status(429).json({
+        error: quota.message,
+        quotaExceeded: true,
+        trialsRemaining: 0,
+      });
+    }
+
     const preview = await analyzeGuestPreview({
-      category: category || 'Family',
+      category: category || 'unsure',
       description,
     });
 
-    res.json(preview);
+    res.json({
+      ...preview,
+      trialsRemaining: quota.remaining,
+      quotaWarning: quota.warning ? quota.message : undefined,
+    });
   } catch (error) {
     next(error);
   }
@@ -105,8 +137,31 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       });
     }
 
-    // Free users get unlimited easy analyses — complex cases are gated at
-    // the serialisation layer (redaction). No hard trial block.
+    const facts = assessDescriptionFacts(description);
+    if (!facts.ready) {
+      return res.json({
+        needsMoreDetail: true,
+        missingFacts: facts.missing.map((m) => m.label),
+        message: 'Add more detail for a full analysis. No trial was used.',
+        consultation: null,
+        meta: {
+          outcomeType: 'needs_detail',
+          providersUsed: ['rules'],
+          corpusSource: 'none',
+          usedMock: false,
+          trialsCharged: false,
+        },
+      });
+    }
+
+    const quota = checkUserDailyQuota(user.id, 5);
+    if (!quota.allowed) {
+      return res.status(429).json({
+        error: quota.message,
+        quotaExceeded: true,
+        trialsRemaining: 0,
+      });
+    }
 
     // Persist document (local /uploads or Supabase when configured), then parse from memory.
     let extractedText = null;
@@ -121,13 +176,25 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
     }
 
     const { result: aiResult, meta } = await analyzeLegalCase({
-      category: category || 'General',
+      category: category || 'unsure',
       description,
       extractedText,
       isPremium: true,
+      liveSearch: true,
+      corpusOnly: false,
     });
 
     const outcomeType = meta.outcomeType || 'full';
+
+    if (outcomeType === 'needs_detail') {
+      return res.json({
+        needsMoreDetail: true,
+        missingFacts: aiResult?.courtWinOutlook?.missingFacts || [],
+        message: 'Add more detail for a full analysis. No trial was used.',
+        consultation: null,
+        meta: { ...meta, trialsCharged: false },
+      });
+    }
 
     const consultation = await prisma.consultation.create({
       data: {
@@ -162,6 +229,12 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
         linkTo: `/ai-analysis?id=${consultation.id}`,
       }).catch(() => {});
     }
+    // Asynchronously nourish legal knowledge base with validated case keywords
+    nourishCorpusFromConsultation({
+      category: category || 'General',
+      aiResult,
+      description,
+    }).catch(() => {});
 
     const responseMessage =
       outcomeType === 'full'
@@ -174,7 +247,8 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       message: responseMessage,
       consultation: serializeConsultationRow(consultation),
       meta: { ...meta, trialsCharged: false },
-      trialsRemaining: 'unlimited',
+      trialsRemaining: quota.remaining,
+      quotaWarning: quota.warning ? quota.message : undefined,
     });
   } catch (error) {
     next(error);

@@ -10,7 +10,7 @@ import { env } from '../config/env.js';
 export async function notifyLawyerBookingRequest(lawyer, citizenName) {
   if (!lawyer?.phone || !env.SEMAPHORE_API_KEY) return;
 
-  const message = `ORDINEX: New booking request from ${citizenName}. Sign in to approve or decline.`;
+  const message = `ORDINEX: New booking request from ${citizenName}. Log in to approve or decline.`;
 
   if (env.isDev) {
     console.log(`\n📱 Booking alert → ${lawyer.phone}: ${message}\n`);

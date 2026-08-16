@@ -8,6 +8,7 @@ import {
   type Booking,
   type ConsultationResult,
 } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getAppBackFallback } from '../utils/navigation';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
@@ -25,6 +26,7 @@ function fmtSlot(b: Booking) {
 }
 
 export const ActivityHistory: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab') as Tab | null;
@@ -109,7 +111,7 @@ export const ActivityHistory: React.FC = () => {
     <AppShell
       variant="flow"
       title="History"
-      navItems={getCitizenNav()}
+      navItems={getCitizenNav(user)}
       stepLabel="Activity"
       backTo={getAppBackFallback(false)}
     >

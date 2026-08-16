@@ -14,6 +14,7 @@ import { statusChipLabel } from '../utils/bookingStatusChip';
 import { useBookingSlotWindow } from '../hooks/useBookingSlotWindow';
 import { canJoinBookingVideo } from '../utils/bookingSlotWindow';
 import { hasConsultationConsent } from '../components/consultation/ConsultationPreflight';
+import { Modal } from '../components/ui/Modal';
 import '../styles/consultation-chromeless.css';
 
 const canEnterSession = (s: Booking['status']) =>
@@ -30,6 +31,7 @@ export const VideoConsultationSession: React.FC = () => {
   const [uploadingRec, setUploadingRec] = useState(false);
   const [showTranscript, setShowTranscript] = useState(true);
   const [showReport, setShowReport] = useState(false);
+  const [showEndModal, setShowEndModal] = useState(false);
   const bookingDock = useBookingDock();
   const dockOpenedForBooking = useRef<string | null>(null);
 
@@ -144,12 +146,23 @@ export const VideoConsultationSession: React.FC = () => {
 
   if (postCall && booking) {
     return (
-      <ConsultationPostCall
-        booking={booking}
-        uploading={uploadingRec}
-        onOpenBooking={() => navigate(`/booking/${bookingId}`)}
-        onBack={() => navigate(backTo)}
-      />
+      <>
+        <ConsultationPostCall
+          booking={booking}
+          uploading={uploadingRec}
+          onOpenBooking={() => navigate(`/booking/${bookingId}`)}
+          onBack={() => navigate(backTo)}
+          onReport={() => setShowReport(true)}
+        />
+        {showReport && reportedUserId && (
+          <ReportUserModal
+            reportedUserId={reportedUserId}
+            reportedUserName={reportedUserName}
+            bookingId={booking.id}
+            onClose={() => setShowReport(false)}
+          />
+        )}
+      </>
     );
   }
 
@@ -200,7 +213,7 @@ export const VideoConsultationSession: React.FC = () => {
             <button
               type="button"
               className="consult-chromeless__btn consult-chromeless__btn--end"
-              onClick={() => { void handleEndCall(); }}
+              onClick={() => setShowEndModal(true)}
             >
               End session
             </button>
@@ -256,7 +269,7 @@ export const VideoConsultationSession: React.FC = () => {
                 selfLabel={selfLabel}
                 autoStartRecording
                 onOpenChat={() => bookingDock.openBooking(booking.id, { expand: true })}
-                onEndCall={() => { void handleEndCall(); }}
+                onEndCall={() => setShowEndModal(true)}
                 onRecordingUploadDone={(url) => {
                   if (url) setBooking((prev) => (prev ? { ...prev, recordingUrl: url } : prev));
                 }}
@@ -290,6 +303,43 @@ export const VideoConsultationSession: React.FC = () => {
           bookingId={booking.id}
           onClose={() => setShowReport(false)}
         />
+      )}
+
+      {showEndModal && (
+        <Modal
+          open={showEndModal}
+          onClose={() => setShowEndModal(false)}
+          title="End consultation session?"
+          size="sm"
+        >
+          <div style={{ padding: '0.5rem 0' }}>
+            <p style={{ color: '#334155', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+              {user.role === 'LAWYER'
+                ? 'Ending the session will mark this consultation as complete, upload the session recording/transcript, and credit the consultation fee to your wallet.'
+                : 'Are you sure you want to exit the video consultation? You will still be able to review the transcript and recording in your booking history.'}
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="ox-btn ox-btn-outline"
+                onClick={() => setShowEndModal(false)}
+              >
+                Keep session open
+              </button>
+              <button
+                type="button"
+                className="ox-btn ox-btn-primary"
+                style={{ background: '#b91c1c', borderColor: '#b91c1c' }}
+                onClick={() => {
+                  setShowEndModal(false);
+                  void handleEndCall();
+                }}
+              >
+                End consultation
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

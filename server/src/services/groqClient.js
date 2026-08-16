@@ -4,32 +4,64 @@
  */
 import { env } from '../config/env.js';
 
-export async function groqChat({ messages, jsonMode = false, maxTokens = 4096, temperature = 0.25 }) {
-  if (!env.GROQ_API_KEY) {
+let keyIndex = 0;
+let groq429Hits = 0;
+
+/** Lower the free daily cap when Groq RPD pressure is high. */
+export function getAdaptiveDailyLimit(base = 5) {
+  return groq429Hits >= 8 ? Math.min(base, 3) : base;
+}
+
+export async function groqChat({ messages, jsonMode = false, maxTokens = 4096, temperature = 0.25, model = null }) {
+  const keys = env.GROQ_API_KEYS.length > 0 ? env.GROQ_API_KEYS : [env.GROQ_API_KEY].filter(Boolean);
+  if (keys.length === 0) {
     throw new Error('GROQ_API_KEY is not configured.');
   }
 
+  const selectedModel = model || env.GROQ_MODEL;
   const body = {
-    model: env.GROQ_MODEL,
+    model: selectedModel,
     messages,
     temperature,
     max_tokens: maxTokens,
   };
   if (jsonMode) body.response_format = { type: 'json_object' };
 
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  let lastError = null;
+  // Try available keys in rotation if 429 or network errors occur
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const currentKey = keys[(keyIndex + attempt) % keys.length];
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${currentKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || `Groq API error ${res.status}`);
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.error?.message || `Groq API error ${res.status}`;
+        lastError = new Error(msg);
+        // If rate limited (429) or unauthorized (401), try next key in pool
+        if (res.status === 429 || res.status === 401) {
+          if (res.status === 429) groq429Hits += 1;
+          console.warn(`[groqClient] Key limit/error (${res.status}) on key attempt ${attempt + 1}, rotating key...`);
+          continue;
+        }
+        throw lastError;
+      }
+
+      // Increment index for next call (round-robin)
+      keyIndex = (keyIndex + attempt + 1) % keys.length;
+      return data.choices?.[0]?.message?.content?.trim() || '';
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
   }
 
-  return data.choices?.[0]?.message?.content?.trim() || '';
+  throw lastError || new Error('All Groq API keys failed.');
 }
+

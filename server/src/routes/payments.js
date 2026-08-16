@@ -6,6 +6,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requireLawyerVerified } from '../middleware/premium.js';
 import { env } from '../config/env.js';
 import { createNotification } from '../services/notify.js';
 import {
@@ -174,7 +175,7 @@ router.get('/checkout-context', requireAuth, async (req, res, next) => {
       const total = quotedFee;
       const pct = commissionPctLabel();
 
-      const isDemoUser = req.user.email === 'citizen@test.com' || isDemoEmail(req.user.email);
+      const isDemoUser = isDemoEmail(req.user.email);
       const paymentsMode = isDemoUser ? 'simulated' : (isPaymongoMode() ? 'paymongo' : 'simulated');
 
       return res.json({
@@ -396,7 +397,7 @@ router.post('/confirm', requireAuth, async (req, res, next) => {
     if (type !== 'BOOKING') {
       return res.status(400).json({ error: 'type must be BOOKING.' });
     }
-    const isDemoUser = req.user.email === 'citizen@test.com' || isDemoEmail(req.user.email);
+    const isDemoUser = isDemoEmail(req.user.email);
     if (isPaymongoMode() && !isDemoUser) {
       return res.status(400).json({
         error: 'Use PayMongo checkout (GCash) for this environment.',
@@ -430,7 +431,7 @@ router.post('/confirm', requireAuth, async (req, res, next) => {
 });
 
 // ======================== WALLET ========================
-router.get('/wallet', requireAuth, async (req, res, next) => {
+router.get('/wallet', requireAuth, requireLawyerVerified, async (req, res, next) => {
   try {
     if (req.user.role !== 'LAWYER') {
       return res.status(403).json({ error: 'Only lawyers have a wallet.' });
@@ -477,7 +478,7 @@ router.get('/wallet', requireAuth, async (req, res, next) => {
 });
 
 // ======================== PAYOUT REQUEST ========================
-router.post('/payout-request', requireAuth, async (req, res, next) => {
+router.post('/payout-request', requireAuth, requireLawyerVerified, async (req, res, next) => {
   try {
     if (req.user.role !== 'LAWYER') {
       return res.status(403).json({ error: 'Only lawyers can request payouts.' });

@@ -8,6 +8,7 @@ export interface ConsultationPostCallProps {
   readonly onDownloadTranscript?: () => void;
   readonly onOpenBooking: () => void;
   readonly onBack: () => void;
+  readonly onReport?: () => void;
 }
 
 export const ConsultationPostCall: React.FC<ConsultationPostCallProps> = ({
@@ -16,6 +17,7 @@ export const ConsultationPostCall: React.FC<ConsultationPostCallProps> = ({
   onDownloadTranscript,
   onOpenBooking,
   onBack,
+  onReport,
 }) => {
   const hasRecording = Boolean(booking.recordingUrl);
   const hasTranscript = Boolean(booking.hasTranscript);
@@ -107,6 +109,24 @@ export const ConsultationPostCall: React.FC<ConsultationPostCallProps> = ({
             Back to dashboard
           </button>
         </div>
+        {onReport && (
+          <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={onReport}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+            >
+              Report a safety or Code of Conduct concern
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

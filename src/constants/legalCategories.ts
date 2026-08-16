@@ -78,7 +78,7 @@ export function buildLawyersPath(opts: {
   if (opts.specialty) params.set('specialty', opts.specialty);
   if (opts.consultationId) params.set('consultationId', opts.consultationId);
   const qs = params.toString();
-  return qs ? `/lawyers?${qs}` : '/lawyers';
+  return qs ? `/directory?${qs}` : '/directory';
 }
 
 export function appendConsultationIdToPath(
