@@ -213,10 +213,10 @@ body {
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
     flex-shrink: 0;
-    background: #0d3b2e;
+    background: #000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 

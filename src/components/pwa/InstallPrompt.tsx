@@ -177,7 +177,7 @@ export const InstallPrompt: React.FC = () => {
     <div className="pwa-install" role="dialog" aria-label="Install Ordinex">
       <div className="pwa-install__head">
         <img
-          src={`/icons/pwa-192.png?v=2`}
+          src={`/icons/pwa-192.png?v=3`}
           alt=""
           className="pwa-install__icon"
           width={44}
