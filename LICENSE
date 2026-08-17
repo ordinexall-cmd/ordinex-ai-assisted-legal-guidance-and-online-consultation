@@ -135,7 +135,7 @@ These services are used under each provider's terms and API agreements. They are
 not licensed as open source under this MIT grant:
 
 1. Groq Cloud API — AI case analysis / translation (when configured)
-2. OpenAI API — optional LLM / embeddings fallback (when configured)
+2. Google Gemini API — AI fallback, vision KYC, and multimodal (when configured)
 3. Supabase Cloud — database, storage, vector search (when configured)
 4. PayMongo — GCash / checkout payments (test or live keys)
 5. Google OAuth, Google Fonts CDN, Google STUN (WebRTC)

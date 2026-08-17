@@ -39,6 +39,14 @@ body.ox-portal {
   background: #f6f7f6;
 }
 
+/* Full-width scroll region — scrollbar sits on the right edge of the content pane */
+.ox-content-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 /* —— Sidebar (ORDINEX pao-side-nav) —— */
 .pao-side-nav {
   width: 260px;
@@ -370,10 +378,6 @@ body.ox-portal {
 
 /* —— Page container (content ratio) —— */
 body.ox-portal .page-container {
-  flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
   padding: 0.85rem 1rem 1.5rem;
   max-width: 1280px;
   margin: 0 auto;
@@ -397,16 +401,13 @@ body.ox-portal .page-stack {
 }
 
 body.ox-portal .page-stack--dashboard {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  /* Grow with content; vertical scroll lives on .ox-content-scroll */
+  min-height: min-content;
 }
 
 body.ox-portal .page-stack--dashboard .dash-layout,
 body.ox-portal .page-stack--dashboard .dash-layout--premium {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  min-height: min-content;
 }
 
 /* Inner page width helpers (ORDINEX citizen-page ratios) */

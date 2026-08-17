@@ -67,6 +67,24 @@ export const LawyerSpecializationsEditor: React.FC<LawyerSpecializationsEditorPr
           aria-multiselectable="true"
           aria-label="Practice areas"
         >
+          <li className="lawyer-spec-editor__bulk" role="none">
+            <button
+              type="button"
+              className="lawyer-spec-editor__bulk-btn"
+              disabled={disabled}
+              onClick={() => onChange(LEGAL_PRACTICE_AREAS.map((a) => a.value))}
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              className="lawyer-spec-editor__bulk-btn"
+              disabled={disabled || value.length === 0}
+              onClick={() => onChange([])}
+            >
+              Clear
+            </button>
+          </li>
           {LEGAL_PRACTICE_AREAS.map((area) => {
             const selected = value.includes(area.value);
             return (

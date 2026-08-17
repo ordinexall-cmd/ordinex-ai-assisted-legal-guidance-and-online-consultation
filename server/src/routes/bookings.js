@@ -35,7 +35,8 @@ import { notifyLawyerBookingRequest } from '../services/smsNotify.js';
 import { env } from '../config/env.js';
 import { hasBookingCaseContext, bookingCaseContextError } from '../utils/bookingCaseContext.js';
 import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
-import { recordingUpload, persistUploadedFile } from '../services/uploads.js';
+import { recordingUpload, audioChunkUpload, persistUploadedFile } from '../services/uploads.js';
+import { transcribeLiveAudio } from '../services/liveTranscribe.js';
 import { daysRemainingInTrash, trashCutoffDate, TRASH_RETENTION_DAYS } from '../services/recycleBin.js';
 import { normalizeLegacyAiResult } from '../services/legalValidator.js';
 
@@ -914,6 +915,55 @@ router.post('/:id/transcript/segment', requireAuth, async (req, res, next) => {
 
     emitBookingTranscriptSegment(booking.data.id, segment);
     res.status(201).json({ segment, plainText: doc.plainText });
+  } catch (error) {
+    if (error.message?.includes('required')) {
+      return res.status(400).json({ error: error.message });
+    }
+    next(error);
+  }
+});
+
+/**
+ * POST /api/bookings/:id/transcript/audio — live STT via Groq Whisper (IN_PROGRESS only)
+ * Accepts a short audio clip captured during the session, transcribes it to
+ * text in the SAME spoken language, then appends it as a transcript segment.
+ * Falls back to Gemini transcription if Whisper is unavailable.
+ */
+router.post('/:id/transcript/audio', requireAuth, audioChunkUpload.single('audio'), async (req, res, next) => {
+  try {
+    const booking = await loadOwnedBooking(req, 'either');
+    if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
+
+    if (booking.data.status !== STATUS.IN_PROGRESS) {
+      return res.status(409).json({ error: 'Live transcript is only available during an active session.' });
+    }
+    if (!req.file?.buffer?.length) {
+      return res.status(400).json({ error: 'No audio chunk uploaded.' });
+    }
+
+    const { text, lang, provider } = await transcribeLiveAudio({
+      audioBuffer: req.file.buffer,
+      mimeType: req.file.mimetype || 'audio/webm',
+      filename: req.file.originalname || 'chunk.webm',
+      langHint: req.body?.lang,
+    });
+
+    if (!text) {
+      return res.json({ segment: null, plainText: parseTranscript(booking.data.transcript).plainText, provider });
+    }
+
+    const { doc, segment } = appendTranscriptSegment(
+      booking.data,
+      { text, lang, isFinal: true },
+      req.user.id,
+    );
+    await prisma.booking.update({
+      where: { id: booking.data.id },
+      data: { transcript: serializeTranscript(doc) },
+    });
+
+    emitBookingTranscriptSegment(booking.data.id, segment);
+    res.status(201).json({ segment, plainText: doc.plainText, provider });
   } catch (error) {
     if (error.message?.includes('required')) {
       return res.status(400).json({ error: error.message });

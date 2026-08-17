@@ -93,7 +93,7 @@ export function computeCitizenTrustScore(citizen: {
   const totalPoints = checks.reduce((sum, c) => sum + c.points, 0);
 
   let level: TrustScoreResult['level'] = 'UNVERIFIED';
-  let badgeLabel = `${totalPoints} / 100`;
+  let badgeLabel: string;
   let badgeColor = '#94a3b8';
 
   if (totalPoints >= 100) {

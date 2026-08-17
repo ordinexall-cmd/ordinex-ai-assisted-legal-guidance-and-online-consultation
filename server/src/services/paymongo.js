@@ -162,7 +162,9 @@ export async function createPaymongoRefund({ paymentId, amountPhp, reason = 'req
  * Skips verification when webhook secret is empty (local/dev).
  */
 export function verifyPaymongoSignature(rawBody, signatureHeader, webhookSecret) {
-  if (!webhookSecret) return true;
+  // No secret configured: only tolerated outside production (local/dev testing).
+  // In production this fails closed so unverified calls can never finalize a payment.
+  if (!webhookSecret) return !env.isProd;
   if (!signatureHeader || rawBody == null) return false;
 
   const parts = Object.fromEntries(

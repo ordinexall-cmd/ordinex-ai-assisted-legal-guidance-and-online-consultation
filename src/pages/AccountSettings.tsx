@@ -16,7 +16,7 @@ import { LawyerEarningsTab } from '../components/settings/LawyerEarningsTab';
 import { RecycleBinPanel } from '../components/settings/RecycleBinPanel';
 import { LawyerSpecializationsEditor } from '../components/settings/LawyerSpecializationsEditor';
 import { CitizenVerificationPanel } from '../components/settings/CitizenVerificationPanel';
-import { computeCitizenTrustScore, computeLawyerTrustScore } from '../utils/trustScore';
+import { computeCitizenTrustScore, computeLawyerTrustScore, type TrustScoreResult } from '../utils/trustScore';
 import { OtpCodeInput } from '../components/ui/OtpCodeInput';
 import { PhoneInput } from '../components/ui/PhoneInput';
 import { localPartToFullPhone } from '../utils/phonePhilippines';
@@ -164,8 +164,10 @@ export const AccountSettings: React.FC = () => {
   }, [user]);
 
   // Compute Trust Score
-  const trustScoreResult = useMemo(() => {
-    if (!user) return { score: 0, maxScore: 100, level: 'UNVERIFIED', badgeLabel: '0 ID PROOF', badgeColor: '#94a3b8', checks: [] };
+  const trustScoreResult = useMemo((): TrustScoreResult => {
+    if (!user) {
+      return { score: 0, maxScore: 100, level: 'UNVERIFIED', badgeLabel: '0 ID PROOF', badgeColor: '#94a3b8', checks: [] };
+    }
     if (isLawyer) {
       return computeLawyerTrustScore({
         email: user.email,
@@ -773,7 +775,7 @@ export const AccountSettings: React.FC = () => {
             {isCitizen ? (
               <CitizenVerificationPanel onSuccess={() => void refreshUser()} />
             ) : (
-              <div className="settings-ac" style={{ display: 'grid', gap: '1.5rem' }}>
+              <div className="staff-page-grid staff-page-grid--2 settings-verification-grid">
                 <section className="settings-group">
                   <div className="settings-group__intro">
                     <h3 className="settings-group__label">Bar standing</h3>
@@ -900,11 +902,13 @@ export const AccountSettings: React.FC = () => {
                       Complete each section in order. Later sections stay visible but stay locked until the previous check succeeds.
                     </p>
                   </div>
-                  <LawyerVerificationWizard
-                    user={user}
-                    onUpdated={(u) => { updateUser(u); void refreshUser(); }}
-                    onVerified={() => navigate('/lawyer/dashboard', { replace: true })}
-                  />
+                  <div className="settings-group__card settings-group__card--pad">
+                    <LawyerVerificationWizard
+                      user={user}
+                      onUpdated={(u) => { updateUser(u); void refreshUser(); }}
+                      onVerified={() => navigate('/lawyer/dashboard', { replace: true })}
+                    />
+                  </div>
                 </section>
               </div>
             )}

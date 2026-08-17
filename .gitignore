@@ -25,6 +25,13 @@ dist-ssr
 !.env.example
 server/.env
 server/.env.*
+!server/.env.example
+
+# Local uploaded files (never commit user PII / recordings)
+server/uploads/
+
+# Personal one-shot seed (contains private emails/passwords)
+server/scripts/seedPersonalAccounts.js
 
 # Editor directories and files
 .vscode/*

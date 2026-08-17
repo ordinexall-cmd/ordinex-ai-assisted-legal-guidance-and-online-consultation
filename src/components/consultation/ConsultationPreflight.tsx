@@ -59,7 +59,6 @@ function ChecklistItem({
 export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
   bookingId,
   backTo,
-  userEmail: _userEmail,
   onProceed,
 }) => {
   const navigate = useNavigate();

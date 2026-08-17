@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  assetUrl,
   bookingsApi,
   type Booking,
   type TranscriptSegment,
@@ -184,14 +185,14 @@ export const BookingTranscriptPanel: React.FC<BookingTranscriptPanelProps> = ({
         <div className="transcript-recording">
           <h4 className="transcript-card__title" style={{ marginTop: 12 }}>Consultation Recording</h4>
           <video
-            src={recordingUrl}
+            src={assetUrl(recordingUrl)}
             controls
             className="transcript-recording__player"
             style={{ width: '100%', maxHeight: 240, borderRadius: 8, background: '#1e2220', marginTop: 8 }}
           />
           <div className="transcript-actions" style={{ marginTop: 8 }}>
             <a
-              href={recordingUrl}
+              href={assetUrl(recordingUrl)}
               download={`consultation-${bookingId.slice(0, 8)}.webm`}
               className="ox-btn ox-btn-ghost ox-btn-sm"
               style={{ textDecoration: 'none' }}

@@ -18,8 +18,8 @@ export const TrustScoreBadge: React.FC<TrustScoreBadgeProps> = ({
 }) => {
   const numericScore = typeof score === 'number' ? score : score.score;
 
-  let bg = '#10b981'; // Green
-  let label = `${numericScore} / 100`;
+  let bg: string;
+  const label = `${numericScore} / 100`;
 
   if (numericScore >= 80) {
     bg = '#10b981'; // Emerald Green

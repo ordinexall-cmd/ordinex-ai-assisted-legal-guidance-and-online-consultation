@@ -18,5 +18,18 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // eslint-plugin-react-hooks v7 enables several new, highly opinionated
+      // rules by default. They flag stylistic patterns (not bugs) across the
+      // existing codebase, so keep them as warnings rather than build-breaking
+      // errors. Real correctness rules (rules-of-hooks) stay as errors.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/static-components': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-refresh/only-export-components': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
   },
 ])

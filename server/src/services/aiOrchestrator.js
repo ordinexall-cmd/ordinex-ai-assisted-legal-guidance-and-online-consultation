@@ -1,6 +1,6 @@
 /**
  * Ordinex AI pipeline v2: preprocess → LLM keywords → RAG → LLM JSON → validate.
- * Groq primary; OpenAI gpt-4o-mini fallback when Groq fails.
+ * Groq primary (single llama-3.3-70b-versatile model); Gemini 3.6 Flash fallback when Groq fails.
  */
 import { preprocessConcern } from './textPreprocess.js';
 import { llmChatWithMeta, llmChat } from './llmClient.js';
@@ -69,7 +69,7 @@ const OUTPUT_SCHEMA = `{
   "suggestedNextSteps": ["practical step including at least one document-preparation item when relevant"],
   "recommendedAgency": "string",
   "lawyerSpecialty": "short English description of lawyer type, e.g. family law attorney",
-  "matchSpecialty": "ONE of: Family|Criminal|Labor|Property|Consumer|Cybercrime|Data Privacy|General",
+  "matchSpecialty": "ONE of: Family|Criminal|Labor|Property|Consumer|Cybercrime|Data Privacy|Civil|Corporate|Tax|Immigration|Intellectual Property|Administrative|Environmental|Human Rights|General",
   "costBallpark": "string",
   "possibleDeadline": "plain-language time limit from sources, or a short note that a lawyer should confirm",
   "cautions": ["what not to do yet"],
@@ -78,7 +78,7 @@ const OUTPUT_SCHEMA = `{
 
 export async function extractKeywordsGroq({ category, description }) {
   const { text, provider } = await llmChatWithMeta({
-    model: env.GROQ_LIGHT_MODEL,
+    model: env.GROQ_MODEL,
     jsonMode: true,
     maxTokens: 512,
     temperature: 0.2,
@@ -343,7 +343,7 @@ export async function detectLanguage(text) {
   // Fall back to LLM for ambiguous text
   try {
     const response = await llmChat({
-      model: env.GROQ_LIGHT_MODEL,
+      model: env.GROQ_MODEL,
       maxTokens: 10,
       temperature: 0.1,
       messages: [

@@ -5,7 +5,7 @@ export function getLawyerNav(user?: { isVerified?: boolean } | null): readonly N
   return [
     { label: 'Dashboard', icon: 'dashboard', path: '/lawyer/dashboard' },
     { label: 'Directory', icon: 'group', path: '/directory', locked: practiceLocked },
-    { label: 'Schedule Calendar', icon: 'calendar_today', path: '/lawyer/schedule' },
+    { label: 'Duty Roster', icon: 'calendar_today', path: '/lawyer/schedule' },
     { label: 'Settings', icon: 'settings', path: '/settings' },
   ];
 }

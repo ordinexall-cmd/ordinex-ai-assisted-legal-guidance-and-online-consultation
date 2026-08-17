@@ -17,16 +17,24 @@ export function generateToken(user) {
       isPremium: user.isPremium,
     },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN }
+    { expiresIn: env.JWT_EXPIRES_IN, algorithm: 'HS256' }
   );
 }
 
 /**
- * Verify and decode a JWT token.
+ * Verify and decode a full-session JWT token.
+ * Pins HS256 and rejects narrowly-scoped tokens (e.g. lawyer KYC) so they
+ * can never be used as a full session credential.
  * Returns the decoded payload or throws on invalid/expired.
  */
 export function verifyToken(token) {
-  return jwt.verify(token, env.JWT_SECRET);
+  const decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+  if (decoded && decoded.scope) {
+    const err = new Error('This token is not valid for full account access.');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  return decoded;
 }
 
 /** Short-lived token for lawyer KYC only (no dashboard access). */
@@ -34,12 +42,12 @@ export function generateKycToken(userId) {
   return jwt.sign(
     { userId, scope: 'lawyer_kyc' },
     env.JWT_SECRET,
-    { expiresIn: '24h' },
+    { expiresIn: '24h', algorithm: 'HS256' },
   );
 }
 
 export function verifyKycToken(token) {
-  const decoded = jwt.verify(token, env.JWT_SECRET);
+  const decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
   if (decoded.scope !== 'lawyer_kyc') {
     const err = new Error('Invalid KYC token scope.');
     err.name = 'JsonWebTokenError';

@@ -10,22 +10,46 @@ import { getErrorMessage } from '../utils/userFacingError';
 import { ScheduleMonthGrid, type ScheduleCalendarEvent } from '../components/schedule/ScheduleMonthGrid';
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const WEEKDAY_PRESET = [1, 2, 3, 4, 5];
+const DEFAULT_RANGE_MONTHS = 3;
+const LOAD_MONTHS = 4;
 
-const toDateInput = (d: Date) => d.toISOString().slice(0, 10);
+/** Local calendar YYYY-MM-DD (avoids UTC shift from toISOString). */
+const toDateInput = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+function addMonthsYmd(dateStr: string, months: number): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  d.setMonth(d.getMonth() + months);
+  return toDateInput(d);
+}
 
 function expandWeekdayRange(startDate: string, endDate: string, daysOfWeek: number[]): string[] {
   const out: string[] = [];
   const cur = new Date(`${startDate}T00:00:00`);
   const end = new Date(`${endDate}T00:00:00`);
   if (Number.isNaN(cur.getTime()) || Number.isNaN(end.getTime()) || cur > end) return out;
+
+  const filterByWeekday = daysOfWeek.length > 0;
   while (cur <= end) {
-    if (daysOfWeek.includes(cur.getDay())) {
+    if (!filterByWeekday || daysOfWeek.includes(cur.getDay())) {
       out.push(toDateInput(cur));
     }
     cur.setDate(cur.getDate() + 1);
   }
   return out;
+}
+
+function weekdayPreviewLabel(days: number[]): string {
+  if (days.length === 0) return 'every day';
+  if (days.length === 5 && days.every((d, i) => d === WEEKDAY_PRESET[i])) return 'Mon–Fri';
+  return days.map((d) => DAY_NAMES[d]).join(', ');
 }
 
 export const LawyerSchedule: React.FC = () => {
@@ -37,19 +61,27 @@ export const LawyerSchedule: React.FC = () => {
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
 
-  const [defaultDate] = useState(() => toDateInput(new Date(Date.now() + 86400_000)));
+  const [defaultDate] = useState(() => toDateInput(new Date()));
   const [startDate, setStartDate] = useState(defaultDate);
-  const [endDate, setEndDate] = useState(defaultDate);
+  const [endDate, setEndDate] = useState(() => addMonthsYmd(toDateInput(new Date()), DEFAULT_RANGE_MONTHS));
   const [newStart, setNewStart] = useState('09:00');
   const [newEnd, setNewEnd] = useState('12:00');
   const [selectedDays, setSelectedDays] = useState<number[]>([...WEEKDAY_PRESET]);
+
+  const effectiveEnd = selectedDays.length > 0 && startDate === endDate
+    ? addMonthsYmd(startDate, DEFAULT_RANGE_MONTHS)
+    : endDate;
+  const previewDates = useMemo(
+    () => expandWeekdayRange(startDate, effectiveEnd, selectedDays),
+    [startDate, effectiveEnd, selectedDays],
+  );
 
   const load = useCallback(() => {
     setLoading(true);
     const from = new Date();
     from.setHours(0, 0, 0, 0);
     const to = new Date(from);
-    to.setDate(to.getDate() + 60);
+    to.setMonth(to.getMonth() + LOAD_MONTHS);
     Promise.all([
       availabilityApi.getMy(toDateInput(from), toDateInput(to)),
       bookingsApi.getMy({ limit: 50 }),
@@ -67,7 +99,9 @@ export const LawyerSchedule: React.FC = () => {
   useEffect(() => onAvailabilityChanged(() => load()), [load]);
   useEffect(() => onBookingUpdated(() => load()), [load]);
 
-  const toggleDay = (day: number) => {
+  const toggleDay = (day: number, e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort((a, b) => a - b),
     );
@@ -78,11 +112,11 @@ export const LawyerSchedule: React.FC = () => {
       setError('Start and end dates are required.');
       return;
     }
-    if (new Date(startDate) > new Date(endDate)) {
+    if (startDate > endDate) {
       setError('End date must be on or after start date.');
       return;
     }
-    if (selectedDays.length === 0) {
+    if (selectedDays.length === 0 && startDate !== endDate) {
       setError('Select at least one day of the week.');
       return;
     }
@@ -90,16 +124,28 @@ export const LawyerSchedule: React.FC = () => {
       setError('End time must be after start time.');
       return;
     }
-    const dates = expandWeekdayRange(startDate, endDate, selectedDays);
+    const rangeEnd = selectedDays.length > 0 && startDate === endDate
+      ? addMonthsYmd(startDate, DEFAULT_RANGE_MONTHS)
+      : endDate;
+    if (rangeEnd !== endDate) setEndDate(rangeEnd);
+    const dates = expandWeekdayRange(startDate, rangeEnd, selectedDays);
     if (dates.length === 0) {
-      setError('No matching weekdays in the selected range.');
+      setError('No matching weekdays in the selected range. Adjust dates or days of week.');
+      return;
+    }
+    const existingKeys = new Set(
+      slots.map((s) => `${String(s.date).slice(0, 10)}|${s.startTime}|${s.endTime}`),
+    );
+    const toCreate = dates.filter((date) => !existingKeys.has(`${date}|${newStart}|${newEnd}`));
+    if (toCreate.length === 0) {
+      setError('Those duty hours already exist in this range.');
       return;
     }
     setAdding(true);
     setError('');
     try {
       await availabilityApi.createBatch(
-        dates.map((date) => ({ date, startTime: newStart, endTime: newEnd })),
+        toCreate.map((date) => ({ date, startTime: newStart, endTime: newEnd })),
       );
       load();
     } catch (e: unknown) {
@@ -151,9 +197,9 @@ export const LawyerSchedule: React.FC = () => {
   return (
     <AppShell
       variant="flow"
-      title="Duty schedule"
+      title="Duty Roster"
       navItems={getLawyerNav(user)}
-      stepLabel="Schedule"
+      stepLabel="Duty Roster"
       backTo={getAppBackFallback(true)}
     >
       <div className="staff-workspace">
@@ -172,32 +218,61 @@ export const LawyerSchedule: React.FC = () => {
               <div className="staff-panel staff-panel--compact" style={{ marginBottom: '0.75rem' }}>
                 <h3 className="staff-panel__title">Add duty hours</h3>
                 <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
-                  One-time or date-range batch. Pick weekdays to include in the range.
+                  Pick start and end dates, then weekdays. Mon–Fri over a 3-month range creates every weekday in that span.
                 </p>
                 <div className="staff-form--compact">
                   <div>
                     <label htmlFor="duty-start-date">Start date</label>
-                    <input id="duty-start-date" type="date" className="ox-input" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                    <input
+                      id="duty-start-date"
+                      type="date"
+                      className="ox-input"
+                      min={toDateInput(new Date())}
+                      value={startDate}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setStartDate(v);
+                        if (endDate < v) setEndDate(addMonthsYmd(v, DEFAULT_RANGE_MONTHS));
+                      }}
+                    />
                   </div>
                   <div>
                     <label htmlFor="duty-end-date">End date</label>
-                    <input id="duty-end-date" type="date" className="ox-input" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                    <input
+                      id="duty-end-date"
+                      type="date"
+                      className="ox-input"
+                      min={startDate || toDateInput(new Date())}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--color-ox-emerald)' }}>Days of week</span>
-                    <div className="staff-weekday-pills" style={{ marginTop: 6 }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--color-ox-emerald)' }}>
+                      Days of week
+                    </span>
+                    <p className="staff-empty-hint" style={{ margin: '0.25rem 0 0' }}>
+                      Every selected weekday between Start and End is added. If Start and End are the same day, the range extends 3 months.
+                    </p>
+                    <div className="staff-weekday-pills" role="group" aria-label="Days of week" style={{ marginTop: 6 }}>
                       {DAY_LABELS.map((label, day) => (
                         <button
-                          key={`${label}-${day}`}
+                          key={`dow-${day}`}
                           type="button"
                           className={`staff-weekday-pill${selectedDays.includes(day) ? ' staff-weekday-pill--active' : ''}`}
-                          onClick={() => toggleDay(day)}
+                          onClick={(e) => toggleDay(day, e)}
                           aria-pressed={selectedDays.includes(day)}
                         >
                           {label}
                         </button>
                       ))}
                     </div>
+                    {previewDates.length > 0 && (
+                      <p className="staff-empty-hint" style={{ marginTop: 8 }}>
+                        Will create {previewDates.length} {weekdayPreviewLabel(selectedDays)} slot{previewDates.length === 1 ? '' : 's'}
+                        {' '}({previewDates[0]} to {previewDates[previewDates.length - 1]}).
+                      </p>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                     <div>

@@ -40,6 +40,7 @@
 
 .staff-page-grid--2 {
   grid-template-columns: 1fr 1fr;
+  align-items: start;
 }
 
 .staff-page-grid--sidebar {
@@ -559,6 +560,68 @@
   align-items: start;
 }
 
+/* Compact “Looking for a lawyer” block on Schedule Calendar */
+.citizen-brief-panel {
+  margin-bottom: 0.85rem;
+}
+
+.citizen-brief-panel__body {
+  padding: 0.65rem 0.85rem !important;
+}
+
+.citizen-brief-panel__hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.citizen-brief-panel__flash {
+  margin-bottom: 0.5rem;
+}
+
+.citizen-brief-panel__ticket {
+  margin-top: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.citizen-brief-panel__ticket-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.citizen-brief-panel__ticket-id {
+  margin: 0;
+}
+
+.citizen-brief-panel__ticket-summary {
+  margin-top: 0.4rem;
+}
+
+.citizen-brief-panel__visitors {
+  margin-top: 0.5rem;
+}
+
+.citizen-brief-panel__visitors-label {
+  margin-bottom: 0.2rem;
+}
+
+.citizen-brief-panel__visitor-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.citizen-brief-panel__ticket-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.55rem;
+}
+
+.citizen-brief-panel__offers {
+  margin-top: 0.65rem;
+}
+
 .schedule-ticket-panel {
   min-width: 0;
 }
@@ -599,6 +662,14 @@
   cursor: pointer;
   color: var(--color-ox-emerald, #0D3B2E);
   font-family: inherit;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.staff-weekday-pill:hover {
+  border-color: var(--color-ox-emerald-mid, #1A5C47);
 }
 
 .staff-weekday-pill--active {

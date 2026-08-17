@@ -188,10 +188,15 @@ function validateSlot(s) {
   if (s.endTime <= s.startTime) {
     return `endTime (${s.endTime}) must be after startTime (${s.startTime}).`;
   }
-  const slotDate = new Date(`${s.date}T00:00:00.000Z`);
   const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  if (slotDate < today) {
+  today.setHours(0, 0, 0, 0);
+  // Compare calendar dates (YYYY-MM-DD), not UTC instants — allows "today" in local TZ.
+  const todayStr = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-');
+  if (s.date < todayStr) {
     return `Cannot create a slot in the past (${s.date}).`;
   }
   return null;

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import {
+  assetUrl,
   bookingsApi,
   consultationApi,
   consultationDisplayTitle,
@@ -234,7 +235,7 @@ export const ActivityHistory: React.FC = () => {
                   </div>
                   {selectedBooking.recordingUrl && (
                     <div style={{ marginTop: 12 }}>
-                      <a href={selectedBooking.recordingUrl} className="link-inline" download>
+                      <a href={assetUrl(selectedBooking.recordingUrl)} className="link-inline" download>
                         Download recording
                       </a>
                     </div>

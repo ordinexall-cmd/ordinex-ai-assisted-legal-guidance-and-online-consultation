@@ -4,24 +4,30 @@
 // ============================================================
 import rateLimit from 'express-rate-limit';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 /**
- * Global rate limiter: 200 requests per 15 minutes per IP.
+ * Global rate limiter: 200 requests per 15 minutes per IP in production.
+ * Disabled in development — Vite HMR, polling, and retries exhaust 200 quickly
+ * and block login with "Too many requests".
  */
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
+  max: isProd ? 200 : 10_000,
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => !isProd || req.path === '/api/health',
 });
 
 /**
- * Auth rate limiter: 10 attempts per 15 minutes per IP.
+ * Auth rate limiter: 10 attempts per 15 minutes per IP in production.
  * Used on login, register, OTP endpoints to prevent brute-force.
+ * Higher ceiling in development so local testing is not blocked.
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 10 : 100,
+  max: isProd ? 10 : 500,
   message: { error: 'Too many authentication attempts. Please wait 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,

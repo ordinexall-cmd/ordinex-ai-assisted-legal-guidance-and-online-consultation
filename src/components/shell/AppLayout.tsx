@@ -37,11 +37,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               showNotifications={Boolean(user)}
             />
           )}
-          <main id="main-content" className="page-container" tabIndex={-1}>
-            <div className={`page-stack${hidePageHeader ? ' page-stack--dashboard' : ''}`}>
-              {children}
-            </div>
-          </main>
+          <div className="ox-content-scroll">
+            <main id="main-content" className="page-container" tabIndex={-1}>
+              <div className={`page-stack${hidePageHeader ? ' page-stack--dashboard' : ''}`}>
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </div>

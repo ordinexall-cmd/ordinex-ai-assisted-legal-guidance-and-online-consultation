@@ -30,6 +30,7 @@ export default defineConfig({
     ordinexApiHealthCheck(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: null,
       includeAssets: [
         'icons/pwa-192.png',
         'icons/pwa-512.png',
@@ -54,11 +55,7 @@ export default defineConfig({
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/uploads'),
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'ordinex-uploads',
-              expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 },
-            },
+            handler: 'NetworkOnly',
           },
         ],
       },
@@ -93,5 +90,21 @@ export default defineConfig({
     host: true,
     port: 4173,
     allowedHosts: true,
+    // Same proxy as dev so phone/PWA preview can reach the local API.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
 })

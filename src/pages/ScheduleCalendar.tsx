@@ -14,6 +14,7 @@ import { citizenBookingCalendarStyle } from '../utils/calendarEventStyle';
 import { statusChipLabel } from '../utils/bookingStatusChip';
 import { BookingStatusStepper } from '../components/booking/BookingStatusStepper';
 import { VerificationGateNotice } from '../components/auth/VerificationGateNotice';
+import { CitizenBriefPanel } from '../components/citizen/CitizenBriefPanel';
 
 const STATUS_FILTERS: { key: string; label: string; statuses: string[] | null }[] = [
   { key: 'all', label: 'All', statuses: null },
@@ -113,6 +114,8 @@ export const ScheduleCalendar: React.FC = () => {
       backTo={getAppBackFallback(false)}
     >
       <div className="staff-workspace">
+        <CitizenBriefPanel />
+
         {lastUpdate && (
           <p className="staff-empty-hint" style={{ marginBottom: 8 }}>
             Updated {lastUpdate.toLocaleTimeString()}

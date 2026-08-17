@@ -1235,11 +1235,15 @@ router.post(
         idBuffer: frontFile.buffer,
         selfieBuffer: selfieFile.buffer,
       });
-      const facePass = face.provider === 'face-api.js'
-        ? face.score >= 0.4
-        : face.provider === 'noop'
-          ? false
-          : Boolean(selfieFile.buffer?.length && frontFile.buffer?.length);
+      // Fail closed: only trust real biometric/vision providers with a genuine
+      // similarity score. Stub providers (hash-stub/noop) can never pass, so a
+      // random ID + selfie pair cannot self-verify a citizen.
+      let facePass = false;
+      if (face.provider === 'face-api.js') {
+        facePass = face.score >= 0.4;
+      } else if (face.provider === 'groq-vision' || face.provider === 'gemini-vision') {
+        facePass = face.score >= 0.6;
+      }
 
       if (!facePass) {
         const updatedUser = await prisma.user.update({

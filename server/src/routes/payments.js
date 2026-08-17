@@ -346,14 +346,22 @@ router.post('/complete-session', requireAuth, async (req, res, next) => {
  */
 router.post('/webhook/paymongo', async (req, res, next) => {
   try {
-    const raw = JSON.stringify(req.body);
+    // req.body is a Buffer here (raw parser mounted in index.js).
+    const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
     const sig = req.headers['paymongo-signature'];
     if (!verifyPaymongoSignature(raw, sig, env.PAYMONGO_WEBHOOK_SECRET)) {
       return res.status(401).json({ error: 'Invalid PayMongo signature.' });
     }
 
-    const eventType = req.body?.data?.attributes?.type || req.body?.type;
-    const dataObj = req.body?.data?.attributes?.data || req.body?.data;
+    let event;
+    try {
+      event = JSON.parse(raw.toString('utf8'));
+    } catch {
+      return res.status(400).json({ error: 'Invalid webhook payload.' });
+    }
+
+    const eventType = event?.data?.attributes?.type || event?.type;
+    const dataObj = event?.data?.attributes?.data || event?.data;
 
     // checkout_session.payment.paid
     if (String(eventType || '').includes('checkout_session.payment.paid') ||

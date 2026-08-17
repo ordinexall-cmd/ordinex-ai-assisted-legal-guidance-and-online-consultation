@@ -17,6 +17,7 @@ import CitizenDashboard from './pages/CitizenDashboardPremium';
 import AiCaseAnalysis from './pages/AiCaseAnalysis';
 import DirectoryPage, { DirectorySearchRedirect } from './pages/DirectoryPage';
 import LawyerProfile from './pages/LawyerProfile';
+import BriefRequestDetail from './pages/BriefRequestDetail';
 import LawyerBookConsultation from './pages/LawyerBookConsultation';
 import ScheduleConsultation from './pages/ScheduleConsultation';
 import BookingDetail from './pages/BookingDetail';
@@ -102,6 +103,11 @@ function App() {
         <Route path="/directory" element={
           <ProtectedRoute>
             <DirectoryPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/directory/requests/:briefId" element={
+          <ProtectedRoute requiredRole="LAWYER" requireLawyerVerified>
+            <BriefRequestDetail />
           </ProtectedRoute>
         } />
         <Route path="/lawyers" element={

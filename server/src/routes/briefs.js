@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireCitizen, requireCitizenVerified, requireLawyer, requireLawyerVerified } from '../middleware/premium.js';
 import { createNotification } from '../services/notify.js';
+import { normalizeLegacyAiResult } from '../services/legalValidator.js';
 
 const router = Router();
 const MAX_SUMMARY = 280;
@@ -21,6 +22,9 @@ function serializePublicBrief(brief, lawyerId) {
     id: brief.id,
     category: brief.category,
     summary: brief.summary,
+    consultationId: brief.consultationId || null,
+    hasLinkedAnalysis: Boolean(brief.consultationId),
+    analysisTitle: brief.linkedAnalysisTitle || null,
     budgetMin: brief.budgetMin,
     budgetMax: brief.budgetMax,
     city: brief.city,
@@ -32,10 +36,17 @@ function serializePublicBrief(brief, lawyerId) {
 }
 
 function serializeMine(brief) {
+  const viewers = (brief.views || []).map((v) => ({
+    lawyerId: v.lawyerId,
+    name: v.lawyer?.name || 'Lawyer',
+    viewedAt: v.viewedAt,
+  }));
   return {
     id: brief.id,
     category: brief.category,
     summary: brief.summary,
+    consultationId: brief.consultationId || null,
+    analysisTitle: brief.linkedAnalysisTitle || null,
     budgetMin: brief.budgetMin,
     budgetMax: brief.budgetMax,
     city: brief.city,
@@ -44,16 +55,80 @@ function serializeMine(brief) {
     anonymous: brief.anonymous,
     status: brief.status,
     createdAt: brief.createdAt,
+    updatedAt: brief.updatedAt,
+    viewCount: viewers.length,
+    viewers,
+  };
+}
+
+async function loadMineBrief(userId) {
+  const brief = await prisma.caseBrief.findFirst({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      views: {
+        orderBy: { viewedAt: 'desc' },
+        include: { lawyer: { select: { id: true, name: true } } },
+      },
+    },
+  });
+  if (!brief) return null;
+  return attachAnalysisLabel(brief, userId);
+}
+
+async function resolveAnalysisTitle(consultationId, userId) {
+  if (!consultationId) return null;
+  const c = await prisma.consultation.findFirst({
+    where: { id: consultationId, userId, deletedAt: null },
+    select: { title: true, category: true, description: true, aiResult: true },
+  });
+  if (!c) return null;
+  if (c.title?.trim()) return c.title.trim();
+  try {
+    const ai = typeof c.aiResult === 'string' ? JSON.parse(c.aiResult) : c.aiResult;
+    if (ai?.possibleLegalCases?.[0]?.name) return ai.possibleLegalCases[0].name;
+    if (ai?.userConcernSummary) return String(ai.userConcernSummary).slice(0, 48);
+  } catch { /* ignore */ }
+  return c.category || 'Case analysis';
+}
+
+async function attachAnalysisLabel(brief, userId) {
+  if (!brief?.consultationId) return brief;
+  const linkedAnalysisTitle = await resolveAnalysisTitle(brief.consultationId, userId || brief.userId);
+  return { ...brief, linkedAnalysisTitle };
+}
+
+function serializeLinkedAnalysis(c) {
+  let aiResult = c.aiResult;
+  try {
+    aiResult = normalizeLegacyAiResult(JSON.parse(c.aiResult));
+  } catch {
+    // keep raw if unparseable
+  }
+  let analysisMeta = null;
+  if (c.analysisMeta) {
+    try {
+      analysisMeta = JSON.parse(c.analysisMeta);
+    } catch {
+      analysisMeta = null;
+    }
+  }
+  return {
+    id: c.id,
+    title: c.title,
+    category: c.category,
+    description: c.description,
+    fileUrl: c.fileUrl || null,
+    aiResult,
+    analysisMeta,
+    createdAt: c.createdAt,
   };
 }
 
 router.get('/mine', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
-    const brief = await prisma.caseBrief.findFirst({
-      where: { userId: req.user.id },
-      orderBy: { updatedAt: 'desc' },
-    });
-    res.json({ brief: brief ? serializeMine(brief) : null });
+    const labeled = await loadMineBrief(req.user.id);
+    res.json({ brief: labeled ? serializeMine(labeled) : null });
   } catch (e) {
     next(e);
   }
@@ -64,12 +139,26 @@ router.put('/mine', requireAuth, requireCitizen, requireCitizenVerified, async (
     const category = String(req.body.category || '').trim();
     const summary = String(req.body.summary || '').trim();
     const anonymous = Boolean(req.body.anonymous);
+    const consultationIdRaw = req.body.consultationId != null ? String(req.body.consultationId).trim() : '';
     if (!category || summary.length < 20) {
       return res.status(400).json({ error: 'Add a category and at least 20 characters describing what you need.' });
     }
     if (summary.length > MAX_SUMMARY) {
       return res.status(400).json({ error: `Keep the description under ${MAX_SUMMARY} characters.` });
     }
+
+    let consultationId = null;
+    if (consultationIdRaw) {
+      const owned = await prisma.consultation.findFirst({
+        where: { id: consultationIdRaw, userId: req.user.id, deletedAt: null },
+        select: { id: true },
+      });
+      if (!owned) {
+        return res.status(400).json({ error: 'Linked case analysis not found.' });
+      }
+      consultationId = owned.id;
+    }
+
     const budgetMin = req.body.budgetMin != null && req.body.budgetMin !== '' ? Number(req.body.budgetMin) : null;
     const budgetMax = req.body.budgetMax != null && req.body.budgetMax !== '' ? Number(req.body.budgetMax) : null;
     const displayName = anonymous
@@ -79,6 +168,7 @@ router.put('/mine', requireAuth, requireCitizen, requireCitizenVerified, async (
     const data = {
       category,
       summary,
+      consultationId,
       budgetMin: Number.isFinite(budgetMin) ? budgetMin : null,
       budgetMax: Number.isFinite(budgetMax) ? budgetMax : null,
       city: req.user.city || null,
@@ -89,11 +179,12 @@ router.put('/mine', requireAuth, requireCitizen, requireCitizenVerified, async (
     };
 
     const existing = await prisma.caseBrief.findFirst({ where: { userId: req.user.id } });
-    const brief = existing
-      ? await prisma.caseBrief.update({ where: { id: existing.id }, data })
-      : await prisma.caseBrief.create({ data: { ...data, userId: req.user.id } });
+    await (existing
+      ? prisma.caseBrief.update({ where: { id: existing.id }, data })
+      : prisma.caseBrief.create({ data: { ...data, userId: req.user.id } }));
 
-    res.json({ brief: serializeMine(brief) });
+    const labeled = await loadMineBrief(req.user.id);
+    res.json({ brief: labeled ? serializeMine(labeled) : null });
   } catch (e) {
     next(e);
   }
@@ -103,11 +194,12 @@ router.post('/mine/close', requireAuth, requireCitizen, requireCitizenVerified, 
   try {
     const existing = await prisma.caseBrief.findFirst({ where: { userId: req.user.id, status: 'OPEN' } });
     if (!existing) return res.json({ brief: null });
-    const brief = await prisma.caseBrief.update({
+    await prisma.caseBrief.update({
       where: { id: existing.id },
       data: { status: 'CLOSED' },
     });
-    res.json({ brief: serializeMine(brief) });
+    const labeled = await loadMineBrief(req.user.id);
+    res.json({ brief: labeled ? serializeMine(labeled) : null });
   } catch (e) {
     next(e);
   }
@@ -223,7 +315,67 @@ router.get('/', requireAuth, requireLawyer, requireLawyerVerified, async (req, r
         inquiries: { where: { lawyerId: req.user.id }, select: { lawyerId: true, status: true } },
       },
     });
-    res.json({ briefs: briefs.map((b) => serializePublicBrief(b, req.user.id)) });
+    const labeled = await Promise.all(
+      briefs.map(async (b) => attachAnalysisLabel(b, b.userId)),
+    );
+
+    // Record unique lawyer views (first-seen timestamp kept).
+    if (briefs.length > 0) {
+      await Promise.all(
+        briefs.map((b) =>
+          prisma.briefView.upsert({
+            where: { briefId_lawyerId: { briefId: b.id, lawyerId: req.user.id } },
+            create: { briefId: b.id, lawyerId: req.user.id },
+            update: {},
+          }).catch(() => null),
+        ),
+      );
+    }
+
+    res.json({ briefs: labeled.map((b) => serializePublicBrief(b, req.user.id)) });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/:id', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
+  try {
+    const brief = await prisma.caseBrief.findFirst({
+      where: { id: req.params.id, status: 'OPEN' },
+      include: {
+        user: { select: { id: true, name: true, firstName: true, avatarUrl: true } },
+        inquiries: { where: { lawyerId: req.user.id }, select: { lawyerId: true, status: true } },
+      },
+    });
+    if (!brief) {
+      return res.status(404).json({ error: 'This request is no longer open.' });
+    }
+
+    const labeled = await attachAnalysisLabel(brief, brief.userId);
+
+    await prisma.briefView.upsert({
+      where: { briefId_lawyerId: { briefId: brief.id, lawyerId: req.user.id } },
+      create: { briefId: brief.id, lawyerId: req.user.id },
+      update: {},
+    }).catch(() => null);
+
+    let analysis = null;
+    if (brief.consultationId) {
+      const c = await prisma.consultation.findFirst({
+        where: { id: brief.consultationId, userId: brief.userId, deletedAt: null },
+      });
+      if (c) analysis = serializeLinkedAnalysis(c);
+    }
+
+    const displayName = publicDisplayName(labeled);
+    res.json({
+      brief: serializePublicBrief(labeled, req.user.id),
+      citizen: {
+        displayName,
+        avatarUrl: brief.anonymous ? null : (brief.user?.avatarUrl || null),
+      },
+      analysis,
+    });
   } catch (e) {
     next(e);
   }

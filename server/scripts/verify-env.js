@@ -1,19 +1,19 @@
 /**
- * Verify Ordinex AI environment (no secrets printed).
+ * Verify Ordinex environment (no secrets printed).
  * Run: node scripts/verify-env.js
  */
 import 'dotenv/config';
 
 const checks = [];
+const isProd = process.env.NODE_ENV === 'production';
 
 function ok(label, pass, detail = '') {
   checks.push({ label, pass, detail });
 }
 
-ok('GROQ_API_KEY', !!process.env.GROQ_API_KEY);
-ok('OPENAI_API_KEY', !!process.env.OPENAI_API_KEY, process.env.OPENAI_API_KEY ? 'fallback configured' : 'optional fallback');
-ok('SUPABASE_URL', !!process.env.SUPABASE_URL);
-ok('SUPABASE_SERVICE_KEY', !!process.env.SUPABASE_SERVICE_KEY);
+// --- AI providers (Groq primary, Gemini fallback) ---
+ok('GROQ_API_KEY', !!process.env.GROQ_API_KEY, process.env.GROQ_API_KEY ? 'set' : 'required for AI analysis');
+ok('GEMINI_API_KEY', !!process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY ? 'fallback configured' : 'optional fallback');
 
 if (process.env.GROQ_API_KEY) {
   try {
@@ -29,59 +29,42 @@ if (process.env.GROQ_API_KEY) {
         max_tokens: 5,
       }),
     });
-    const body = await res.json();
+    const body = await res.json().catch(() => ({}));
     ok('Groq API', res.ok, res.ok ? 'reachable' : (body.error?.message || res.status));
   } catch (e) {
     ok('Groq API', false, e.message);
   }
 }
 
-if (process.env.OPENAI_API_KEY) {
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-        messages: [{ role: 'user', content: 'Reply OK' }],
-        max_tokens: 5,
-      }),
-    });
-    const body = await res.json();
-    ok('OpenAI API', res.ok, res.ok ? 'fallback reachable' : (body.error?.message || res.status));
-  } catch (e) {
-    ok('OpenAI API', false, e.message);
-  }
+// --- Database ---
+ok('DATABASE_URL', !!process.env.DATABASE_URL, process.env.DATABASE_URL ? 'set' : 'required');
+if (isProd) {
+  ok('DATABASE_URL is postgres', (process.env.DATABASE_URL || '').startsWith('postgres'));
+  ok('DIRECT_URL', !!process.env.DIRECT_URL, 'used by prisma migrate/generate');
 }
 
-if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
-  try {
-    const { createClient } = await import('@supabase/supabase-js');
-    const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    const { error } = await sb.from('legal_sources').select('id').limit(1);
-    if (error && error.code === 'PGRST205') {
-      ok('Supabase legal_sources', false, 'table missing — run supabase/migrations/001_legal_corpus.sql then seed');
-    } else if (error) {
-      ok('Supabase', false, error.message);
-    } else {
-      ok('Supabase legal_sources', true, 'reachable');
-    }
-  } catch (e) {
-    ok('Supabase', false, e.message);
-  }
-}
+// --- Production-only hard requirements ---
+if (isProd) {
+  const secret = process.env.JWT_SECRET || '';
+  const weak = ['ordinex-dev-secret-key-2026', 'ordinex-dev-secret-key-2026-change-in-production'];
+  ok('JWT_SECRET strong', !!secret && secret.length >= 32 && !weak.includes(secret),
+    secret ? '' : 'set a random value of at least 32 characters');
 
-if (process.env.NODE_ENV === 'production') {
-  ok('JWT_SECRET set', !!process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16);
-  ok('DATABASE_URL postgres', (process.env.DATABASE_URL || '').startsWith('postgresql'));
+  ok('FRONTEND_URL https', /^https:\/\//.test(process.env.FRONTEND_URL || ''),
+    'production frontend must be served over HTTPS');
+
+  const mode = (process.env.PAYMENTS_MODE || '').toLowerCase();
+  ok('PAYMENTS_MODE set', ['simulated', 'paymongo'].includes(mode), mode || 'must be simulated or paymongo');
+  if (mode === 'paymongo') {
+    ok('PAYMONGO keys', !!process.env.PAYMONGO_SECRET_KEY && !!process.env.PAYMONGO_PUBLIC_KEY);
+    ok('PAYMONGO_WEBHOOK_SECRET', !!process.env.PAYMONGO_WEBHOOK_SECRET, 'required to verify webhooks');
+  }
 }
 
 console.log('\nOrdinex environment check\n');
 for (const c of checks) {
   console.log(`${c.pass ? 'OK' : '!!'} ${c.label}${c.detail ? ` — ${c.detail}` : ''}`);
 }
-const failed = checks.filter((c) => !c.pass && c.label !== 'OpenAI API');
+const failed = checks.filter((c) => !c.pass);
+console.log(`\n${failed.length ? `${failed.length} check(s) failed.` : 'All checks passed.'}\n`);
 process.exit(failed.length ? 1 : 0);

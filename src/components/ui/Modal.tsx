@@ -16,7 +16,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, children, title, si
     if (!open) return;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      // Close only via the X button — Escape does not dismiss.
       if (e.key !== 'Tab' || !sheetRef.current) return;
       const focusables = sheetRef.current.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
@@ -46,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, children, title, si
   if (!open) return null;
 
   return (
-    <div className="ox-modal-root" role="presentation" onClick={onClose}>
+    <div className="ox-modal-root" role="presentation">
       <div
         ref={sheetRef}
         className={['ox-modal-sheet', `ox-modal-sheet--${size}`].join(' ')}
@@ -54,7 +54,6 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, children, title, si
         aria-modal="true"
         aria-labelledby={title ? 'ox-modal-title' : undefined}
         tabIndex={-1}
-        onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="ox-modal-header">

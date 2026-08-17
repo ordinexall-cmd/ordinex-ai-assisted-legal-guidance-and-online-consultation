@@ -2,6 +2,7 @@
   "name": "Ordinex",
   "short_name": "Ordinex",
   "description": "AI legal pre-guidance and verified lawyer consultations for Filipinos.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

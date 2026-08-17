@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { authApi } from '../../services/api';
+import { authApi, assetUrl } from '../../services/api';
 import { getErrorMessage } from '../../utils/userFacingError';
 
 const CITIZEN_ID_OPTIONS = [
@@ -24,10 +24,10 @@ export const CitizenVerificationPanel: React.FC<CitizenVerificationPanelProps> =
   const [idNumber, setIdNumber] = useState<string>(user?.citizenIdNumber || '');
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
-  const [frontPreview, setFrontPreview] = useState<string | null>(user?.citizenIdUrl || null);
-  const [backPreview, setBackPreview] = useState<string | null>(user?.citizenIdBackUrl || null);
+  const [frontPreview, setFrontPreview] = useState<string | null>(assetUrl(user?.citizenIdUrl) || null);
+  const [backPreview, setBackPreview] = useState<string | null>(assetUrl(user?.citizenIdBackUrl) || null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(user?.citizenSelfieUrl || null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(assetUrl(user?.citizenSelfieUrl) || null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; isError: boolean } | null>(null);
 

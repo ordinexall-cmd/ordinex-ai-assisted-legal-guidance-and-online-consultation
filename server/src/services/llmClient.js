@@ -1,31 +1,56 @@
 import { env } from '../config/env.js';
 import { groqChat, getAdaptiveDailyLimit } from './groqClient.js';
 import { geminiChat } from './geminiClient.js';
-import { openaiChat } from './openaiClient.js';
 
 // Simple in-memory response cache & daily usage tracking
 const responseCache = new Map();
 const userDailyUsage = new Map();
+const visitorsToday = new Set();
 let lastResetDay = new Date().getUTCDate();
+
+// Traffic-aware analysis quota: more free analyses on low-traffic days.
+const LOW_TRAFFIC_LIMIT = 12;
+const HIGH_TRAFFIC_LIMIT = 5;
+const TRAFFIC_THRESHOLD = 1000; // unique visitors per UTC day
 
 function resetUsageIfNewDay() {
   const currentDay = new Date().getUTCDate();
   if (currentDay !== lastResetDay) {
     userDailyUsage.clear();
+    visitorsToday.clear();
     lastResetDay = currentDay;
   }
 }
 
+/** Record a unique visitor (by IP) for today's traffic-aware quota. */
+export function recordVisitor(ip) {
+  resetUsageIfNewDay();
+  if (ip) visitorsToday.add(String(ip));
+}
+
+/** Unique visitors seen so far today (resets at UTC midnight). */
+export function getUniqueVisitorCount() {
+  resetUsageIfNewDay();
+  return visitorsToday.size;
+}
+
+/** Base daily analysis cap: 12 on low-traffic days, 5 once we pass the threshold. */
+function getTrafficAwareBase() {
+  return getUniqueVisitorCount() < TRAFFIC_THRESHOLD ? LOW_TRAFFIC_LIMIT : HIGH_TRAFFIC_LIMIT;
+}
+
 /**
  * Checks & increments user/IP daily usage with friendly quota messaging.
+ * Base is traffic-aware (12 low / 5 high); Groq chat 429 pressure can lower it to 3.
  * @param {string} userIdentifier - User ID or IP address
- * @param {number} baseLimit - Default starting limit (5)
+ * @param {number} [baseLimitOverride] - Optional explicit base (else traffic-aware)
  * @returns {{ allowed: boolean, remaining: number, warning: boolean, message?: string }}
  */
-export function checkUserDailyQuota(userIdentifier, baseLimit = 5) {
+export function checkUserDailyQuota(userIdentifier, baseLimitOverride) {
   resetUsageIfNewDay();
   const id = userIdentifier || 'anonymous';
-  const limit = getAdaptiveDailyLimit(baseLimit);
+  const base = typeof baseLimitOverride === 'number' ? baseLimitOverride : getTrafficAwareBase();
+  const limit = getAdaptiveDailyLimit(base);
   const currentCount = userDailyUsage.get(id) || 0;
 
   if (currentCount >= limit) {
@@ -59,7 +84,7 @@ export async function llmChat(options) {
 }
 
 /**
- * @returns {Promise<{ text: string, provider: 'groq' | 'gemini' | 'openai' }>}
+ * @returns {Promise<{ text: string, provider: 'groq' | 'gemini' }>}
  */
 export async function llmChatWithMeta(options) {
   // Check cache if cacheKey provided
@@ -103,19 +128,6 @@ export async function llmChatWithMeta(options) {
     }
   } else {
     geminiError = new Error('GEMINI_API_KEY is not configured.');
-  }
-
-  // Fallback 2: OpenAI (if configured)
-  if (env.OPENAI_API_KEY) {
-    try {
-      console.warn(`[llm] Using OpenAI fallback (${env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'})`);
-      const text = await openaiChat(options);
-      if (options.cacheKey) responseCache.set(options.cacheKey, text);
-      return { text, provider: 'openai' };
-    } catch (openaiError) {
-      const openaiMsg = openaiError instanceof Error ? openaiError.message : String(openaiError);
-      throw new Error(`AI failed — Groq: ${groqError.message}; Gemini: ${geminiError.message}; OpenAI: ${openaiMsg}`);
-    }
   }
 
   throw new Error(

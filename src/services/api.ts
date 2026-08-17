@@ -28,6 +28,21 @@ export function clearToken(): void {
   localStorage.removeItem('ordinex_token');
 }
 
+/**
+ * Resolve an uploaded-asset URL for use in <img src> / download links.
+ * Sensitive buckets are auth-gated on the server, so we append the session
+ * token as a query param (browsers can't send Authorization headers on <img>).
+ * Avatars are public and external/data/blob URLs are returned untouched.
+ */
+export function assetUrl(url?: string | null): string {
+  if (!url) return '';
+  if (!url.startsWith('/uploads/')) return url;
+  if (url.startsWith('/uploads/avatars/')) return url;
+  const token = getToken();
+  if (!token) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+}
+
 const KYC_TOKEN_KEY = 'ordinex_kyc_token';
 
 export function getKycToken(): string | null {
@@ -552,10 +567,19 @@ export const lawyersApi = {
   },
 };
 
+export interface BriefViewer {
+  lawyerId: string;
+  name: string;
+  viewedAt: string;
+}
+
 export interface CitizenBrief {
   id: string;
   category: string;
   summary: string;
+  consultationId?: string | null;
+  hasLinkedAnalysis?: boolean;
+  analysisTitle?: string | null;
   budgetMin: number | null;
   budgetMax: number | null;
   city: string | null;
@@ -564,6 +588,9 @@ export interface CitizenBrief {
   anonymous?: boolean;
   status?: string;
   createdAt: string;
+  updatedAt?: string;
+  viewCount?: number;
+  viewers?: BriefViewer[];
   myOfferStatus?: string | null;
 }
 
@@ -586,6 +613,7 @@ export const briefsApi = {
   saveMine: (body: {
     category: string;
     summary: string;
+    consultationId?: string | null;
     budgetMin?: number | null;
     budgetMax?: number | null;
     anonymous?: boolean;
@@ -600,6 +628,12 @@ export const briefsApi = {
     if (params.category) qs.set('category', params.category);
     return request<{ briefs: CitizenBrief[] }>(`/briefs?${qs.toString()}`);
   },
+  getById: (id: string) =>
+    request<{
+      brief: CitizenBrief;
+      citizen: { displayName: string; avatarUrl: string | null };
+      analysis: BookingLinkedAnalysis | null;
+    }>(`/briefs/${id}`),
   offer: (id: string, message?: string) =>
     request<{ inquiry: { id: string; status: string } }>(`/briefs/${id}/offer`, {
       method: 'POST',
@@ -835,6 +869,15 @@ export const bookingsApi = {
       method: 'POST',
       body: fd,
     });
+  },
+  appendTranscriptAudio: (id: string, audio: Blob, lang?: string) => {
+    const fd = new FormData();
+    fd.append('audio', audio, 'chunk.webm');
+    if (lang) fd.append('lang', lang);
+    return request<{ segment: TranscriptSegment | null; plainText: string; provider: string }>(
+      `/bookings/${id}/transcript/audio`,
+      { method: 'POST', body: fd },
+    );
   },
 };
 

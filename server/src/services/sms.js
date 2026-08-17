@@ -22,12 +22,21 @@ export async function sendOTP(phone, code, purpose = 'REGISTER') {
     update: { codeHash, attempts: 0, expiresAt },
   });
 
-  if (phone.includes('@') || env.isDev || !process.env.SEMAPHORE_API_KEY) {
+  const smsConfigured = Boolean(process.env.SEMAPHORE_API_KEY);
+
+  // Never print the OTP code to logs in production. Only the local/dev flow
+  // (or an explicit email channel) may surface the code on the console.
+  if (!env.isProd && (phone.includes('@') || env.isDev || !smsConfigured)) {
     console.log(`\n🔐 ═══ OTP FOR ${phone} (${purpose}) ═══`);
     console.log(`   Code: ${code}`);
     console.log(`   Expires: 5 minutes`);
     console.log(`   ═══════════════════════\n`);
     return true;
+  }
+
+  if (env.isProd && !smsConfigured) {
+    console.error('[sms] SEMAPHORE_API_KEY is not configured; cannot deliver OTP in production.');
+    return false;
   }
 
   const semaphoreNumber = toSemaphoreNumber(phone);

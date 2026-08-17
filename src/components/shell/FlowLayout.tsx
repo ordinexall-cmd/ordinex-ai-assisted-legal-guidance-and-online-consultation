@@ -46,9 +46,11 @@ export const FlowLayout: React.FC<FlowLayoutProps> = ({
             showNotifications={showNotifications}
             locked={locked}
           />
-          <main className="page-container">
-            {children}
-          </main>
+          <div className="ox-content-scroll">
+            <main id="main-content" className="page-container" tabIndex={-1}>
+              {children}
+            </main>
+          </div>
         </div>
       </div>
     </div>

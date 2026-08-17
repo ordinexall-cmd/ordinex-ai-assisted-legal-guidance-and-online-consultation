@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getErrorMessage } from '../../utils/userFacingError';
@@ -12,6 +12,14 @@ import {
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { authApi } from '../../services/api';
 import { getCitizenPostAuthPath } from '../../constants/guestDraft';
+import {
+  clearRememberedLogins,
+  loadRememberedAccounts,
+  loadRememberedLogin,
+  removeRememberedLogin,
+  type RememberedLogin,
+  upsertRememberedLogin,
+} from '../../utils/rememberedLogin';
 
 export type AuthView =
   | 'login'
@@ -49,8 +57,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [rememberLogin, setRememberLogin] = useState(false);
+  const [savedAccounts, setSavedAccounts] = useState<RememberedLogin[]>([]);
+  const [savedPickerOpen, setSavedPickerOpen] = useState(false);
+  const emailFieldRef = useRef<HTMLDivElement>(null);
 
-  const [otpPhone, _setOtpPhone] = useState('');
+  const [otpPhone] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpTimer, setOtpTimer] = useState(300);
 
@@ -71,6 +83,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(false);
     setLoginEmail('');
     setLoginPassword('');
+    setSavedPickerOpen(false);
     setOtpCode('');
     setForgotEmail('');
     setResetEmail('');
@@ -81,11 +94,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setNewPassword('');
   };
 
+  const refreshSavedAccounts = () => {
+    setSavedAccounts(loadRememberedAccounts().accounts);
+  };
+
+  const applyRemembered = (saved: RememberedLogin, preferTab?: 'citizen' | 'lawyer') => {
+    setLoginEmail(saved.email);
+    setLoginPassword(saved.password);
+    setRememberLogin(true);
+    setAuthTab(preferTab || saved.tab);
+    setSavedPickerOpen(false);
+  };
+
+  const hydrateRememberedLogin = (preferTab?: 'citizen' | 'lawyer') => {
+    refreshSavedAccounts();
+    const saved = loadRememberedLogin();
+    if (!saved) {
+      setRememberLogin(false);
+      return;
+    }
+    applyRemembered(saved, preferTab);
+  };
+
+  const handleRemoveSaved = (email: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeRememberedLogin(email);
+    refreshSavedAccounts();
+    if (loginEmail.trim().toLowerCase() === email.trim().toLowerCase()) {
+      setLoginPassword('');
+      setRememberLogin(false);
+    }
+  };
+
+  const handleClearAllSaved = () => {
+    clearRememberedLogins();
+    setSavedAccounts([]);
+    setSavedPickerOpen(false);
+    setRememberLogin(false);
+  };
+
   useEffect(() => {
     if (!open) return;
     setAuthView(initialView);
     setAuthTab(initialTab);
     clearForm();
+    if (initialView === 'login') hydrateRememberedLogin(initialTab);
     if (initialError) setError(initialError);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when modal opens
   }, [open, initialView, initialTab, initialError]);
@@ -109,9 +163,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     return () => clearInterval(interval);
   }, [authView, otpTimer]);
 
+  useEffect(() => {
+    if (!savedPickerOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!emailFieldRef.current?.contains(e.target as Node)) {
+        setSavedPickerOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSavedPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [savedPickerOpen]);
+
   const switchView = (view: AuthView) => {
     clearForm();
     setAuthView(view);
+    if (view === 'login') hydrateRememberedLogin();
   };
 
   const redirectAfterAuth = (usr: { role: string; isVerified?: boolean }) => {
@@ -129,6 +202,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     try {
       const usr = await login(loginEmail, loginPassword);
+      if (rememberLogin) {
+        upsertRememberedLogin({
+          email: loginEmail,
+          password: loginPassword,
+          tab: authTab,
+        });
+      }
       redirectAfterAuth(usr);
     } catch (err) {
       setError(getErrorMessage(err, 'Login failed. Please try again.'));
@@ -499,17 +579,66 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     return (
       <form onSubmit={handleLogin}>
         <div className="landing-auth-stack">
-          <div className="landing-auth-field">
+          <div className="landing-auth-field landing-auth-field--email" ref={emailFieldRef}>
             <label className={labelClass}>Email</label>
             <input
               type="email"
               placeholder="name@email.com"
               value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
+              onChange={(e) => {
+                setLoginEmail(e.target.value);
+                if (savedAccounts.length > 0) setSavedPickerOpen(true);
+              }}
+              onFocus={() => {
+                if (savedAccounts.length > 0) setSavedPickerOpen(true);
+              }}
               className={inputClass}
               required
-              autoComplete="email"
+              autoComplete="off"
+              aria-autocomplete="list"
+              aria-expanded={savedPickerOpen && savedAccounts.length > 0}
             />
+            {savedPickerOpen && savedAccounts.length > 0 && (
+              <ul className="landing-auth-saved__list" role="listbox" aria-label="Saved accounts">
+                {savedAccounts.map((a) => (
+                  <li key={a.email.toLowerCase()}>
+                    <button
+                      type="button"
+                      className="landing-auth-saved__item"
+                      role="option"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyRemembered(a)}
+                    >
+                      <span className="landing-auth-saved__email">{a.email}</span>
+                      <span className="landing-auth-saved__tab">
+                        {a.tab === 'lawyer' ? 'Lawyer' : 'Citizen'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="landing-auth-saved__remove"
+                      aria-label={`Remove ${a.email}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => handleRemoveSaved(a.email, e)}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden>close</span>
+                    </button>
+                  </li>
+                ))}
+                {savedAccounts.length > 1 && (
+                  <li className="landing-auth-saved__clear-row">
+                    <button
+                      type="button"
+                      className="landing-auth-saved__clear"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={handleClearAllSaved}
+                    >
+                      Clear all saved
+                    </button>
+                  </li>
+                )}
+              </ul>
+            )}
           </div>
           <div className="landing-auth-field">
             <label className={labelClass}>Password</label>
@@ -523,9 +652,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             />
           </div>
         </div>
-        <button type="button" className="landing-auth-forgot" onClick={() => switchView('forgot')}>
-          Forgot password?
-        </button>
+        <div className="landing-auth-login-meta">
+          <label className="landing-auth-remember">
+            <input
+              type="checkbox"
+              checked={rememberLogin}
+              onChange={(e) => setRememberLogin(e.target.checked)}
+            />
+            <span>Save email and password</span>
+          </label>
+          <button type="button" className="landing-auth-forgot" onClick={() => switchView('forgot')}>
+            Forgot password?
+          </button>
+        </div>
         {error && <p className="landing-form-error landing-form-error--center">{error}</p>}
         <button type="submit" disabled={loading} className="landing-submit">
           {loading ? 'Logging in…' : 'Log in'}

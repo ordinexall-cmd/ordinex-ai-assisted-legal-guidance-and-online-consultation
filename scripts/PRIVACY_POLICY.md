@@ -70,7 +70,7 @@ Ordinex may share data with the following processors **only as needed** to run t
 | Processor | Role |
 |-----------|------|
 | **Groq** | Large-language-model inference for analysis, follow-up, and translation (when configured) |
-| **OpenAI** | Optional LLM / embedding fallback (when configured) |
+| **Google Gemini** | LLM fallback, vision KYC, and multimodal (when configured) |
 | **Supabase** | Cloud database, file storage, and vector search (when configured for production) |
 | **PayMongo** | Payment checkout (e.g. GCash) |
 | **Google** | OAuth sign-in; Fonts/Icons CDN; WebRTC STUN |

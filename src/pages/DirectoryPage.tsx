@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -148,6 +148,7 @@ export function DirectorySearchRedirect() {
 
 export const DirectoryPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isLawyer = user?.role === 'LAWYER';
   const mode = isLawyer ? 'briefs' : 'lawyers';
@@ -358,7 +359,19 @@ export const DirectoryPage: React.FC = () => {
               <div className="dir-lawyer-grid">
                 {filteredBriefs.map((b) => (
                   <article key={b.id} className="dir-lawyer-card">
-                    <div className="dir-lawyer-card__body" style={{ cursor: 'default' }}>
+                    <div
+                      className="dir-lawyer-card__body"
+                      style={{ cursor: 'pointer' }}
+                      role="link"
+                      tabIndex={0}
+                      onClick={() => navigate(`/directory/requests/${b.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/directory/requests/${b.id}`);
+                        }
+                      }}
+                    >
                       <div className="dir-lawyer-card__avatar" aria-hidden>
                         <span>{(b.displayName || '?').slice(0, 1).toUpperCase()}</span>
                       </div>
@@ -366,6 +379,11 @@ export const DirectoryPage: React.FC = () => {
                       <p className="dir-lawyer-card__loc">{placeLabel(b)}</p>
                       <span className="dir-lawyer-card__spec">{specialtyDisplayLabel(b.category)}</span>
                       <p className="dir-lawyer-card__loc" style={{ marginTop: 8 }}>{b.summary}</p>
+                      {(b.hasLinkedAnalysis || b.consultationId) && (
+                        <p className="dir-lawyer-card__loc" style={{ marginTop: 6 }}>
+                          Linked case analysis{b.analysisTitle ? `: ${b.analysisTitle}` : ''}
+                        </p>
+                      )}
                     </div>
                     <div className="dir-lawyer-card__footer">
                       <span className="dir-lawyer-card__avail">{budgetLabel(b)}</span>
@@ -375,7 +393,11 @@ export const DirectoryPage: React.FC = () => {
                         <button
                           type="button"
                           className="ox-btn ox-btn-primary ox-btn-sm"
-                          onClick={() => { setOfferId(b.id); setNote(''); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOfferId(b.id);
+                            setNote('');
+                          }}
                         >
                           Offer consult
                         </button>

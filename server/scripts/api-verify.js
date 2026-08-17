@@ -110,16 +110,6 @@ async function main() {
     });
   }
 
-  // Optional fallback verification note (requires server started with FORCE_GROQ_FAILURE=true and OPENAI_API_KEY set)
-  if ((process.env.OPENAI_API_KEY || '').trim()) {
-    results.push({
-      name: 'Groq->OpenAI fallback check',
-      ok: true,
-      skipReason:
-        'To force-check fallback path, run API with FORCE_GROQ_FAILURE=true and rerun this script.',
-    });
-  }
-
   const failed = results.filter((r) => !r.ok);
   console.log('API verification against', base);
   for (const r of results) {

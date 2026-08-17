@@ -215,6 +215,7 @@ export async function attachGovernmentId({ user, govIdUrl, govIdType, govIdBuffe
       govIdType,
       govIdUrl,
       govIdOcrName: ocrResult.extractedName || null,
+      govIdOcrProvider: ocrResult.provider || null,
       govIdUploadedAt: new Date(),
     },
   });
@@ -273,6 +274,7 @@ export async function attachSelfie({
       selfieUrl,
       selfieUploadedAt: new Date(),
       faceMatchScore: face.score,
+      faceMatchProvider: face.provider || null,
       challengeCodeMatched: codeMatched,
     },
   });
@@ -345,9 +347,15 @@ export function computeVerificationOutcome(row, {
       ? nameSimilarity(row.govIdOcrName, row.rollMatchedName || row.submittedFullName || '')
       : 0;
 
+  // Prefer the persisted provider (set when the AI engine actually ran).
+  // Fall back to the legacy inference for rows created before provider
+  // columns existed.
   const faceProvider = faceProviderOverride
+    ?? row.faceMatchProvider
     ?? (row.faceMatchScore == null ? null : (row.faceMatchScore > 0 ? 'hash-stub' : 'noop'));
-  const ocrProvider = ocrProviderOverride ?? (row.govIdOcrName ? 'tesseract.js' : 'noop');
+  const ocrProvider = ocrProviderOverride
+    ?? row.govIdOcrProvider
+    ?? (row.govIdOcrName ? 'tesseract.js' : 'noop');
 
   // Provider-aware down-weighting: when face/OCR providers are stubs
   // (or absent), multiply ONLY their contribution — do NOT shrink the

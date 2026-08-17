@@ -9,6 +9,26 @@ on:
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ordinex
+          POSTGRES_PASSWORD: ordinex
+          POSTGRES_DB: ordinex_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ordinex"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://ordinex:ordinex@localhost:5432/ordinex_ci
+      DIRECT_URL: postgresql://ordinex:ordinex@localhost:5432/ordinex_ci
+
     steps:
       - uses: actions/checkout@v4
 
@@ -34,16 +54,13 @@ jobs:
         working-directory: server
         run: npx prisma generate
 
-      - name: Migrate SQLite test DB
+      - name: Push schema to Postgres
         working-directory: server
-        env:
-          DATABASE_URL: file:./ci.db
-        run: npx prisma migrate deploy
+        run: npx prisma db push --skip-generate
 
       - name: API smoke test
         working-directory: server
         env:
-          DATABASE_URL: file:./ci.db
-          JWT_SECRET: ci-test-secret
           NODE_ENV: test
+          JWT_SECRET: ci-test-secret-value-that-is-long-enough-1234
         run: node scripts/smoke-test.js

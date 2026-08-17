@@ -97,7 +97,7 @@ router.post('/preview', guestPreviewLimiter, async (req, res, next) => {
     }
 
     const quotaId = `ip:${req.ip || req.socket?.remoteAddress || 'anon'}`;
-    const quota = checkUserDailyQuota(quotaId, 5);
+    const quota = checkUserDailyQuota(quotaId);
     if (!quota.allowed) {
       return res.status(429).json({
         error: quota.message,
@@ -154,7 +154,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       });
     }
 
-    const quota = checkUserDailyQuota(user.id, 5);
+    const quota = checkUserDailyQuota(user.id);
     if (!quota.allowed) {
       return res.status(429).json({
         error: quota.message,

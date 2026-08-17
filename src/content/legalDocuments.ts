@@ -62,7 +62,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
         'We only share data with partners when a feature needs them. They must follow their own privacy rules too:',
       ],
       bullets: [
-        'AI providers (such as Groq, and OpenAI if enabled) — to generate analysis and translations from the text you submit',
+        'AI providers (Groq and Google Gemini) — to generate analysis and translations from the text you submit',
         'PayMongo — to process GCash / checkout payments',
         'Supabase — cloud database and file storage when the project is configured for production hosting',
         'Google — sign-in, fonts/icons, and helping video calls connect',
@@ -196,7 +196,7 @@ export const LICENSES_DOCUMENT: LegalDocument = {
       ],
       bullets: [
         'PayMongo — GCash and checkout payments',
-        'Groq (and OpenAI if enabled) — AI analysis and translation',
+        'Groq and Google Gemini — AI analysis, translation, and identity-document checks',
         'Supabase — hosted database and files when configured',
         'Google — sign-in, fonts, and helping video calls connect',
         'SMS / email providers — one-time codes and notices when enabled',

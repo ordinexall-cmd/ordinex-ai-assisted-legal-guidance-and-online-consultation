@@ -10,14 +10,24 @@
 // ============================================================
 
 import { analyzeImageWithGemini } from './geminiClient.js';
+import { analyzeImageWithGroq } from './groqClient.js';
 import { env } from '../config/env.js';
 
-/** Confidence multipliers used by lawyer verification scoring (gemini / tesseract / noop). */
+/** Confidence multipliers used by lawyer verification scoring. */
 export const OCR_PROVIDER_WEIGHTS = {
+  'groq-vision': 1,
   'gemini-vision': 1,
   'tesseract.js': 0.9,
   noop: 0,
 };
+
+function hasGroqVision() {
+  return env.GROQ_API_KEYS.length > 0 || Boolean(env.GROQ_API_KEY);
+}
+
+function hasGemini() {
+  return env.GEMINI_API_KEYS.length > 0 || Boolean(env.GEMINI_API_KEY);
+}
 
 let tesseractLoadAttempted = false;
 let tesseractCreateWorker = null;
@@ -70,15 +80,35 @@ export async function extractIdText(input) {
     return { provider: 'noop', rawText: '', extractedName: '' };
   }
 
-  // 1. Primary: Gemini Vision AI (if key present)
-  const hasGemini = env.GEMINI_API_KEYS.length > 0 || Boolean(env.GEMINI_API_KEY);
-  if (hasGemini) {
+  const prompt = 'Extract the full legal name printed on this Philippine government ID card. Return ONLY the full name, nothing else.';
+  const mimeType = input.mimeType || 'image/jpeg';
+
+  // 1. Primary: Groq vision (isolated from analysis quota)
+  if (hasGroqVision()) {
     try {
-      const prompt = 'Extract the full legal name printed on this Philippine government ID card. Return ONLY the full name, nothing else.';
+      const extractedName = await analyzeImageWithGroq({
+        prompt,
+        images: [{ buffer: input.buffer, mimeType }],
+      });
+      if (extractedName && extractedName.length > 3) {
+        return {
+          provider: 'groq-vision',
+          rawText: extractedName,
+          extractedName: extractedName.replace(/["']/g, '').trim(),
+        };
+      }
+    } catch (e) {
+      console.warn('[ocrService] Groq Vision OCR failed, trying Gemini fallback:', e.message);
+    }
+  }
+
+  // 2. Fallback: Gemini Vision AI
+  if (hasGemini()) {
+    try {
       const extractedName = await analyzeImageWithGemini({
         prompt,
         imageBuffer: input.buffer,
-        mimeType: input.mimeType || 'image/jpeg',
+        mimeType,
       });
       if (extractedName && extractedName.length > 3) {
         return {
@@ -92,7 +122,7 @@ export async function extractIdText(input) {
     }
   }
 
-  // 2. Secondary: Tesseract WASM
+  // 3. Secondary: Tesseract WASM
   const createWorker = await loadTesseract();
   if (createWorker) {
     let worker;
@@ -129,10 +159,7 @@ export async function extractCitizenIdData(input) {
     return { fullName: '', idNumber: '', idType: '', rawText: '' };
   }
 
-  const hasGemini = env.GEMINI_API_KEYS.length > 0 || Boolean(env.GEMINI_API_KEY);
-  if (hasGemini) {
-    try {
-      const prompt = `You are a Philippine document OCR parser. Extract information from this ID (Philippine National ID, Driver's License, Passport, UMID, PRC, Student ID, Postal, Voter's, or Gov ID).
+  const prompt = `You are a Philippine document OCR parser. Extract information from this ID (Philippine National ID, Driver's License, Passport, UMID, PRC, Student ID, Postal, Voter's, or Gov ID).
 Return ONLY a valid JSON object with these keys:
 {
   "fullName": "Full legal name printed on ID",
@@ -140,26 +167,50 @@ Return ONLY a valid JSON object with these keys:
   "idType": "Detected type e.g. PHILID, PASSPORT, DRIVERS_LICENSE, UMID, STUDENT_ID, PRC, POSTAL, VOTER, OTHER_GOV",
   "birthDate": "YYYY-MM-DD or null"
 }`;
+  const mimeType = input.mimeType || 'image/jpeg';
+
+  const parseIdJson = (jsonStr) => {
+    const cleaned = jsonStr.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return {
+      fullName: String(parsed.fullName || '').trim(),
+      idNumber: String(parsed.idNumber || '').trim(),
+      idType: String(parsed.idType || '').trim(),
+      birthDate: parsed.birthDate || null,
+      rawText: jsonStr,
+    };
+  };
+
+  // 1. Primary: Groq vision (isolated from analysis quota)
+  if (hasGroqVision()) {
+    try {
+      const jsonStr = await analyzeImageWithGroq({
+        prompt,
+        images: [{ buffer: input.buffer, mimeType }],
+        jsonMode: true,
+      });
+      return parseIdJson(jsonStr);
+    } catch (e) {
+      console.warn('[ocrService] Groq extractCitizenIdData failed, trying Gemini fallback:', e.message);
+    }
+  }
+
+  // 2. Fallback: Gemini Vision
+  if (hasGemini()) {
+    try {
       const jsonStr = await analyzeImageWithGemini({
         prompt,
         imageBuffer: input.buffer,
-        mimeType: input.mimeType || 'image/jpeg',
+        mimeType,
+        jsonMode: true,
       });
-      const cleaned = jsonStr.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-      const parsed = JSON.parse(cleaned);
-      return {
-        fullName: String(parsed.fullName || '').trim(),
-        idNumber: String(parsed.idNumber || '').trim(),
-        idType: String(parsed.idType || '').trim(),
-        birthDate: parsed.birthDate || null,
-        rawText: jsonStr,
-      };
+      return parseIdJson(jsonStr);
     } catch (e) {
       console.warn('[ocrService] Gemini extractCitizenIdData failed, trying Tesseract fallback:', e.message);
     }
   }
 
-  // Fallback to text OCR
+  // 3. Fallback to text OCR
   const createWorker = await loadTesseract();
   if (createWorker) {
     let worker;

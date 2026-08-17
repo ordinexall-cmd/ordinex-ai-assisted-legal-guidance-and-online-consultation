@@ -140,6 +140,7 @@ model LawyerVerification {
   govIdType              String?  // DRIVERS_LICENSE | UMID | PASSPORT | PRC_ID | PHILHEALTH | SSS | VOTERS | POSTAL | OTHER
   govIdUrl               String?  // local path or bucket URL
   govIdOcrName           String?  // text parsed from ID card
+  govIdOcrProvider       String?  // engine that read the ID: groq-vision | gemini-vision | tesseract.js | noop
   govIdUploadedAt        DateTime?
 
   // Liveness challenge
@@ -148,6 +149,7 @@ model LawyerVerification {
   selfieUrl              String?  // selfie photo file path
   selfieUploadedAt       DateTime?
   faceMatchScore         Float?   // 0-100 face comparison score
+  faceMatchProvider      String?  // engine that compared faces: groq-vision | gemini-vision | face-api.js | hash-stub | noop
   ocrNameMatchScore      Float?   // 0-100 name match score (ID name vs account/roll name)
 
   // Payment identity link (anti-fraud)

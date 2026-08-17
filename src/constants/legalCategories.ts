@@ -8,6 +8,15 @@ export const CASE_ANALYSIS_CATEGORIES = [
   { value: 'Consumer', label: 'Consumer Protection' },
   { value: 'Cybercrime', label: 'Cybercrime' },
   { value: 'Data Privacy', label: 'Data Privacy' },
+  { value: 'Civil', label: 'Civil Law' },
+  { value: 'Corporate', label: 'Corporate & Business' },
+  { value: 'Tax', label: 'Tax Law' },
+  { value: 'Immigration', label: 'Immigration' },
+  { value: 'Intellectual Property', label: 'Intellectual Property' },
+  { value: 'Administrative', label: 'Administrative & Government' },
+  { value: 'Environmental', label: 'Environmental Law' },
+  { value: 'Human Rights', label: 'Human Rights' },
+  { value: 'General', label: 'General Practice' },
   { value: 'unsure', label: "I'm not sure" },
 ] as const;
 
@@ -24,6 +33,15 @@ const SPECIALTY_KEYWORDS: ReadonlyArray<{ match: RegExp; value: string }> = [
   { match: /\bconsumer\b|\bwarranty\b|\brefund\b/i, value: 'Consumer' },
   { match: /\bcyber\b|\bonline\s*scam\b|\bhacking\b/i, value: 'Cybercrime' },
   { match: /\bprivacy\b|\bdata\s*privacy\b|\bndpr\b/i, value: 'Data Privacy' },
+  { match: /\bcivil\b|\btort\b|\bdamages\b|\bobligation\b|\bcontract\b/i, value: 'Civil' },
+  { match: /\bcorporate\b|\bbusiness\b|\bsec\b|\bcorporation\b|\bpartnership\b/i, value: 'Corporate' },
+  { match: /\btax\b|\bbir\b|\bincome\s*tax\b|\bvat\b/i, value: 'Tax' },
+  { match: /\bimmigration\b|\bvisa\b|\bdeportation\b|\balien\b/i, value: 'Immigration' },
+  { match: /\bintellectual\s*property\b|\bcopyright\b|\btrademark\b|\bpatent\b|\bip\b/i, value: 'Intellectual Property' },
+  { match: /\badministrative\b|\bgovernment\b|\bpublic\s*officer\b|\bombudsman\b/i, value: 'Administrative' },
+  { match: /\benvironmental\b|\bpollution\b|\bforestry\b|\bmining\b/i, value: 'Environmental' },
+  { match: /\bhuman\s*rights\b|\bconstitutional\b|\bhabeas\b/i, value: 'Human Rights' },
+  { match: /\bgeneral\s*practice\b|\bgeneral\b/i, value: 'General' },
 ];
 
 export function specialtyDisplayLabel(specialty: string): string {
@@ -64,6 +82,7 @@ export function lawyerMatchesSpecialty(
 ): boolean {
   const needle = specialty.trim().toLowerCase();
   if (!needle) return false;
+  if (specializations.some((s) => s.trim().toLowerCase() === 'general')) return true;
   return specializations.some((s) => {
     const hay = s.trim().toLowerCase();
     return hay === needle || hay.includes(needle) || needle.includes(hay);

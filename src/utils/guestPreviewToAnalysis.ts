@@ -21,7 +21,7 @@ export function guestPreviewToAnalysis(preview: GuestPreviewResult): LegalAnalys
       name: c.name,
       confidenceScore: c.confidenceScore,
       explanation: c.explanation,
-      applicableLaw: c.applicableLaw,
+      applicableLaw: c.applicableLaw ?? '',
     }));
 
   return {

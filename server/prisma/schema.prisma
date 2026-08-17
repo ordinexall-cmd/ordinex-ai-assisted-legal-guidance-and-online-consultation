@@ -1,7 +1,7 @@
 // ============================================================
 // Ordinex — Prisma Schema
 // Full 10-model schema matching the implementation plan.
-// Dev: SQLite | Prod: PostgreSQL (Neon)
+// PostgreSQL (local Docker / Neon). CI and production use the same provider.
 // ============================================================
 
 generator client {
@@ -133,6 +133,7 @@ model User {
   payoutRequests      PayoutRequest[]
   caseBriefs          CaseBrief[]
   briefInquiries      BriefInquiry[]
+  briefViews          BriefView[]
 }
 
 // ===== Lawyer Identity Verification (no-admin pipeline) =====
@@ -154,6 +155,7 @@ model LawyerVerification {
   govIdType              String?  // e.g. PRC, Driver, Passport, NBI
   govIdUrl               String?
   govIdOcrName           String?  // extracted name from ID
+  govIdOcrProvider       String?  // engine that read the ID: groq-vision | gemini-vision | tesseract.js | noop
   govIdUploadedAt        DateTime?
 
   // Selfie + dynamic challenge note
@@ -164,6 +166,7 @@ model LawyerVerification {
 
   // Scoring artefacts (each 0..1 unless noted)
   faceMatchScore         Float?   // 1 - normalized euclidean distance
+  faceMatchProvider      String?  // engine that compared faces: groq-vision | gemini-vision | face-api.js | hash-stub | noop
   ocrNameMatchScore      Float?   // 0..1 similarity of OCR name vs roll name
   paymentAccountName     String?
   paymentNameMatchScore  Float?   // 0..1
@@ -404,24 +407,39 @@ model AppMeta {
 }
 
 model CaseBrief {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category    String
-  summary     String
-  budgetMin   Float?
-  budgetMax   Float?
-  city        String?
-  province    String?
-  displayName String
-  anonymous   Boolean  @default(false)
-  status      String   @default("OPEN")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  inquiries   BriefInquiry[]
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        String
+  summary         String
+  consultationId  String?  // Optional linked AI case analysis
+  budgetMin       Float?
+  budgetMax       Float?
+  city            String?
+  province        String?
+  displayName     String
+  anonymous       Boolean  @default(false)
+  status          String   @default("OPEN")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  inquiries       BriefInquiry[]
+  views           BriefView[]
 
   @@index([status, category])
   @@index([userId])
+}
+
+model BriefView {
+  id        String    @id @default(uuid())
+  briefId   String
+  brief     CaseBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  lawyerId  String
+  lawyer    User      @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime  @default(now())
+
+  @@unique([briefId, lawyerId])
+  @@index([lawyerId])
+  @@index([briefId])
 }
 
 model BriefInquiry {
