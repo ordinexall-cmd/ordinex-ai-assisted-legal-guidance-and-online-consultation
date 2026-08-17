@@ -14,7 +14,9 @@ services:
     branch: main
     # Build the SPA at repo root, install the server, generate Prisma client.
     # (Free instances do not support pre-deploy commands, so schema sync is in startCommand.)
-    buildCommand: npm install && npm run build && cd server && npm install && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma generate
+    # --include=dev is required: Render sets NODE_ENV=production, which would
+    # otherwise skip vite/typescript/@types (all in devDependencies).
+    buildCommand: npm install --include=dev && npm run build && cd server && npm install && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma generate
     # Start from the server dir so uploads/ resolve; push schema then boot the API.
     startCommand: cd server && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma db push --skip-generate && node src/index.js
     healthCheckPath: /api/health

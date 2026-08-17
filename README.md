@@ -102,7 +102,9 @@ Socket.IO, and auth-gated uploads on a single origin. Postgres is hosted on Neon
 2. **Web service (Render, free):** New → Blueprint, point it at this repo
    (or New → Web Service, instance type **Free**). The included
    [`render.yaml`](render.yaml) sets:
-   - Build: install + Vite build + Prisma generate
+   - Build: `npm install --include=dev` + Vite build + Prisma generate
+     (`--include=dev` is required so Vite/TypeScript install even when
+     `NODE_ENV=production`)
    - Start: `prisma db push` then `node src/index.js` (schema sync lives here
      because Free instances do not support pre-deploy commands)
    - Health check: `/api/health`
