@@ -16,7 +16,7 @@ services:
     # (Free instances do not support pre-deploy commands, so schema sync is in startCommand.)
     buildCommand: NPM_CONFIG_PRODUCTION=false npm install && npm run build && cd server && npm install && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma generate
     # Start from the server dir so uploads/ resolve; push schema then boot the API.
-    startCommand: cd server && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma db push --skip-generate && node src/index.js
+    startCommand: cd server && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma db push --skip-generate --accept-data-loss && node src/index.js
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
