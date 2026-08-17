@@ -14,9 +14,7 @@ services:
     branch: main
     # Build the SPA at repo root, install the server, generate Prisma client.
     # (Free instances do not support pre-deploy commands, so schema sync is in startCommand.)
-    # --include=dev is required: Render sets NODE_ENV=production, which would
-    # otherwise skip vite/typescript/@types (all in devDependencies).
-    buildCommand: npm install --include=dev && npm run build && cd server && npm install && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma generate
+    buildCommand: NPM_CONFIG_PRODUCTION=false npm install && npm run build && cd server && npm install && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma generate
     # Start from the server dir so uploads/ resolve; push schema then boot the API.
     startCommand: cd server && export DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" && npx prisma db push --skip-generate && node src/index.js
     healthCheckPath: /api/health
@@ -24,19 +22,17 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: TRUST_PROXY
         value: "1"
       - key: PAYMENTS_MODE
         value: simulated
-      # Generate a strong secret once: Render can create it for you.
       - key: JWT_SECRET
         generateValue: true
-      # Set these in the dashboard (marked sync:false so they are not committed):
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
         sync: false
       - key: GROQ_API_KEY
         sync: false
-      # Optional: add GEMINI_API_KEY, SMTP_*, SEMAPHORE_API_KEY, GOOGLE_CLIENT_ID
-      # in the dashboard. FRONTEND_URL / API_PUBLIC_URL default to the Render URL.

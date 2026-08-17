@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "preview": "vite preview --host",
     "start": "node server/src/index.js",
-    "render:build": "npm install --include=dev && npm run build && cd server && npm install && npx prisma generate",
+    "render:build": "NPM_CONFIG_PRODUCTION=false npm install && npm run build && cd server && npm install && npx prisma generate",
     "render:start": "cd server && node src/index.js",
     "server:dev": "npm run dev --prefix server",
     "server:seed": "npm run db:seed --prefix server",
