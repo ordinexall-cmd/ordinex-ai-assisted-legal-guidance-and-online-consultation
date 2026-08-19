@@ -10,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isPremium: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<UserProfile>;
+  login: (email: string, password: string, role: 'CITIZEN' | 'LAWYER') => Promise<UserProfile>;
   register: (data: RegisterData) => Promise<{ phone: string; devOtp?: string }>;
   verifyOtp: (phone: string, code: string) => Promise<UserProfile>;
   logout: () => void;
@@ -74,10 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [user?.id]);
 
-  const login = useCallback(async (email: string, password: string): Promise<UserProfile> => {
+  const login = useCallback(async (email: string, password: string, role: 'CITIZEN' | 'LAWYER'): Promise<UserProfile> => {
     const response = await authApi.login({
       email: email.trim().toLowerCase(),
       password: password.trim(),
+      role,
     });
     setToken(response.token);
     setUser(response.user);

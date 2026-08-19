@@ -28,6 +28,14 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
   const [quotedFeeInput, setQuotedFeeInput] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const dutyStart = booking.dutyWindow?.startTime || booking.availability.startTime;
+  const dutyEnd = booking.dutyWindow?.endTime || booking.availability.endTime;
+  const [sessionStart, setSessionStart] = useState(
+    booking.sessionStartTime || booking.preferredStartTime || booking.availability.startTime,
+  );
+  const [sessionEnd, setSessionEnd] = useState(
+    booking.sessionEndTime || booking.availability.endTime,
+  );
 
   const feeMin = booking.lawyer.consultationFee ?? 0;
   // Use lawyer profile fee range if available
@@ -73,7 +81,8 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             <div>
               <h3 className="booking-waiting-card__title">Waiting for {booking.lawyer.name}</h3>
               <p className="booking-waiting-card__text">
-                Lawyers typically respond within 24 hours. You&apos;ll get a notification when they approve or decline.
+                You asked for {booking.preferredStartTime || booking.availability.startTime}.
+                That hour is held so nobody else can take it. You&apos;ll get a notification when they approve the exact time and fee.
               </p>
             </div>
           </div>
@@ -81,7 +90,10 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
           <>
             {actionTitle('New booking request')}
             {actionText(
-              'Review the client case details, then set a fee for this request. Citizens pay after you quote — there is no fixed price at booking time.',
+              <>
+                Preferred start: <strong>{booking.preferredStartTime || booking.availability.startTime}</strong>
+                {' '}inside {dutyStart}–{dutyEnd}. Set the exact session range and fee.
+              </>,
             )}
             {onViewClientProfile && (
               <button
@@ -93,6 +105,33 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
                 <span className="material-symbols-outlined" aria-hidden>chevron_right</span>
               </button>
             )}
+
+            <div className="quote-input-section">
+              <p className="quote-input-section__title">Session time</p>
+              <div className="quote-input-row" style={{ gap: 8 }}>
+                <input
+                  className="ox-input"
+                  type="time"
+                  min={dutyStart}
+                  max={dutyEnd}
+                  value={sessionStart}
+                  onChange={(e) => setSessionStart(e.target.value)}
+                  aria-label="Session start"
+                />
+                <input
+                  className="ox-input"
+                  type="time"
+                  min={dutyStart}
+                  max={dutyEnd}
+                  value={sessionEnd}
+                  onChange={(e) => setSessionEnd(e.target.value)}
+                  aria-label="Session end"
+                />
+              </div>
+              <p className="quote-input-section__hint">
+                Must stay inside {dutyStart}–{dutyEnd} and not overlap another booking.
+              </p>
+            </div>
 
             {/* Quote input for paid lawyers */}
             {isPaidLawyer && (
@@ -142,11 +181,13 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             <div className="booking-action-card__footer">
               <button
                 type="button"
-                disabled={loading || (isPaidLawyer && (!isQuoteValid || parsedQuotedFee <= 0))}
+                disabled={loading || !sessionStart || !sessionEnd || (isPaidLawyer && (!isQuoteValid || parsedQuotedFee <= 0))}
                 onClick={() => {
                   onAction(() => bookingsApi.approve(
                     booking.id,
                     isPaidLawyer ? parsedQuotedFee : undefined,
+                    undefined,
+                    { sessionStartTime: sessionStart, sessionEndTime: sessionEnd },
                   ));
                 }}
                 className="ox-btn ox-btn-primary ox-btn-full"
@@ -167,6 +208,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
         return card(<>
           {actionTitle('Approved · Awaiting payment')}
           {actionText(<>
+            Session: <strong>{booking.availability.startTime}–{booking.availability.endTime}</strong>.
             Quoted fee: <strong>{peso(booking.quotedFee)}</strong>.
             The citizen has 24 hours to pay in Ordinex (PayMongo/GCash). Do not collect GCash on a personal wallet.
             {booking.approvedAt && (
@@ -177,9 +219,12 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
       }
       return card(<>
         <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-ox-emerald)' }}>
-          Approved! Complete payment to confirm.
+          Approved! Confirm this time and complete payment.
         </h3>
         <div style={{ fontSize: 11, color: 'var(--color-ox-text-muted)', margin: '4px 0 10px' }}>
+          <p style={{ margin: '4px 0', fontWeight: 600 }}>
+            {booking.availability.startTime}–{booking.availability.endTime}
+          </p>
           <div className="quote-breakdown" style={{ marginTop: 8, marginBottom: 8 }}>
             <div className="quote-breakdown__row quote-breakdown__row--total">
               <span>Consultation fee</span>

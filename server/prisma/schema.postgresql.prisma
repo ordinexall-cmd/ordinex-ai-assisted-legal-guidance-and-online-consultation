@@ -225,7 +225,7 @@ model Availability {
   version   Int      @default(0) // Optimistic concurrency control
   createdAt DateTime @default(now())
 
-  booking   Booking?
+  bookings  Booking[]
 }
 
 model Booking {
@@ -234,8 +234,11 @@ model Booking {
   citizen           User         @relation("CitizenBookings", fields: [citizenId], references: [id])
   lawyerId          String
   lawyer            User         @relation("LawyerBookings", fields: [lawyerId], references: [id])
-  availabilityId    String       @unique
+  availabilityId    String
   availability      Availability @relation(fields: [availabilityId], references: [id])
+  preferredStartTime String?
+  sessionStartTime  String?
+  sessionEndTime    String?
   status            String       @default("REQUESTED")
   feeAtBooking      Float
   consultationId    String?      // Optional linked AI consultation summary
@@ -267,6 +270,8 @@ model Booking {
 
   @@index([citizenId, citizenDeletedAt])
   @@index([lawyerId, lawyerDeletedAt])
+  @@index([lawyerId, status])
+  @@index([availabilityId])
 }
 
 model Review {

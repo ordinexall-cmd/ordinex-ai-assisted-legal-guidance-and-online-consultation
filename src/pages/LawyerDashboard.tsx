@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { useAuth } from '../context/AuthContext';
-import { bookingsApi, type Booking } from '../services/api';
-import { onBookingUpdated } from '../services/appSocket';
+import { bookingsApi, briefsApi, type Booking, type LawyerBriefOffer } from '../services/api';
+import { onBookingUpdated, onNotificationNew } from '../services/appSocket';
 import { displayFirstName } from '../utils/displayName';
 import { getLawyerNav } from '../utils/lawyerWorkspace';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
@@ -26,7 +26,9 @@ const fmtSlot = (b: Booking) => {
 export const LawyerDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [offers, setOffers] = useState<LawyerBriefOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
@@ -35,10 +37,17 @@ export const LawyerDashboard: React.FC = () => {
   const load = useCallback(() => {
     setLoading(true);
     setLoadError('');
-    bookingsApi.getMy({ limit: 100 })
-      .then((r) => setBookings(r.bookings))
+    Promise.all([
+      bookingsApi.getMy({ limit: 100 }),
+      briefsApi.myOffers().catch(() => ({ offers: [] as LawyerBriefOffer[] })),
+    ])
+      .then(([r, o]) => {
+        setBookings(r.bookings);
+        setOffers(o.offers);
+      })
       .catch((e) => {
         setBookings([]);
+        setOffers([]);
         setLoadError(loadErrorMessage(e, 'Could not load bookings.'));
       })
       .finally(() => setLoading(false));
@@ -46,6 +55,17 @@ export const LawyerDashboard: React.FC = () => {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => onBookingUpdated(() => load()), [load]);
+  useEffect(() => onNotificationNew(() => load()), [load]);
+
+  useEffect(() => {
+    if (loading) return;
+    const id = location.hash.replace('#', '');
+    if (!id) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [location.hash, loading]);
 
   const pending = useMemo(() => bookings.filter((b) => b.status === 'REQUESTED'), [bookings]);
   const paymentsToVerify = useMemo(
@@ -152,6 +172,35 @@ export const LawyerDashboard: React.FC = () => {
               <span><strong>{todaySessions.length}</strong> today</span>
               <span><strong>{completed.length}</strong> completed</span>
             </p>
+
+            <div className="acct-section" id="offers" style={{ marginBottom: '0.75rem' }}>
+              <div className="acct-section__head">
+                <h3 className="acct-section__title">Your consult offers</h3>
+                <span className="acct-section__count">{offers.length}</span>
+              </div>
+              <div className="acct-section__body">
+                {offers.length === 0 ? (
+                  <p className="acct-empty">No consult offers sent yet.</p>
+                ) : (
+                  offers.slice(0, 8).map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      className="acct-row acct-row--clickable"
+                      onClick={() => navigate(`/directory/requests/${o.brief.id}`)}
+                    >
+                      <div className="acct-row__main">
+                        <p className="acct-row__title">{o.brief.displayName}</p>
+                        <p className="acct-row__meta">
+                          {o.status.replace(/_/g, ' ')} · {o.brief.summary.slice(0, 90)}
+                          {o.brief.summary.length > 90 ? '…' : ''}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
 
             <div className="staff-page-grid staff-page-grid--2" style={{ marginBottom: '0.75rem' }}>
               <div className="acct-section">

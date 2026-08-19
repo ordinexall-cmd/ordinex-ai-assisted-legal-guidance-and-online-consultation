@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { useAuth } from '../context/AuthContext';
 import { bookingsApi, type Booking } from '../services/api';
-import { onBookingUpdated } from '../services/appSocket';
+import { onBookingUpdated, onNotificationNew } from '../services/appSocket';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { ApiLoadBanner } from '../components/ui/ApiLoadBanner';
 import { loadErrorMessage } from '../utils/loadErrorMessage';
@@ -15,6 +15,7 @@ import { canJoinBookingVideo } from '../utils/bookingSlotWindow';
 import { OxStatusCallout } from '../components/ui/OxStatusCallout';
 import StaffListPreview from '../components/staff/StaffListPreview';
 import { computeCitizenTrustScore, isCitizenBookingUnlocked } from '../utils/trustScore';
+import { CitizenBriefPanel } from '../components/citizen/CitizenBriefPanel';
 
 const CITIZEN_ID_SHORT: Record<string, string> = {
   PHILID: 'PhilSys',
@@ -44,6 +45,7 @@ function fmtSlot(b: Booking) {
 export const CitizenDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const bookingDock = useBookingDock();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,17 @@ export const CitizenDashboard: React.FC = () => {
   }, [loadData]);
 
   useEffect(() => onBookingUpdated(() => loadData()), [loadData]);
+  useEffect(() => onNotificationNew(() => loadData()), [loadData]);
+
+  useEffect(() => {
+    if (loading) return;
+    const id = location.hash.replace('#', '');
+    if (!id) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [location.hash, loading]);
 
   const active = useMemo(
     () => bookings.filter((b) => ['CONFIRMED', 'IN_PROGRESS'].includes(b.status)),
@@ -185,6 +198,8 @@ export const CitizenDashboard: React.FC = () => {
         )}
 
         {loadError && <ApiLoadBanner message={loadError} onRetry={loadData} />}
+
+        <CitizenBriefPanel />
 
         {loading ? (
           <DashHistorySkeleton label="Loading dashboard" />

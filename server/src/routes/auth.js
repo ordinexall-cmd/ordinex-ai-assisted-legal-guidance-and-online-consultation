@@ -436,6 +436,21 @@ router.post('/login', authLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
+    const requestedRole = String(req.body.role || '').trim().toUpperCase();
+    if (requestedRole !== 'CITIZEN' && requestedRole !== 'LAWYER') {
+      return res.status(400).json({ error: 'Choose Citizen or Lawyer to log in.' });
+    }
+    if (user.role !== requestedRole) {
+      if (user.role === 'LAWYER') {
+        return res.status(401).json({
+          error: 'This email is registered as a lawyer. Switch to Lawyer and log in.',
+        });
+      }
+      return res.status(401).json({
+        error: 'This email is registered as a citizen. Switch to Citizen and log in.',
+      });
+    }
+
     // Check subscription expiry
     if (user.isPremium && user.subscription) {
       if (new Date(user.subscription.endDate) < new Date()) {

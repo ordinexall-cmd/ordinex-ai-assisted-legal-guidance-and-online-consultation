@@ -16,6 +16,7 @@ import {
   emitBookingChanged,
   emitBookingChatClosed,
   emitBookingTranscriptSegment,
+  emitAvailabilityChanged,
 } from '../socket/bookingSocket.js';
 import {
   parseTranscript,
@@ -30,6 +31,14 @@ import { notifyLawyerBookingRequest } from '../services/smsNotify.js';
 import { env } from '../config/env.js';
 import { hasBookingCaseContext, bookingCaseContextError } from '../utils/bookingCaseContext.js';
 import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
+import {
+  LIVE_SESSION_STATUSES,
+  holdEnd,
+  sessionInterval,
+  intervalsOverlap,
+  validateSessionRange,
+  normalizeHm,
+} from '../utils/sessionOverlap.js';
 import { recordingUpload, audioChunkUpload, persistUploadedFile } from '../services/uploads.js';
 import { transcribeLiveAudio } from '../services/liveTranscribe.js';
 import { daysRemainingInTrash, trashCutoffDate, TRASH_RETENTION_DAYS } from '../services/recycleBin.js';
@@ -41,15 +50,18 @@ const CASE_DESCRIPTION_FROM_ANALYSIS_MAX = 500;
 // ======================== CREATE ========================
 /**
  * POST /api/bookings
- * Body: { availabilityId, consultationId?, caseDescription? }
+ * Body: { availabilityId, preferredStartTime, consultationId?, caseDescription? }
  *
- * Logged-in citizens only. Uses optimistic locking on Availability.version.
+ * Logged-in citizens only. Holds 60 minutes from the preferred start inside the duty window.
  */
 router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
-    const { availabilityId, consultationId, caseDescription } = req.body;
+    const { availabilityId, consultationId, caseDescription, preferredStartTime } = req.body;
 
     if (!availabilityId) return res.status(400).json({ error: 'availabilityId is required.' });
+    if (!preferredStartTime) {
+      return res.status(400).json({ error: 'Pick a start time inside the lawyer\'s open hours.' });
+    }
     if (!hasBookingCaseContext({ consultationId, caseDescription })) {
       return res.status(400).json({ error: bookingCaseContextError() });
     }
@@ -59,11 +71,15 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
       include: { lawyer: true },
     });
     if (!slot) return res.status(404).json({ error: 'Slot not found.' });
-    if (slot.isBooked) return res.status(409).json({ error: 'This slot is no longer available.' });
     if (slot.lawyer.isBanned) return res.status(403).json({ error: 'This lawyer is unavailable.' });
     if (slot.lawyer.acceptingBookings === false) {
       return res.status(403).json({ error: 'This lawyer is not accepting new bookings right now.' });
     }
+
+    const sessionStartTime = normalizeHm(preferredStartTime);
+    const sessionEndTime = holdEnd(sessionStartTime, slot.endTime);
+    const rangeErr = validateSessionRange(sessionStartTime, sessionEndTime, slot.startTime, slot.endTime);
+    if (rangeErr) return res.status(400).json({ error: rangeErr });
 
     let linkedConsultation = null;
     let resolvedCaseDescription = caseDescription?.trim() || null;
@@ -84,17 +100,26 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
     let booking;
     try {
       booking = await prisma.$transaction(async (tx) => {
-        // Optimistic lock: only succeed if version still matches.
-        const lockedSlot = await tx.availability.update({
-          where: { id: availabilityId, version: slot.version },
-          data: { isBooked: true, version: { increment: 1 } },
+        const overlap = await findSessionOverlap(tx, {
+          lawyerId: slot.lawyerId,
+          date: slot.date,
+          start: sessionStartTime,
+          end: sessionEndTime,
         });
+        if (overlap) {
+          const err = new Error('OVERLAP');
+          err.code = 'OVERLAP';
+          throw err;
+        }
 
         return tx.booking.create({
           data: {
             citizenId: req.user.id,
             lawyerId: slot.lawyerId,
-            availabilityId: lockedSlot.id,
+            availabilityId: slot.id,
+            preferredStartTime: sessionStartTime,
+            sessionStartTime,
+            sessionEndTime,
             feeAtBooking: lawyerFeeMin(slot.lawyer),
             consultationId: consultationId || null,
             caseDescription: resolvedCaseDescription,
@@ -104,8 +129,8 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
         });
       });
     } catch (err) {
-      if (err.code === 'P2025') {
-        return res.status(409).json({ error: 'This slot was just taken. Please pick another.' });
+      if (err.code === 'OVERLAP') {
+        return res.status(409).json({ error: 'That time is no longer available.' });
       }
       throw err;
     }
@@ -113,12 +138,13 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
     createNotification({
       userId: slot.lawyerId,
       title: 'New booking request',
-      message: `${req.user.name} requested a consultation slot.`,
+      message: `${req.user.name} requested ${sessionStartTime}–${sessionEndTime}.`,
       type: 'BOOKING_REQUESTED',
       linkTo: `/booking/${booking.id}`,
     }).catch(() => {});
 
     notifyLawyerBookingRequest(slot.lawyer, req.user.name).catch(() => {});
+    emitAvailabilityChanged(slot.lawyerId);
 
     const consultationMap = linkedConsultation
       ? new Map([[linkedConsultation.id, linkedConsultation]])
@@ -138,7 +164,27 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
     const err = checkTransition(booking.data.status, STATUS.APPROVED, 'lawyer');
     if (err) return res.status(409).json({ error: err });
 
-    const { quotedFee, paymentType } = req.body || {};
+    const { quotedFee, paymentType, sessionStartTime, sessionEndTime } = req.body || {};
+
+    const duty = booking.data.availability;
+    const start = normalizeHm(sessionStartTime || booking.data.sessionStartTime || booking.data.preferredStartTime || duty.startTime);
+    const end = normalizeHm(sessionEndTime || booking.data.sessionEndTime || '');
+    if (!sessionStartTime || !sessionEndTime) {
+      return res.status(400).json({ error: 'Set the exact session start and end times.' });
+    }
+    const rangeErr = validateSessionRange(start, end, duty.startTime, duty.endTime);
+    if (rangeErr) return res.status(400).json({ error: rangeErr });
+
+    const clash = await findSessionOverlap(prisma, {
+      lawyerId: booking.data.lawyerId,
+      date: duty.date,
+      start,
+      end,
+      excludeBookingId: booking.data.id,
+    });
+    if (clash) {
+      return res.status(409).json({ error: 'That time overlaps another booking.' });
+    }
 
     // Determine if this is a free or paid booking
     const lawyerMin = lawyerFeeMin(booking.data.lawyer);
@@ -198,14 +244,17 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
         approvedAt: isFreeBooking ? null : new Date(),
         paymentSnapshot,
         roomId: isFreeBooking ? booking.data.roomId || crypto.randomUUID() : booking.data.roomId,
+        sessionStartTime: start,
+        sessionEndTime: end,
       },
       include: bookingInclude(),
     });
 
     const title = nextStatus === STATUS.CONFIRMED ? 'Booking confirmed' : 'Booking approved';
+    const rangeLabel = `${start}–${end}`;
     const message = nextStatus === STATUS.CONFIRMED
-      ? 'Your booking is confirmed. Join from the booking page when it is time.'
-      : `Your booking was approved. Total: ₱${resolvedQuotedFee.toLocaleString()}. Pay with GCash within 24 hours to confirm.`;
+      ? `Your booking is confirmed for ${rangeLabel}. Join from the booking page when it is time.`
+      : `Your booking was approved for ${rangeLabel}. Total: ₱${resolvedQuotedFee.toLocaleString()}. Pay with GCash within 24 hours to confirm.`;
     createNotification({
       userId: booking.data.citizenId,
       title,
@@ -214,6 +263,7 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
       linkTo: `/booking/${updated.id}`,
     }).catch(() => {});
 
+    emitAvailabilityChanged(booking.data.lawyerId);
     res.json({ booking: publishBooking(updated, req.user.id) });
   } catch (error) {
     next(error);
@@ -338,7 +388,12 @@ router.patch('/:id/start-session', requireAuth, async (req, res, next) => {
 
     const av = booking.data.availability;
     const demoBypass = isDemoEmail(req.user.email);
-    if (!canJoinBookingVideo(av, booking.data.status, new Date(), demoBypass)) {
+    const slotWindow = {
+      date: av.date,
+      startTime: booking.data.sessionStartTime || av.startTime,
+      endTime: booking.data.sessionEndTime || av.endTime,
+    };
+    if (!canJoinBookingVideo(slotWindow, booking.data.status, new Date(), demoBypass)) {
       return res.status(403).json({
         error: 'Video consultation is only available during your scheduled booking time.',
         code: 'OUTSIDE_BOOKING_SLOT',
@@ -1103,6 +1158,36 @@ function serializeLinkedAnalysisForBooking(c) {
   };
 }
 
+function overlaySessionOnAvailability(b) {
+  const av = b.availability;
+  if (!av) return av;
+  const start = b.sessionStartTime || b.preferredStartTime || av.startTime;
+  const end = b.sessionEndTime || av.endTime;
+  return { ...av, startTime: start, endTime: end };
+}
+
+async function findSessionOverlap(db, { lawyerId, date, start, end, excludeBookingId }) {
+  const live = await db.booking.findMany({
+    where: {
+      lawyerId,
+      status: { in: LIVE_SESSION_STATUSES },
+      ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
+      availability: { date },
+    },
+    select: {
+      id: true,
+      preferredStartTime: true,
+      sessionStartTime: true,
+      sessionEndTime: true,
+      availability: { select: { startTime: true, endTime: true } },
+    },
+  });
+  return live.find((b) => {
+    const other = sessionInterval(b, b.availability.startTime, b.availability.endTime);
+    return intervalsOverlap(start, end, other.start, other.end);
+  }) || null;
+}
+
 function serializeBooking(b, viewerId, consultationOrPreview = null) {
   const linkedAnalysisPreview = consultationOrPreview
     ? linkedAnalysisPreviewFromConsultation(consultationOrPreview)
@@ -1140,7 +1225,13 @@ function serializeBooking(b, viewerId, consultationOrPreview = null) {
       specializations: safeJsonParse(b.lawyer.specializations, []),
       paymentMethods: safeJsonParse(b.lawyer.paymentMethods, []),
     },
-    availability: b.availability,
+    availability: overlaySessionOnAvailability(b),
+    preferredStartTime: b.preferredStartTime || null,
+    sessionStartTime: b.sessionStartTime || null,
+    sessionEndTime: b.sessionEndTime || null,
+    dutyWindow: b.availability
+      ? { startTime: b.availability.startTime, endTime: b.availability.endTime }
+      : null,
     review: b.review || null,
   };
 }

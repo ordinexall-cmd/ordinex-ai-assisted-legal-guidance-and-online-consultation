@@ -164,35 +164,33 @@ export const LawyerSchedule: React.FC = () => {
     }
   };
 
-  const bookedKeys = useMemo(() => {
-    const set = new Set<string>();
-    for (const b of bookings) {
-      if (['DECLINED', 'AUTO_CANCELLED'].includes(b.status)) continue;
-      set.add(`${b.availability.date.slice(0, 10)}|${b.availability.startTime}|${b.availability.endTime}`);
-    }
-    return set;
-  }, [bookings]);
-
-  const calEvents: ScheduleCalendarEvent[] = useMemo(
-    () =>
-      slots.map((s) => {
-        const key = `${s.date.slice(0, 10)}|${s.startTime}|${s.endTime}`;
-        const isBooked = Boolean(s.isBooked) || bookedKeys.has(key);
-        return {
-          id: s.id,
-          date: s.date,
-          label: `${s.startTime}-${s.endTime}${isBooked ? ' ✓' : ''}`,
-          colorVariant: isBooked ? 'gold' : 'green',
-          completed: isBooked,
-        };
-      }),
-    [slots, bookedKeys],
+  const liveBookings = useMemo(
+    () => bookings.filter((b) =>
+      ['REQUESTED', 'APPROVED', 'PAYMENT_SUBMITTED', 'CONFIRMED', 'IN_PROGRESS'].includes(b.status)),
+    [bookings],
   );
 
-  const openSlots = slots.filter((s) => {
-    const key = `${s.date.slice(0, 10)}|${s.startTime}|${s.endTime}`;
-    return !s.isBooked && !bookedKeys.has(key);
-  });
+  const calEvents: ScheduleCalendarEvent[] = useMemo(
+    () => [
+      ...slots.map((s) => ({
+        id: s.id,
+        date: s.date,
+        label: `${s.startTime}-${s.endTime}`,
+        colorVariant: 'green' as const,
+        completed: false,
+      })),
+      ...liveBookings.map((b) => ({
+        id: `sess-${b.id}`,
+        date: b.availability.date,
+        label: `${b.availability.startTime}-${b.availability.endTime}`,
+        colorVariant: 'gold' as const,
+        completed: true,
+      })),
+    ],
+    [slots, liveBookings],
+  );
+
+  const openSlots = slots;
 
   return (
     <AppShell

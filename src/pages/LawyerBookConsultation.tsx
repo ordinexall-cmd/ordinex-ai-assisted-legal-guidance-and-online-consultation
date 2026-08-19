@@ -13,7 +13,7 @@ import {
   type ConsultationResult,
   type Booking,
 } from '../services/api';
-import { onAvailabilityChanged } from '../services/appSocket';
+import { onAvailabilityChanged, onBookingUpdated } from '../services/appSocket';
 import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getErrorMessage } from '../utils/userFacingError';
@@ -50,7 +50,7 @@ export const LawyerBookConsultation: React.FC = () => {
         bookingsApi.getMy({ limit: 50 }),
       ]);
       setLawyer(lw);
-      setSlots(sl.filter((s) => !s.isBooked));
+      setSlots(sl.filter((s) => (s.openStarts?.length ?? 0) > 0 || !s.isBooked));
       setHistory(consultations);
       setMyBookings(
         bookings.filter((b) => b.lawyer.id === lawyerId && b.viewerRole === 'CITIZEN'),
@@ -67,6 +67,8 @@ export const LawyerBookConsultation: React.FC = () => {
     void load();
   }, [load]);
 
+  useEffect(() => onBookingUpdated(() => { void load(); }), [load]);
+
   useEffect(() => {
     if (!lawyerId) return;
     return onAvailabilityChanged((payload) => {
@@ -78,7 +80,9 @@ export const LawyerBookConsultation: React.FC = () => {
     const open: ScheduleCalendarEvent[] = slots.map((s) => ({
       id: `open-${s.id}`,
       date: s.date,
-      label: `Open ${s.startTime}`,
+      label: s.openStarts?.length
+        ? `Open ${s.openStarts[0]}${s.openStarts.length > 1 ? '+' : ''}`
+        : `Open ${s.startTime}`,
       colorVariant: 'gold' as const,
       onClick: () => setPreferredDate(s.date.slice(0, 10)),
     }));
@@ -98,6 +102,7 @@ export const LawyerBookConsultation: React.FC = () => {
 
   const handleSubmit = async (payload: {
     availabilityId: string;
+    preferredStartTime: string;
     consultationId?: string;
     caseDescription?: string;
   }) => {
@@ -107,8 +112,11 @@ export const LawyerBookConsultation: React.FC = () => {
     try {
       const slot = slots.find((s) => s.id === payload.availabilityId);
       const { booking } = await bookingsApi.create(payload);
+      const hold = booking.availability
+        ? `${booking.availability.startTime}–${booking.availability.endTime}`
+        : payload.preferredStartTime;
       if (slot) {
-        setSuccess({ date: slot.date, time: `${slot.startTime}–${slot.endTime}` });
+        setSuccess({ date: slot.date, time: hold });
       }
       window.setTimeout(() => navigate(`/booking/${booking.id}`), 900);
     } catch (e: unknown) {

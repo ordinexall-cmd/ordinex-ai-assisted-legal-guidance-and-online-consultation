@@ -241,7 +241,7 @@ model Availability {
   isBooked  Boolean  @default(false)
   version   Int      @default(0) // optimistic locking
   createdAt DateTime @default(now())
-  booking   Booking?
+  bookings  Booking[]
 }
 
 model Booking {
@@ -250,8 +250,11 @@ model Booking {
   citizen           User     @relation("CitizenBookings", fields: [citizenId], references: [id])
   lawyerId          String
   lawyer            User     @relation("LawyerBookings", fields: [lawyerId], references: [id])
-  availabilityId    String   @unique
+  availabilityId    String
   availability      Availability @relation(fields: [availabilityId], references: [id])
+  preferredStartTime String?
+  sessionStartTime  String?
+  sessionEndTime    String?
   // REQUESTED | APPROVED | PAYMENT_SUBMITTED | CONFIRMED | DECLINED | AUTO_CANCELLED | NO_SHOW | IN_PROGRESS | COMPLETED | RATED
   status            String   @default("REQUESTED")
   feeAtBooking      Float // Price locked at booking time
@@ -285,6 +288,8 @@ model Booking {
 
   @@index([citizenId, citizenDeletedAt])
   @@index([lawyerId, lawyerDeletedAt])
+  @@index([lawyerId, status])
+  @@index([availabilityId])
 }
 
 model Review {

@@ -201,7 +201,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setError('');
     setLoading(true);
     try {
-      const usr = await login(loginEmail, loginPassword);
+      const usr = await login(loginEmail, loginPassword, authTab === 'lawyer' ? 'LAWYER' : 'CITIZEN');
       if (rememberLogin) {
         upsertRememberedLogin({
           email: loginEmail,

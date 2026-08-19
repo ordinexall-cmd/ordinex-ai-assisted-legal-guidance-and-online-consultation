@@ -245,7 +245,7 @@ export const authApi = {
       body: JSON.stringify(body),
     }),
 
-  login: (body: { email: string; password: string }) =>
+  login: (body: { email: string; password: string; role: 'CITIZEN' | 'LAWYER' }) =>
     request<{ message: string; token: string; user: UserProfile }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -545,6 +545,8 @@ export interface AvailabilitySlot {
   startTime: string;
   endTime: string;
   isBooked?: boolean;
+  openStarts?: string[];
+  taken?: { start: string; end: string }[];
 }
 
 export const lawyersApi = {
@@ -613,6 +615,23 @@ export interface BriefInquiry {
   };
 }
 
+export interface LawyerBriefOffer {
+  id: string;
+  status: string;
+  message: string | null;
+  createdAt: string;
+  brief: {
+    id: string;
+    category: string;
+    summary: string;
+    status: string;
+    displayName: string;
+    city: string | null;
+    province: string | null;
+    consultationId: string | null;
+  };
+}
+
 export const briefsApi = {
   getMine: () => request<{ brief: CitizenBrief | null }>('/briefs/mine'),
   saveMine: (body: {
@@ -644,6 +663,7 @@ export const briefsApi = {
       method: 'POST',
       body: JSON.stringify({ message: message || '' }),
     }),
+  myOffers: () => request<{ offers: LawyerBriefOffer[] }>('/briefs/my-offers'),
 };
 
 // ======================== AVAILABILITY API (Lawyer) ========================
@@ -736,6 +756,10 @@ export interface Booking {
   recordingUrl: string | null;
   linkedAnalysisPreview?: LinkedAnalysisPreview | null;
   noShowParty: 'CITIZEN' | 'LAWYER' | null;
+  preferredStartTime?: string | null;
+  sessionStartTime?: string | null;
+  sessionEndTime?: string | null;
+  dutyWindow?: { startTime: string; endTime: string } | null;
   createdAt: string;
   updatedAt: string;
   chatIsOpen: boolean;
@@ -766,7 +790,12 @@ export interface Booking {
 }
 
 export const bookingsApi = {
-  create: (body: { availabilityId: string; consultationId?: string; caseDescription?: string }) =>
+  create: (body: {
+    availabilityId: string;
+    preferredStartTime: string;
+    consultationId?: string;
+    caseDescription?: string;
+  }) =>
     request<{ booking: Booking }>('/bookings', { method: 'POST', body: JSON.stringify(body) }),
 
   getById: (id: string) =>
@@ -802,12 +831,18 @@ export const bookingsApi = {
   restoreFromHistory: (id: string) =>
     request<{ message: string }>(`/bookings/${id}/restore`, { method: 'POST' }),
 
-  approve: (id: string, quotedFee?: number, paymentType?: 'ewallet' | 'bank') =>
+  approve: (
+    id: string,
+    quotedFee?: number,
+    paymentType?: 'ewallet' | 'bank',
+    session?: { sessionStartTime: string; sessionEndTime: string },
+  ) =>
     request<{ booking: Booking }>(`/bookings/${id}/approve`, {
       method: 'PATCH',
       body: JSON.stringify({
         ...(quotedFee != null ? { quotedFee } : {}),
         ...(paymentType ? { paymentType } : {}),
+        ...(session || {}),
       }),
     }),
   decline: (id: string) =>

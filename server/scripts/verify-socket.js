@@ -15,7 +15,11 @@ async function login(email) {
   const res = await fetch(`${base}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password: DEMO_PASSWORD }),
+    body: JSON.stringify({
+      email,
+      password: DEMO_PASSWORD,
+      role: email.includes('lawyer') ? 'LAWYER' : 'CITIZEN',
+    }),
   });
   const data = await res.json();
   if (!res.ok || !data.token) throw new Error(`Login failed for ${email}: ${JSON.stringify(data)}`);

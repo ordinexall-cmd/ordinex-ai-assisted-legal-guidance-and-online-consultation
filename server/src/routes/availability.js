@@ -14,7 +14,6 @@ const router = Router();
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
- * POST /api/availability
  * Body: { date: "YYYY-MM-DD", startTime: "HH:MM", endTime: "HH:MM" }
  * OR    { slots: [{date,startTime,endTime}, ...] }  (batch)
  *
@@ -88,24 +87,16 @@ router.post('/', requireAuth, requireLawyer, requireLawyerVerified, async (req, 
   }
 });
 
-const ACTIVE_BOOKING_STATUSES = new Set([
-  'REQUESTED',
-  'APPROVED',
-  'PAYMENT_SUBMITTED',
-  'CONFIRMED',
-  'IN_PROGRESS',
-]);
-
 /**
  * DELETE /api/availability/:id
- * Allowed when unbooked or only tied to a terminal booking record.
+ * Allowed when no bookings exist on this duty window.
  */
 router.delete('/:id', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
   try {
     const slot = await prisma.availability.findUnique({
       where: { id: req.params.id },
       include: {
-        booking: {
+        bookings: {
           include: { review: true, recordHash: true },
         },
       },
@@ -115,30 +106,13 @@ router.delete('/:id', requireAuth, requireLawyer, requireLawyerVerified, async (
       return res.status(403).json({ error: 'You do not own this slot.' });
     }
 
-    const booking = slot.booking;
-    if (booking && ACTIVE_BOOKING_STATUSES.has(booking.status)) {
+    if ((slot.bookings || []).length > 0) {
       return res.status(409).json({
-        error: 'This slot has an active booking and cannot be removed.',
-      });
-    }
-    if (slot.isBooked && booking) {
-      return res.status(409).json({
-        error: 'This slot has an active booking and cannot be removed.',
+        error: 'These hours already have bookings and cannot be removed.',
       });
     }
 
-    await prisma.$transaction(async (tx) => {
-      if (booking) {
-        if (booking.recordHash) {
-          await tx.recordHash.delete({ where: { id: booking.recordHash.id } });
-        }
-        if (booking.review) {
-          await tx.review.delete({ where: { id: booking.review.id } });
-        }
-        await tx.booking.delete({ where: { id: booking.id } });
-      }
-      await tx.availability.delete({ where: { id: slot.id } });
-    });
+    await prisma.availability.delete({ where: { id: slot.id } });
 
     emitAvailabilityChanged(req.user.id);
 

@@ -9,6 +9,11 @@ import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireCitizen, requireCitizenVerified } from '../middleware/premium.js';
 import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
+import {
+  LIVE_SESSION_STATUSES,
+  preferredStartsInWindow,
+  sessionInterval,
+} from '../utils/sessionOverlap.js';
 
 const router = Router();
 
@@ -278,17 +283,54 @@ router.get('/:id/availability', requireAuth, requireCitizen, requireCitizenVerif
       return res.status(400).json({ error: 'Invalid date range.' });
     }
 
+    const lawyerId = req.params.id;
     const slots = await prisma.availability.findMany({
       where: {
-        lawyerId: req.params.id,
-        isBooked: false,
+        lawyerId,
         date: { gte: from, lte: to },
       },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
       select: { id: true, date: true, startTime: true, endTime: true },
     });
 
-    res.json({ slots });
+    const live = await prisma.booking.findMany({
+      where: {
+        lawyerId,
+        status: { in: LIVE_SESSION_STATUSES },
+        availability: { date: { gte: from, lte: to } },
+      },
+      select: {
+        availabilityId: true,
+        preferredStartTime: true,
+        sessionStartTime: true,
+        sessionEndTime: true,
+        availability: { select: { startTime: true, endTime: true } },
+      },
+    });
+
+    const takenByWindow = new Map();
+    for (const b of live) {
+      const interval = sessionInterval(b, b.availability.startTime, b.availability.endTime);
+      const list = takenByWindow.get(b.availabilityId) || [];
+      list.push(interval);
+      takenByWindow.set(b.availabilityId, list);
+    }
+
+    res.json({
+      slots: slots.map((s) => {
+        const taken = takenByWindow.get(s.id) || [];
+        const openStarts = preferredStartsInWindow(s.startTime, s.endTime, taken);
+        return {
+          id: s.id,
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          isBooked: openStarts.length === 0,
+          openStarts,
+          taken,
+        };
+      }).filter((s) => s.openStarts.length > 0),
+    });
   } catch (error) {
     next(error);
   }

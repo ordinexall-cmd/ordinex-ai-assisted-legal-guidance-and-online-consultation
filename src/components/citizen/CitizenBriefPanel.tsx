@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   briefsApi,
   consultationApi,
@@ -16,6 +16,7 @@ import {
 } from '../../constants/legalCategories';
 import { isCitizenBookingUnlocked } from '../../utils/trustScore';
 import { useAuth } from '../../context/AuthContext';
+import { onNotificationNew } from '../../services/appSocket';
 
 const blankForm = () => ({
   category: 'unsure',
@@ -29,6 +30,7 @@ const blankForm = () => ({
 export const CitizenBriefPanel: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const unlocked = isCitizenBookingUnlocked(user);
   const [brief, setBrief] = useState<CitizenBrief | null>(null);
   const [inquiries, setInquiries] = useState<BriefInquiry[]>([]);
@@ -83,6 +85,15 @@ export const CitizenBriefPanel: React.FC = () => {
   };
 
   useEffect(() => { refresh(); }, [unlocked]);
+  useEffect(() => onNotificationNew(() => refresh()), [unlocked]);
+
+  useEffect(() => {
+    if (location.hash !== '#consult-offers') return;
+    const t = window.setTimeout(() => {
+      document.getElementById('consult-offers')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [location.hash, inquiries.length]);
 
   if (!unlocked) return null;
 
@@ -155,7 +166,7 @@ export const CitizenBriefPanel: React.FC = () => {
   const ticketId = brief?.id ? brief.id.slice(0, 8).toUpperCase() : '';
 
   return (
-    <div className="acct-section citizen-brief-panel">
+    <div className="acct-section citizen-brief-panel" id="consult-offers">
       <div className="acct-section__head">
         <h2 className="acct-section__title">Looking for a lawyer</h2>
         {!editing && (

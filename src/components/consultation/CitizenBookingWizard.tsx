@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AvailabilitySlot, ConsultationResult, LawyerProfile } from '../../services/api';
 import { hasBookingCaseContext, bookingCaseContextError } from '../../utils/bookingCaseContext';
-import '../../styles/consult-booking.css';
+import { holdEnd } from '../../utils/sessionOverlap';
 
 const CASE_DESCRIPTION_MAX = 2000;
 
@@ -27,6 +27,7 @@ export interface CitizenBookingWizardProps {
   readonly onPreferredDateConsumed?: () => void;
   readonly onSubmit: (payload: {
     availabilityId: string;
+    preferredStartTime: string;
     consultationId?: string;
     caseDescription?: string;
   }) => void;
@@ -49,8 +50,9 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
   const [caseContextAttempted, setCaseContextAttempted] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [preferredStart, setPreferredStart] = useState<string | null>(null);
 
-  const openSlots = useMemo(() => slots.filter((s) => !s.isBooked), [slots]);
+  const openSlots = useMemo(() => slots.filter((s) => (s.openStarts?.length ?? 0) > 0 || !s.isBooked), [slots]);
 
   const datesWithSlots = useMemo(() => {
     const set = new Set<string>();
@@ -79,6 +81,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
     }
     setSelectedDate(day);
     setSelectedSlotId(null);
+    setPreferredStart(null);
     setStep(1);
     onPreferredDateConsumed?.();
   }, [preferredDate, datesWithSlots, hasCaseContext, onPreferredDateConsumed]);
@@ -95,9 +98,10 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
       setStep(1);
       return;
     }
-    if (!selectedSlotId) return;
+    if (!selectedSlotId || !preferredStart) return;
     onSubmit({
       availabilityId: selectedSlotId,
+      preferredStartTime: preferredStart,
       consultationId: linkedConsultationId || undefined,
       caseDescription: caseDescription.trim() || undefined,
     });
@@ -141,8 +145,8 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
             First, tell the lawyer about your case. After they review it, they will quote a fee —
-            you pay with GCash to confirm the slot
-            {openSlots.length > 0 ? ` (${openSlots.length} open)` : ''}.
+            you pay with GCash to confirm the session
+            {openSlots.length > 0 ? ` (${openSlots.length} open days)` : ''}.
           </p>
 
           <div className="staff-form-group">
@@ -198,7 +202,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
       {step === 1 && (
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
-            Choose an open date, then a time. You can also tap an open day on the calendar to the right.
+            Choose a date, then a start time inside the lawyer&apos;s open hours. Your request holds 60 minutes. Other people can still book leftover time the same day.
           </p>
 
           <div className="staff-form-group">
@@ -219,6 +223,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
                     onClick={() => {
                       setSelectedDate(d);
                       setSelectedSlotId(null);
+                      setPreferredStart(null);
                     }}
                   >
                     {formatSlotDate(d)}
@@ -229,26 +234,42 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
           </div>
 
           <div className="staff-form-group">
-            <span className="staff-form-label">Time slot</span>
+            <span className="staff-form-label">Start time</span>
             {!selectedDate ? (
               <p className="staff-empty-hint">Select a date above.</p>
             ) : slotsForDate.length === 0 ? (
-              <p className="staff-empty-hint">No slots on this date.</p>
+              <p className="staff-empty-hint">No open hours on this date.</p>
             ) : (
-              <div className="staff-slot-chips" role="listbox" aria-label="Available times">
-                {slotsForDate.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    role="option"
-                    aria-selected={selectedSlotId === s.id}
-                    className={`staff-slot-chip${selectedSlotId === s.id ? ' staff-slot-chip--active' : ''}`}
-                    onClick={() => setSelectedSlotId(s.id)}
-                  >
-                    {s.startTime} – {s.endTime}
-                  </button>
-                ))}
-              </div>
+              slotsForDate.map((s) => {
+                const starts = s.openStarts?.length ? s.openStarts : [s.startTime];
+                return (
+                  <div key={s.id} style={{ marginBottom: '0.75rem' }}>
+                    <p className="staff-empty-hint" style={{ marginBottom: '0.4rem' }}>
+                      Open {s.startTime}–{s.endTime}
+                    </p>
+                    <div className="staff-slot-chips" role="listbox" aria-label="Preferred start times">
+                      {starts.map((t) => {
+                        const active = selectedSlotId === s.id && preferredStart === t;
+                        return (
+                          <button
+                            key={`${s.id}-${t}`}
+                            type="button"
+                            role="option"
+                            aria-selected={active}
+                            className={`staff-slot-chip${active ? ' staff-slot-chip--active' : ''}`}
+                            onClick={() => {
+                              setSelectedSlotId(s.id);
+                              setPreferredStart(t);
+                            }}
+                          >
+                            {t}–{holdEnd(t, s.endTime)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </>
@@ -263,7 +284,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
         <button
           type="button"
           className="ox-btn ox-btn-primary"
-          disabled={loading || (step === 0 && datesWithSlots.length === 0) || (step === 1 && !selectedSlotId)}
+          disabled={loading || (step === 0 && datesWithSlots.length === 0) || (step === 1 && (!selectedSlotId || !preferredStart))}
           onClick={goNext}
         >
           {loading ? 'Submitting…' : step === 0 ? 'Continue to date & time' : 'Send booking request'}

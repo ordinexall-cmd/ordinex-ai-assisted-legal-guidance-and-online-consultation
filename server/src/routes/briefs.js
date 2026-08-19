@@ -266,7 +266,7 @@ router.post('/inquiries/:id/accept', requireAuth, requireCitizen, requireCitizen
       title: 'Consult offer accepted',
       message: `${publicDisplayName(inquiry.brief)} accepted your offer. They can book a slot with you.`,
       type: 'BRIEF_OFFER_ACCEPTED',
-      linkTo: '/lawyer/dashboard',
+      linkTo: '/lawyer/dashboard#offers',
     }).catch(() => {});
     res.json({ lawyerId: inquiry.lawyerId });
   } catch (e) {
@@ -288,6 +288,52 @@ router.post('/inquiries/:id/decline', requireAuth, requireCitizen, requireCitize
       data: { status: 'DECLINED' },
     });
     res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/my-offers', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
+  try {
+    const inquiries = await prisma.briefInquiry.findMany({
+      where: { lawyerId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        brief: {
+          select: {
+            id: true,
+            category: true,
+            summary: true,
+            status: true,
+            displayName: true,
+            anonymous: true,
+            city: true,
+            province: true,
+            consultationId: true,
+            user: { select: { name: true, firstName: true } },
+          },
+        },
+      },
+    });
+    res.json({
+      offers: inquiries.map((i) => ({
+        id: i.id,
+        status: i.status,
+        message: i.message,
+        createdAt: i.createdAt,
+        brief: {
+          id: i.brief.id,
+          category: i.brief.category,
+          summary: i.brief.summary,
+          status: i.brief.status,
+          displayName: publicDisplayName(i.brief),
+          city: i.brief.city,
+          province: i.brief.province,
+          consultationId: i.brief.consultationId,
+        },
+      })),
+    });
   } catch (e) {
     next(e);
   }
@@ -410,7 +456,7 @@ router.post('/:id/offer', requireAuth, requireLawyer, requireLawyerVerified, asy
         title: 'Consult offer',
         message: `${req.user.name} offered a consultation on your open request.`,
         type: 'BRIEF_OFFER',
-        linkTo: '/dashboard',
+        linkTo: '/dashboard#consult-offers',
       }).catch(() => {});
       res.status(201).json({ inquiry: { id: inquiry.id, status: inquiry.status } });
     } catch (err) {
