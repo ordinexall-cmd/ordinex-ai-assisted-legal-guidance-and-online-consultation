@@ -205,7 +205,7 @@ export const LICENSES_DOCUMENT: LegalDocument = {
     {
       heading: 'Public legal research sources',
       paragraphs: [
-        'These are public Philippine websites, not software Ordinex owns or ships. We list them because AI case analysis and legal research in this project are grounded in publicly available Philippine law materials. Ordinex does not claim ownership of their content; visit each site for its own terms of use.',
+        'These are public Philippine websites, not software Ordinex owns or ships. We list them because case identification and legal research in this project are grounded in publicly available Philippine law materials. Ordinex does not claim ownership of their content; visit each site for its own terms of use.',
       ],
       bullets: [
         'Official Gazette — https://www.officialgazette.gov.ph/',

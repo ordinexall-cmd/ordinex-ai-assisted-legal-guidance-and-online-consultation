@@ -269,7 +269,7 @@ export const CitizenBriefPanel: React.FC = () => {
               placeholder="Short description. Do not include private documents or full case files."
             />
             <label className="ox-label" htmlFor="brief-analysis" style={{ marginTop: 8 }}>
-              Attach case analysis (optional)
+              Attach case identification (optional)
             </label>
             <select
               id="brief-analysis"
@@ -287,7 +287,7 @@ export const CitizenBriefPanel: React.FC = () => {
             {analyses.length === 0 && (
               <p className="staff-empty-hint" style={{ marginTop: 6 }}>
                 No saved analyses yet.{' '}
-                <Link to="/ai-analysis" className="link-inline">Run a case analysis</Link>
+                <Link to="/ai-analysis" className="link-inline">Run case identification</Link>
                 {' '}first, then attach it here.
               </p>
             )}

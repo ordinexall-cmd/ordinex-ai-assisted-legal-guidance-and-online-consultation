@@ -45,7 +45,13 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
   const situationSummary = ar.courtWinOutlook?.summary || '';
   const showSituationText = Boolean(situationSummary) && !sameText(situationSummary, ar.userConcernSummary);
   const showSituation = showSituationText || factorsFor.length > 0 || factorsAgainst.length > 0;
+  const librarySteps = ar.libraryNextSteps?.filter((s) => s.trim()) ?? [];
+  const possibleSteps = ar.possibleNextSteps?.filter((s) => s.trim()) ?? [];
+  const libraryDocs = ar.libraryDocuments?.filter((s) => s.trim()) ?? [];
+  const possibleDocs = ar.possibleDocuments?.filter((s) => s.trim()) ?? [];
+  const libraryCautions = ar.libraryCautions?.filter((s) => s.trim()) ?? [];
   const cautions = (ar.cautions || []).filter((c) => c.trim());
+  const nextSteps = librarySteps.length ? librarySteps : (ar.suggestedNextSteps || []);
   const deadline = ar.possibleDeadline?.trim() || '';
   const lawyersPath = buildLawyersPath({
     specialty: resolveMatchSpecialty({
@@ -61,7 +67,7 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
       <header className="analysis-result-card__head">
         <div className="analysis-result-card__head-text">
           <span className="analysis-result-card__badge">
-            {variant === 'landing' ? 'Pre-guidance preview' : 'Pre-guidance'}
+            {variant === 'landing' ? 'Case identification' : 'Case identification'}
           </span>
           <h2 className="analysis-result-card__title">What we found</h2>
         </div>
@@ -121,18 +127,48 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
 
         <section className="analysis-result-card__section">
           <h3 className="analysis-result-card__sec-title">What to do next</h3>
-          {ar.suggestedNextSteps?.length ? (
+          {nextSteps.length ? (
             <ol className="analysis-result-card__list analysis-result-card__list--numbered">
-              {ar.suggestedNextSteps.map((step) => (
+              {nextSteps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
           ) : (
             <p>A licensed lawyer can confirm the next filing or demand steps for your facts.</p>
           )}
-          {missingFacts.length > 0 && (
+          {possibleSteps.length > 0 && (
             <div className="analysis-result-card__docs">
-              <h4 className="analysis-result-card__sub-title">Documents to gather</h4>
+              <h4 className="analysis-result-card__sub-title">Possible next steps</h4>
+              <ul className="analysis-result-card__list">
+                {possibleSteps.map((step) => (
+                  <li key={`p-${step}`}>{step}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {libraryDocs.length > 0 && (
+            <div className="analysis-result-card__docs">
+              <h4 className="analysis-result-card__sub-title">Documents</h4>
+              <ul className="analysis-result-card__list analysis-result-card__list--checklist">
+                {libraryDocs.map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {possibleDocs.length > 0 && (
+            <div className="analysis-result-card__docs">
+              <h4 className="analysis-result-card__sub-title">Possible documents needed</h4>
+              <ul className="analysis-result-card__list analysis-result-card__list--checklist">
+                {possibleDocs.map((fact) => (
+                  <li key={`pd-${fact}`}>{fact}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {libraryDocs.length === 0 && possibleDocs.length === 0 && missingFacts.length > 0 && (
+            <div className="analysis-result-card__docs">
+              <h4 className="analysis-result-card__sub-title">Possible documents needed</h4>
               <ul className="analysis-result-card__list analysis-result-card__list--checklist">
                 {missingFacts.map((fact) => (
                   <li key={fact}>{fact}</li>
@@ -156,11 +192,11 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
           </section>
         ) : null}
 
-        {cautions.length > 0 ? (
+        {libraryCautions.length > 0 || cautions.length > 0 ? (
           <section className="analysis-result-card__section">
             <h3 className="analysis-result-card__sec-title">What not to do yet</h3>
             <ul className="analysis-result-card__list">
-              {cautions.map((item) => (
+              {(libraryCautions.length ? libraryCautions : cautions).map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
@@ -195,7 +231,7 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
             Consult a lawyer for confirmation
           </button>
           <button type="button" className="ox-btn ox-btn-outline" onClick={onAnalyzeAnother}>
-            Analyze another situation
+            Identify another situation
           </button>
         </div>
       )}

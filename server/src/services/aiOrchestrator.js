@@ -12,7 +12,7 @@ import {
   getLocalCorpusStats,
 } from './legalCorpus.js';
 import { validateAndFilterAnalysis } from './legalValidator.js';
-import { retrieveLiveLegalContext } from './liveLegalSearch.js';
+import { attachLibraryGuidance } from './libraryGuidance.js';
 import { toAiUserFacingError } from '../utils/userFacingError.js';
 
 const SYSTEM = `You are ORDINEX, an AI-assisted legal guidance system for the Philippines (Davao City and national law).
@@ -38,7 +38,8 @@ RULES:
 - Do NOT invent Republic Acts, articles, or penalties not supported by sources.
 - If facts are vague, set courtWinOutlook.level to Uncertain and list missingFacts.
 - penalties: short summary of possible legal exposure only, from grounded sources.
-- suggestedNextSteps: practical and actionable. Include at least one document-preparation step when relevant (e.g., IDs, contracts, screenshots, receipts, affidavits, police/barangay records), plus agencies like PAO/DOLE/PNP/DSWD/barangay/prosecutor when relevant.
+- suggestedNextSteps: copy LIBRARY_STEPS from ALLOWED_LEGAL_SOURCES when present. You may add extra situation-specific steps; do not invent a statute that is not in the sources.
+- documents: copy LIBRARY_DOCUMENTS when present. Extra items for this person's facts are allowed.
 - Output valid JSON only.
 - LANGUAGE LOCK: The pipeline tells you the DETECTED_LANGUAGE of the USER CONCERN (en = English, tl = Tagalog, ceb = Cebuano).
 - You MUST write ALL citizen-facing textual fields ("userConcernSummary", "penalties", "courtWinOutlook.summary", "courtWinOutlook.factorsFor", "courtWinOutlook.factorsAgainst", "courtWinOutlook.missingFacts", each "possibleLegalCases.explanation", "suggestedNextSteps", "possibleDeadline", and "cautions") ONLY in that DETECTED_LANGUAGE.
@@ -214,7 +215,10 @@ ${OUTPUT_SCHEMA}`;
     throw friendly;
   }
 
-  const result = validateAndFilterAnalysis(raw, chunks, detectedLang, category);
+  const result = attachLibraryGuidance(
+    validateAndFilterAnalysis(raw, chunks, detectedLang, category),
+    chunks,
+  );
   if (keywords.length && result.extractedKeywords.length < 2) {
     result.extractedKeywords = keywords.slice(0, 10);
   }
@@ -236,7 +240,8 @@ ${OUTPUT_SCHEMA}`;
   // sources that are not entirely superseded/stale.
   const billable = hasStrongMatch && !result._complexCase && !result._supersededWarning;
 
-  const finalResult = await translateAnalysisResultJSON(result, detectedLang);
+  const translated = await translateAnalysisResultJSON(result, detectedLang);
+  const finalResult = attachLibraryGuidance(translated, chunks);
 
   const retrievedSources = (chunks || []).slice(0, 12).map((c) => ({
     name: c.name || c.citation || 'Legal reference',
@@ -255,6 +260,7 @@ ${OUTPUT_SCHEMA}`;
       supersededWarning: !!result._supersededWarning,
       usedMock: false,
       retrievedSources,
+      liveChunks: corpusSource === 'live' ? chunks : [],
     },
   };
 }

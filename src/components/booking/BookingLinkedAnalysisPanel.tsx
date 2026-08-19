@@ -52,7 +52,7 @@ export const BookingLinkedAnalysisPanel: React.FC<BookingLinkedAnalysisPanelProp
         <span className="material-symbols-outlined" aria-hidden>psychology</span>
         <div>
           <h3 id="booking-linked-analysis-title" className="booking-linked-analysis__title">
-            Linked AI case analysis
+            Linked case identification
           </h3>
           <p className="booking-linked-analysis__hint">
             Review this before approving — the citizen attached it as legal context for this request.

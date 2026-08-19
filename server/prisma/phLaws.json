@@ -4,615 +4,1658 @@
     "name": "Anti-Violence Against Women and Their Children Act",
     "fullText": "Republic Act No. 9262 - Defines and criminalizes violence against women and their children (VAWC), including physical, sexual, psychological, and economic abuse. Provides protection orders (BPO, TPO, PPO) and support services. Penalties range from 1 month to 20 years imprisonment depending on severity.",
     "link": "https://lawphil.net/statutes/repacts/ra2004/ra_9262_2004.html",
-    "keywords": "domestic violence, abuse, women, children, protection order, VAWC, barangay"
+    "keywords": "domestic violence, abuse, women, children, protection order, VAWC, barangay",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Report to the barangay, PNP Women and Children Protection Desk, or the prosecutor and ask about a protection order.",
+      "Ask the barangay for conciliation under the Katarungang Pambarangay rules before going to court, when the dispute is covered."
+    ],
+    "documentsNeeded": [
+      "Valid ID",
+      "Medical certificate or photos if there was injury",
+      "Messages, recordings, or witnesses that show the abuse",
+      "Valid ID and a short written account of the dispute"
+    ],
+    "cautions": [
+      "Do not confront the person if it is unsafe. Ask the barangay or police for help first."
+    ],
+    "recommendedAgency": "Barangay / PNP WCPD / DSWD / Prosecutor"
   },
   {
     "category": "Family",
     "name": "Family Code of the Philippines",
     "fullText": "Executive Order No. 209 - Governs marriage, legal separation, annulment, property relations, parental authority, adoption, and support. Covers legitimate and illegitimate children's rights. Annulment grounds include psychological incapacity (Art. 36), fraud, force, and lack of parental consent. Legal separation is available for repeated physical violence, drug addiction, sexual infidelity, or abandonment.",
     "link": "https://lawphil.net/statutes/execords/eo1987/eo_209_1987.html",
-    "keywords": "marriage, annulment, divorce, separation, custody, child support, property, adoption, psychological incapacity"
+    "keywords": "marriage, annulment, divorce, separation, custody, child support, property, adoption, psychological incapacity",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Family",
     "name": "Solo Parents' Welfare Act",
     "fullText": "Republic Act No. 8972 - Provides benefits and privileges to solo parents including flexible work schedule, parental leave (7 days), educational and housing assistance. Solo parent ID entitles holder to discounts and government assistance programs.",
     "link": "https://lawphil.net/statutes/repacts/ra2000/ra_8972_2000.html",
-    "keywords": "solo parent, single parent, benefits, parental leave, welfare"
+    "keywords": "solo parent, single parent, benefits, parental leave, welfare",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Family",
     "name": "Special Protection of Children Against Abuse Act",
     "fullText": "Republic Act No. 7610 - Provides special protection to children against abuse, exploitation, and discrimination. Covers child abuse, child labor, child prostitution, and other forms of exploitation. DSWD and local social welfare offices handle complaints. Penalties: reclusion temporal to reclusion perpetua.",
     "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7610_1992.html",
-    "keywords": "child abuse, child labor, minor, exploitation, DSWD, protection"
+    "keywords": "child abuse, child labor, minor, exploitation, DSWD, protection",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Report to the barangay, PNP Women and Children Protection Desk, or the prosecutor and ask about a protection order.",
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Valid ID",
+      "Medical certificate or photos if there was injury",
+      "Messages, recordings, or witnesses that show the abuse",
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not confront the person if it is unsafe. Ask the barangay or police for help first."
+    ],
+    "recommendedAgency": "Barangay / PNP WCPD / DSWD / Prosecutor"
   },
   {
     "category": "Family",
     "name": "Child and Youth Welfare Code",
     "fullText": "Presidential Decree No. 603 - Provides for the rights and welfare of children, including the right to be born well, parental care, education, and protection from neglect. Establishes the Council for the Welfare of Children. Covers adoption, foster care, and juvenile justice proceedings.",
     "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_603_1974.html",
-    "keywords": "child welfare, youth, minor, adoption, foster care, juvenile, rights"
+    "keywords": "child welfare, youth, minor, adoption, foster care, juvenile, rights",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Family",
     "name": "Anti-Child Pornography Act",
     "fullText": "Republic Act No. 9775 - Criminalizes the production, distribution, possession, and access of child pornography. Includes online and digital forms. Penalties range from reclusion temporal to reclusion perpetua. ISPs must install technology to block child pornography and report violations to authorities.",
     "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9775_2009.html",
-    "keywords": "child pornography, online exploitation, minor, digital abuse, ISP"
+    "keywords": "child pornography, online exploitation, minor, digital abuse, ISP",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Crimes Against Persons",
     "fullText": "Act No. 3815 (Book Two, Title VIII) - Covers crimes against persons including: Murder (Art. 248) — killing with treachery, evident premeditation, or cruelty, punishable by reclusion perpetua to death. Homicide (Art. 249) — killing without qualifying circumstances, punishable by reclusion temporal. Parricide (Art. 246) — killing of parents, children, or spouse. Physical Injuries: Serious (Art. 263), Less Serious (Art. 265), Slight (Art. 266). Includes self-defense provisions under Art. 11.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "murder, homicide, parricide, physical injuries, assault, self-defense, killing, stabbing, shooting"
+    "keywords": "murder, homicide, parricide, physical injuries, assault, self-defense, killing, stabbing, shooting",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Theft",
     "fullText": "Act No. 3815 (Art. 308-310) - Theft is committed by taking personal property of another without the owner's consent and without violence or intimidation. Qualified Theft (Art. 310) applies when committed by a domestic servant, or with grave abuse of confidence, or involving motor vehicles, mail matter, large cattle, coconuts, or fish. Penalties depend on the value of property stolen, ranging from arresto menor to reclusion temporal.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "theft, stealing, shoplifting, pickpocket, qualified theft, personal property"
+    "keywords": "theft, stealing, shoplifting, pickpocket, qualified theft, personal property",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Report to the barangay, PNP Women and Children Protection Desk, or the prosecutor and ask about a protection order.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Valid ID",
+      "Medical certificate or photos if there was injury",
+      "Messages, recordings, or witnesses that show the abuse",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not confront the person if it is unsafe. Ask the barangay or police for help first."
+    ],
+    "recommendedAgency": "Barangay / PNP WCPD / DSWD / Prosecutor"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Robbery",
     "fullText": "Act No. 3815 (Art. 293-302) - Robbery is committed by taking personal property using violence against or intimidation of any person, or by using force upon things. Robbery with violence or intimidation (Art. 294) carries reclusion perpetua if accompanied by homicide. Highway robbery (Art. 306) and brigandage are also covered.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "robbery, holdup, armed robbery, mugging, violence, intimidation, highway robbery"
+    "keywords": "robbery, holdup, armed robbery, mugging, violence, intimidation, highway robbery",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Estafa (Swindling)",
     "fullText": "Act No. 3815 (Art. 315) - Estafa or swindling is committed by: (1) unfaithfulness or abuse of confidence, (2) deceit or false pretenses, or (3) fraudulent means. Common examples include issuing bad checks, selling property already sold to another, misappropriating entrusted funds, or online purchase fraud. Penalties depend on the amount defrauded, ranging from arresto mayor to reclusion temporal.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "estafa, swindling, fraud, scam, misappropriation, false pretenses, deception, online scam"
+    "keywords": "estafa, swindling, fraud, scam, misappropriation, false pretenses, deception, online scam",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Threats and Coercion",
     "fullText": "Act No. 3815 (Art. 282-286) - Grave Threats (Art. 282): threatening another with a wrong amounting to a crime, punishable by prision mayor if conditional. Light Threats (Art. 283): threatening with a wrong not constituting a crime. Grave Coercion (Art. 286): compelling another to do something against their will by violence, threats, or intimidation. Light Coercion (Art. 287) and Other Forms of Coercion are also covered. Blackmail falls under grave threats when demanding money or property under threat of harm or exposure.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "threats, blackmail, coercion, intimidation, extortion, grave threats, light threats"
+    "keywords": "threats, blackmail, coercion, intimidation, extortion, grave threats, light threats",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Trespass to Dwelling",
     "fullText": "Act No. 3815 (Art. 280) - Any private person who enters the dwelling of another against the latter's will, or while absent, shall be punished by arresto mayor and a fine. If committed with violence or intimidation, penalty is prision correccional. Entry without permission to a rented room, locked area, or private residence constitutes trespass regardless of relationship to the occupant.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "trespass, dwelling, entering without permission, break-in, room, house, roommate"
+    "keywords": "trespass, dwelling, entering without permission, break-in, room, house, roommate",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Defamation (Libel and Slander)",
     "fullText": "Act No. 3815 (Art. 353-362) - Libel (Art. 355) is a public and malicious imputation of a crime, vice, or defect (real or imaginary) that tends to dishonor a person, committed through writing, printing, or similar means. Slander (Art. 358) is oral defamation. Slander by Deed (Art. 359) covers defamation through actions. Incriminatory Machinations (Art. 363-364) cover false accusation and intriguing against honor. Penalties range from arresto menor to prision correccional.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "libel, slander, defamation, false accusation, honor, reputation, social media"
+    "keywords": "libel, slander, defamation, false accusation, honor, reputation, social media",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Perjury and False Testimony",
     "fullText": "Act No. 3815 (Art. 180-184) - Perjury (Art. 183) is committed by making a false statement under oath in a material matter before a competent officer. False Testimony (Art. 180-182) covers witnesses who give false statements in judicial proceedings, whether for or against the defendant. Fabrication and use of false evidence is also penalized.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "perjury, false accusation, false testimony, lying under oath, fabrication, evidence"
+    "keywords": "perjury, false accusation, false testimony, lying under oath, fabrication, evidence",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Malicious Mischief",
     "fullText": "Act No. 3815 (Art. 327-331) - Malicious Mischief is committed by deliberately causing damage to the property of another. Includes scratching or denting vehicles, destroying crops or fences, defacing walls, or damaging equipment. Penalties depend on the value of damage: over ₱1,000 = arresto mayor; ₱200 to ₱1,000 = arresto menor; under ₱200 = fine. Special cases include damage to agricultural property.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "malicious mischief, property damage, vandalism, scratching car, destruction, deliberate damage"
+    "keywords": "malicious mischief, property damage, vandalism, scratching car, destruction, deliberate damage",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Unjust Vexation",
     "fullText": "Act No. 3815 (Art. 287 para. 2) - Unjust vexation is any human conduct which, although not producing physical or material harm, causes annoyance, irritation, torment, distress, or disturbance to the mind of the person to whom it is directed. This is a catch-all provision covering acts that do not fall under more specific crimes. Penalty: arresto menor or a fine.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "unjust vexation, annoyance, harassment, irritation, disturbance, nuisance, petty crime"
+    "keywords": "unjust vexation, annoyance, harassment, irritation, disturbance, nuisance, petty crime",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Reckless Imprudence",
     "fullText": "Act No. 3815 (Art. 365) - Reckless imprudence consists of voluntarily doing or failing to do an act that, if done with malice, would constitute a felony. Covers vehicular accidents, medical malpractice, and negligent acts resulting in homicide, physical injuries, or property damage. Reckless imprudence resulting in homicide carries prision correccional. Simple imprudence carries lower penalties.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "reckless imprudence, negligence, vehicular accident, car accident, hit and run, traffic accident, malpractice"
+    "keywords": "reckless imprudence, negligence, vehicular accident, car accident, hit and run, traffic accident, malpractice",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Comprehensive Dangerous Drugs Act",
     "fullText": "Republic Act No. 9165 - Criminalizes possession, sale, manufacture, and distribution of dangerous drugs. Minimum penalties: possession of 10g+ shabu = life imprisonment and ₱500,000 fine. Provides for plea bargaining, rehabilitation, and drug testing. PDEA is the primary enforcement agency.",
     "link": "https://lawphil.net/statutes/repacts/ra2002/ra_9165_2002.html",
-    "keywords": "drugs, shabu, marijuana, possession, PDEA, rehabilitation, drug test"
+    "keywords": "drugs, shabu, marijuana, possession, PDEA, rehabilitation, drug test",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Rape Law",
     "fullText": "Republic Act No. 8353 - Reclassifies rape as a crime against persons (not against chastity). Covers rape by sexual intercourse and rape by sexual assault. Penalties: reclusion perpetua for rape by force/intimidation. Marital rape is recognized. Victim's past sexual conduct is inadmissible.",
     "link": "https://lawphil.net/statutes/repacts/ra1997/ra_8353_1997.html",
-    "keywords": "rape, sexual assault, sexual abuse, consent, women, penalty"
+    "keywords": "rape, sexual assault, sexual abuse, consent, women, penalty",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Trafficking in Persons Act",
     "fullText": "Republic Act No. 9208 (as amended by RA 10364) - Defines and penalizes trafficking in persons including recruitment, transport, and exploitation. Qualified trafficking (involving children, large-scale) carries life imprisonment and fines of ₱2,000,000-₱5,000,000. IACAT coordinates anti-trafficking efforts.",
     "link": "https://lawphil.net/statutes/repacts/ra2003/ra_9208_2003.html",
-    "keywords": "trafficking, exploitation, forced labor, prostitution, children, IACAT"
+    "keywords": "trafficking, exploitation, forced labor, prostitution, children, IACAT",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail.",
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices",
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Criminal",
     "name": "Anti-Hazing Act",
     "fullText": "Republic Act No. 11053 - Absolutely prohibits all forms of hazing and other forms of initiation rites in fraternities, sororities, and organizations. Penalties: reclusion perpetua if death occurs. Officers and advisers of organizations are held liable. Schools must report violations.",
     "link": "https://lawphil.net/statutes/repacts/ra2018/ra_11053_2018.html",
-    "keywords": "hazing, fraternity, sorority, initiation, school, organization, death"
+    "keywords": "hazing, fraternity, sorority, initiation, school, organization, death",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Bullying Act",
     "fullText": "Republic Act No. 10627 - Requires all schools to adopt anti-bullying policies. Covers physical, verbal, and cyber bullying in schools. Schools must provide intervention programs and report incidents. DepEd oversees compliance.",
     "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10627_2013.html",
-    "keywords": "bullying, school, cyberbullying, DepEd, student, harassment"
+    "keywords": "bullying, school, cyberbullying, DepEd, student, harassment",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Illegal Recruitment and Anti-Illegal Recruitment Act",
     "fullText": "Republic Act No. 8042 as amended by R.A. 10022 (Migrant Workers Act) - Penalizes illegal recruitment of workers for overseas employment. Large-scale or syndicated illegal recruitment is an offense carrying life imprisonment and a fine of not less than ₱2,000,000. POEA/DMW handles legitimate recruitment. Victims may file complaints at the DMW, DOLE, or NBI.",
     "link": "https://lawphil.net/statutes/repacts/ra1995/ra_8042_1995.html",
-    "keywords": "illegal recruitment, OFW, overseas worker, POEA, DMW, scam, agency, employment abroad"
+    "keywords": "illegal recruitment, OFW, overseas worker, POEA, DMW, scam, agency, employment abroad",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Alarm and Scandal, Noise Disturbances",
     "fullText": "Act No. 3815 (Art. 155) - Alarms and scandals are punished when committed by: (1) discharging firearms, rockets, or firecrackers causing alarm, (2) instigating or taking active part in charivari or disturbances (excessive noise), (3) disturbing public peace while intoxicated. Penalties: arresto menor or a fine. Local government ordinances may also penalize excessive noise from vehicles, establishments, or residences.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "noise, disturbance, alarm, scandal, loud, muffler, car, motorcycle, peace, nuisance"
+    "keywords": "noise, disturbance, alarm, scandal, loud, muffler, car, motorcycle, peace, nuisance",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Labor",
     "name": "Labor Code of the Philippines — Termination and Security of Tenure",
     "fullText": "Presidential Decree No. 442 - Governs employment relations including hiring, working conditions, wages, benefits, termination, and labor disputes. Art. 294 guarantees Security of Tenure: an employee cannot be dismissed except for just cause (Art. 297: serious misconduct, willful disobedience, gross neglect, fraud, crime against employer) or authorized cause (Art. 298-299: redundancy, retrenchment, closure). Due process requires two written notices and a hearing. Illegally dismissed employees are entitled to reinstatement and full backwages. Minimum wage is set by Regional Tripartite Wages and Productivity Boards. 13th month pay is mandatory under P.D. 851.",
     "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_442_1974.html",
-    "keywords": "employment, termination, wages, overtime, benefits, DOLE, unfair labor, illegal dismissal, fired, security of tenure, backwages, 13th month"
+    "keywords": "employment, termination, wages, overtime, benefits, DOLE, unfair labor, illegal dismissal, fired, security of tenure, backwages, 13th month",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Employment contract, payslips, company ID, and notices",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Labor",
     "name": "Domestic Workers Act (Kasambahay Law)",
     "fullText": "Republic Act No. 10361 - Governs employment of domestic workers (kasambahay). Minimum wage for NCR: ₱5,000/month. Requires SSS, PhilHealth, Pag-IBIG coverage. Provides 5 days service incentive leave per year. Employer must provide food, lodging, and rest days.",
     "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10361_2013.html",
-    "keywords": "kasambahay, domestic worker, maid, helper, minimum wage, benefits"
+    "keywords": "kasambahay, domestic worker, maid, helper, minimum wage, benefits",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Report to the barangay, PNP Women and Children Protection Desk, or the prosecutor and ask about a protection order.",
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Valid ID",
+      "Medical certificate or photos if there was injury",
+      "Messages, recordings, or witnesses that show the abuse",
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not confront the person if it is unsafe. Ask the barangay or police for help first."
+    ],
+    "recommendedAgency": "Barangay / PNP WCPD / DSWD / Prosecutor"
   },
   {
     "category": "Labor",
     "name": "Expanded Maternity Leave Law",
     "fullText": "Republic Act No. 11210 - Grants 105 days of paid maternity leave for female workers (live birth), 60 days for miscarriage. Additional 15 days for solo parents. 7 days transferable to father/partner. Applies to all female workers in public and private sectors.",
     "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11210_2019.html",
-    "keywords": "maternity leave, pregnancy, childbirth, benefits, solo parent"
+    "keywords": "maternity leave, pregnancy, childbirth, benefits, solo parent",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Labor",
     "name": "Anti-Sexual Harassment Act",
     "fullText": "Republic Act No. 7877 - Penalizes sexual harassment in the workplace, education, and training environment. Covers demands, requests, or requiring sexual favors as a condition for hiring, promotion, continued employment, or grades. Employers must establish procedures for resolution of sexual harassment cases. Penalties: imprisonment of 1 to 6 months or fine of ₱10,000 to ₱20,000, or both.",
     "link": "https://lawphil.net/statutes/repacts/ra1995/ra_7877_1995.html",
-    "keywords": "sexual harassment, workplace, employer, boss, school, teacher, quid pro quo"
+    "keywords": "sexual harassment, workplace, employer, boss, school, teacher, quid pro quo",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Labor",
     "name": "Safe Spaces Act (Bawal Bastos Law)",
     "fullText": "Republic Act No. 11313 - Penalizes gender-based sexual harassment in streets, public spaces, online, and the workplace. Covers catcalling, wolf-whistling, unwanted sexual remarks, persistent telling of sexual jokes, stalking, and online sexual harassment (uploading, sharing sexual content without consent). Penalties: arresto menor and/or fines from ₱1,000 to ₱500,000 depending on the offense. LGUs must create local committees for Safe Spaces compliance.",
     "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11313_2019.html",
-    "keywords": "safe spaces, bawal bastos, catcalling, sexual harassment, stalking, online harassment, public spaces, gender"
+    "keywords": "safe spaces, bawal bastos, catcalling, sexual harassment, stalking, online harassment, public spaces, gender",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Labor",
     "name": "Paternity Leave Act",
     "fullText": "Republic Act No. 8187 - Grants 7 days of paid paternity leave to married male employees for the first four deliveries of the legitimate spouse. Leave must be taken within 60 days after the date of delivery or miscarriage.",
     "link": "https://lawphil.net/statutes/repacts/ra1996/ra_8187_1996.html",
-    "keywords": "paternity leave, father, husband, delivery, childbirth, benefits"
+    "keywords": "paternity leave, father, husband, delivery, childbirth, benefits",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Property",
     "name": "Civil Code of the Philippines — Property and Ownership",
     "fullText": "Republic Act No. 386 (Book II) - Governs ownership, possession, usufruct, easements, and different modes of acquiring property. Art. 428: An owner has the right to enjoy and dispose of property. Art. 429: Owner may enclose or fence land. Art. 430-431: Owner may cut branches/roots from neighboring property that intrude upon their land. Easement of right of way (Art. 649-657): A person whose property is enclosed by other estates may demand a right of way. Nuisance (Art. 694-707): Anything which injures the health, safety, or comfort of the community is a nuisance and may be abated.",
     "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
-    "keywords": "property, land, ownership, boundary, fence, easement, right of way, nuisance, neighbor, tree, encroachment"
+    "keywords": "property, land, ownership, boundary, fence, easement, right of way, nuisance, neighbor, tree, encroachment",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "Civil Code of the Philippines — Obligations and Contracts",
     "fullText": "Republic Act No. 386 (Book IV) - Governs obligations and contracts between parties. Art. 1159: Obligations arising from contracts have the force of law between the contracting parties. Art. 1169: Demand is needed for delay. Art. 1191: Power to rescind obligations. Art. 1305-1317: Essential requisites of contracts (consent, object, cause). Art. 1370-1379: Interpretation of contracts. Art. 2176: Quasi-delicts — whoever by act or omission causes damage to another through fault or negligence must pay damages. Covers breach of contract, unpaid debts, loans, and written agreements.",
     "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
-    "keywords": "contract, obligation, breach, loan, debt, unpaid, damages, quasi-delict, negligence, agreement"
+    "keywords": "contract, obligation, breach, loan, debt, unpaid, damages, quasi-delict, negligence, agreement",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "Civil Code — Lease and Rent Disputes",
     "fullText": "Republic Act No. 386 (Art. 1643-1688) - Governs lease of properties. Lessor is obligated to deliver the property, maintain it in a suitable condition, and not disturb the peaceful enjoyment of the lessee. Lessee must pay rent, use the property as agreed, and return it upon termination. Rent increases, unauthorized eviction, and deposit disputes are covered. Ejectment (unlawful detainer) suits may be filed in court after barangay mediation. Rent Control Act (R.A. 9653) caps rent increases at 7% annually for residential units renting at ₱10,000/month or below.",
     "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
-    "keywords": "lease, rent, tenant, landlord, ejectment, eviction, deposit, rental, apartment"
+    "keywords": "lease, rent, tenant, landlord, ejectment, eviction, deposit, rental, apartment",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Ask the barangay for conciliation under the Katarungang Pambarangay rules before going to court, when the dispute is covered."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Valid ID and a short written account of the dispute"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Property",
     "name": "Civil Code — Building Contracts and Construction Liability",
     "fullText": "Republic Act No. 386 (Art. 1713-1731) - Governs contracts for construction work and building. The contractor is liable for defects in the work and for the destruction of the building due to defects in construction or use of inferior materials within 15 years (Art. 1723). The engineer/architect is solidarily liable with the contractor. Disputes over construction quality, unfinished work, and contractor liability are covered.",
     "link": "https://lawphil.net/statutes/repacts/ra1949/ra_386_1949.html",
-    "keywords": "construction, building, contractor, defect, home, house, repair, liability, engineer, architect"
+    "keywords": "construction, building, contractor, defect, home, house, repair, liability, engineer, architect",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "National Building Code of the Philippines",
     "fullText": "Presidential Decree No. 1096 - Establishes minimum standards and requirements for building design, construction, use, occupancy, and maintenance. Requires building permits before construction. Sets fire safety, structural, and sanitary standards. Covers illegal structures and unauthorized construction, demolition orders, and penalties for violations. Building officials enforce compliance.",
     "link": "https://lawphil.net/statutes/presdecs/pd1975/pd_1096_1975.html",
-    "keywords": "building code, construction permit, illegal structure, demolition, fire safety, zoning, building permit"
+    "keywords": "building code, construction permit, illegal structure, demolition, fire safety, zoning, building permit",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Property",
     "name": "Comprehensive Agrarian Reform Law",
     "fullText": "Republic Act No. 6657 - Governs agrarian reform and land distribution. Covers retention limits, just compensation, and beneficiary qualifications. CARP provides for redistribution of agricultural lands to tenant-farmers and farmworkers.",
     "link": "https://lawphil.net/statutes/repacts/ra1988/ra_6657_1988.html",
-    "keywords": "land reform, agricultural, tenant, farmer, CARP, DAR, land title"
+    "keywords": "land reform, agricultural, tenant, farmer, CARP, DAR, land title",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Consumer",
     "name": "Consumer Act of the Philippines",
     "fullText": "Republic Act No. 7394 - Protects consumer rights including right to safety, information, choice, representation, and redress. Covers product quality, labeling, advertising, warranties, and liability for defective products. Art. 50-52 penalize deceptive sales acts, false or misleading advertisements, and fraudulent sales promotions. DTI handles consumer complaints. Consumers may seek refund, repair, or replacement for defective products within the warranty period.",
     "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7394_1992.html",
-    "keywords": "consumer, protection, product, defective, warranty, complaint, DTI, refund, false advertising, deceptive sales, online purchase"
+    "keywords": "consumer, protection, product, defective, warranty, complaint, DTI, refund, false advertising, deceptive sales, online purchase",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Consumer",
     "name": "Price Act",
     "fullText": "Republic Act No. 7581 - Provides for regulation of prices of basic necessities and prime commodities during emergencies and other situations. DTI has authority to impose price ceilings and penalize profiteering and hoarding.",
     "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7581_1992.html",
-    "keywords": "price, overpricing, profiteering, basic necessity, DTI, hoarding"
+    "keywords": "price, overpricing, profiteering, basic necessity, DTI, hoarding",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase."
+    ],
+    "documentsNeeded": [
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DTI / seller complaint desk"
   },
   {
     "category": "Consumer",
     "name": "Lemon Law (New Motor Vehicle Act)",
     "fullText": "Republic Act No. 10642 - Provides remedies to purchasers of brand-new motor vehicles with defects or nonconformities not repaired after four attempts within 12 months or 20,000 km. Consumer may demand replacement vehicle or refund of full purchase price. DTI is the implementing agency.",
     "link": "https://lawphil.net/statutes/repacts/ra2014/ra_10642_2014.html",
-    "keywords": "lemon law, car, vehicle, defect, replacement, refund, DTI, new car"
+    "keywords": "lemon law, car, vehicle, defect, replacement, refund, DTI, new car",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase."
+    ],
+    "documentsNeeded": [
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DTI / seller complaint desk"
   },
   {
     "category": "Cybercrime",
     "name": "Cybercrime Prevention Act",
     "fullText": "Republic Act No. 10175 - Criminalizes cybercrime offenses including illegal access, data interference, cybersex, child pornography, identity theft, cyber libel, and computer-related fraud. Penalties are one degree higher than equivalent offenses under the Revised Penal Code. Online scams, phishing, hacking, unauthorized access to accounts, and online threats are covered. PNP Anti-Cybercrime Group and NBI Cybercrime Division handle enforcement.",
     "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
-    "keywords": "cybercrime, hacking, online fraud, cyber libel, identity theft, phishing, online scam, Facebook, social media"
+    "keywords": "cybercrime, hacking, online fraud, cyber libel, identity theft, phishing, online scam, Facebook, social media",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Cybercrime",
     "name": "Anti-Photo and Video Voyeurism Act",
     "fullText": "Republic Act No. 9995 - Criminalizes taking, copying, selling, or distributing photos or videos of a person's private body parts or sexual activity without consent. Penalties: imprisonment of 3-7 years and fine of ₱100,000-₱500,000.",
     "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9995_2009.html",
-    "keywords": "voyeurism, private photos, revenge porn, nude, video, consent, privacy"
+    "keywords": "voyeurism, private photos, revenge porn, nude, video, consent, privacy",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write the organization that holds your data, then complain to the National Privacy Commission if they do not act."
+    ],
+    "documentsNeeded": [
+      "Proof of the leak or misuse and copies of your requests"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "National Privacy Commission"
   },
   {
     "category": "Data Privacy",
     "name": "Data Privacy Act",
     "fullText": "Republic Act No. 10173 - Protects individual personal data in information and communications systems. Establishes the National Privacy Commission (NPC). Requires consent for data collection, purpose limitation, and data breach notification within 72 hours. Penalties: imprisonment of 1-6 years and fines of ₱500,000-₱5,000,000.",
     "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10173_2012.html",
-    "keywords": "data privacy, personal information, NPC, consent, data breach, GDPR equivalent"
+    "keywords": "data privacy, personal information, NPC, consent, data breach, GDPR equivalent",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write the organization that holds your data, then complain to the National Privacy Commission if they do not act."
+    ],
+    "documentsNeeded": [
+      "Proof of the leak or misuse and copies of your requests"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "National Privacy Commission"
   },
   {
     "category": "Criminal",
     "name": "Bouncing Checks Law",
     "fullText": "Batas Pambansa Bilang 22 (B.P. 22) - Makes it unlawful for any person to make or issue a check knowing at the time of issue that they do not have sufficient funds. If the check is dishonored upon presentment, the maker must pay the amount within 5 banking days after receiving notice of dishonor. Failure to pay constitutes prima facie evidence of knowledge of insufficient funds. Penalties: imprisonment of not less than 30 days but not more than 1 year, or a fine equal to double the amount of the check (not exceeding ₱200,000), or both.",
     "link": "https://lawphil.net/statutes/bataspam/bp1979/bp_blg_22_1979.html",
-    "keywords": "bouncing check, BP 22, insufficient funds, dishonored check, debt, payment, bank"
+    "keywords": "bouncing check, BP 22, insufficient funds, dishonored check, debt, payment, bank",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Anti-Fencing Law",
     "fullText": "Presidential Decree No. 1612 - Penalizes fencing, which is the act of buying or receiving stolen property with intent to gain. Any person who knowingly buys, receives, possesses, keeps, acquires, conceals, sells, or disposes of stolen property is guilty of fencing. Penalties: prision mayor if the value of the property exceeds ₱12,000. Applies to buyers of stolen goods from online marketplaces.",
     "link": "https://lawphil.net/statutes/presdecs/pd1979/pd_1612_1979.html",
-    "keywords": "fencing, stolen property, buying stolen, receiver, pawnshop, secondhand"
+    "keywords": "fencing, stolen property, buying stolen, receiver, pawnshop, secondhand",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Anti-Carnapping Act",
     "fullText": "Republic Act No. 10883 (New Anti-Carnapping Act of 2016) - Carnapping is the taking of a motor vehicle belonging to another with intent to gain, by means of violence, intimidation, or force. Penalties: imprisonment of 20 years if without violence; life imprisonment if with violence, intimidation, or if the driver/occupant is killed or raped. Covers motorcycles, cars, trucks, and other motorized vehicles.",
     "link": "https://lawphil.net/statutes/repacts/ra2016/ra_10883_2016.html",
-    "keywords": "carnapping, car theft, motorcycle theft, vehicle theft, stolen car, motor vehicle"
+    "keywords": "carnapping, car theft, motorcycle theft, vehicle theft, stolen car, motor vehicle",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Property",
     "name": "Rent Control Act",
     "fullText": "Republic Act No. 9653 - Regulates rent increases for residential units with monthly rent not exceeding ₱10,000 (or amounts determined by the Housing and Urban Development Coordinating Council). Rent may only be increased by a maximum of 7% per year. Landlord cannot evict tenants except for specific reasons: subleasing without consent, arrears of 3 months, need for repairs, or owner's legitimate need to repossess. Requires at least 3 months advance notice for eviction.",
     "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9653_2009.html",
-    "keywords": "rent control, rental increase, landlord, tenant, eviction, residential, apartment, boarding house"
+    "keywords": "rent control, rental increase, landlord, tenant, eviction, residential, apartment, boarding house",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "Small Claims Court Procedures",
     "fullText": "A.M. No. 08-8-7-SC (Revised Rules of Procedure for Small Claims Cases) - Small claims court handles money claims not exceeding ₱1,000,000 (as amended). No lawyers are required. Filing fees are minimal. Cases are resolved in a single hearing. Covers unpaid loans, bounced checks, rent deposits, property damage claims, and consumer complaints. Filed at the Municipal Trial Court or Metropolitan Trial Court.",
     "link": "https://lawphil.net/courts/supreme/am/am_08-8-7-sc_2008.html",
-    "keywords": "small claims, money claim, court, no lawyer, unpaid debt, filing, municipal trial court"
+    "keywords": "small claims, money claim, court, no lawyer, unpaid debt, filing, municipal trial court",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "Katarungang Pambarangay Law (Barangay Justice System)",
     "fullText": "Republic Act No. 7160 (Local Government Code, Chapter 7) - Requires parties residing in the same city or municipality to undergo barangay conciliation (mediation) before filing a case in court. Covers disputes between neighbors, minor criminal offenses (penalties not exceeding 1 year imprisonment or ₱5,000 fine), and civil cases. The Lupong Tagapamayapa mediates. Failure to comply results in dismissal of the court case. Settlement at barangay level has the force of a court judgment.",
     "link": "https://lawphil.net/statutes/repacts/ra1991/ra_7160_1991.html",
-    "keywords": "barangay, mediation, conciliation, lupon, neighbor dispute, settlement, local government"
+    "keywords": "barangay, mediation, conciliation, lupon, neighbor dispute, settlement, local government",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail.",
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Ask the barangay for conciliation under the Katarungang Pambarangay rules before going to court, when the dispute is covered."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Employment contract, payslips, company ID, and notices",
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Valid ID and a short written account of the dispute"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Anti-Illegal Gambling Law",
     "fullText": "Presidential Decree No. 1602 as amended by R.A. 9287 - Penalizes illegal gambling including jueteng, masiao, last two, and illegal online betting. Maintaining a gambling den or being a collector/agent carries penalties of prision correccional to prision mayor and fines. PAGCOR regulates legal gambling; all other forms are prohibited.",
     "link": "https://lawphil.net/statutes/presdecs/pd1978/pd_1602_1978.html",
-    "keywords": "gambling, jueteng, illegal betting, casino, online gambling, PAGCOR"
+    "keywords": "gambling, jueteng, illegal betting, casino, online gambling, PAGCOR",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Comprehensive Firearms and Ammunition Regulation Act",
     "fullText": "Republic Act No. 10591 - Regulates the ownership, possession, manufacture, and carrying of firearms. Requires a license (LTOPF) from the PNP Firearms and Explosives Office. Illegal possession of firearms: prision mayor to reclusion perpetua depending on the type of firearm. Carrying firearms outside residence without permit (PTCFOR) is a separate offense. Amnesty programs allow voluntary surrender of unlicensed firearms.",
     "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10591_2013.html",
-    "keywords": "firearms, gun, ammunition, license, illegal possession, PNP, LTOPF, carrying gun"
+    "keywords": "firearms, gun, ammunition, license, illegal possession, PNP, LTOPF, carrying gun",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "LTO / local traffic office"
   },
   {
     "category": "Criminal",
     "name": "Land Transportation and Traffic Code",
     "fullText": "Republic Act No. 4136 - Governs land transportation and traffic rules in the Philippines. Covers driver's license requirements, vehicle registration, speed limits, right of way rules, traffic violations, and penalties. Driving without a license is punishable by fine and/or imprisonment. Reckless driving, driving under the influence, and failure to render aid after an accident are criminal offenses. LTO and MMDA/local traffic offices enforce compliance.",
     "link": "https://lawphil.net/statutes/repacts/ra1964/ra_4136_1964.html",
-    "keywords": "traffic, driving, license, vehicle, accident, reckless driving, LTO, speed limit, hit and run, drunk driving"
+    "keywords": "traffic, driving, license, vehicle, accident, reckless driving, LTO, speed limit, hit and run, drunk driving",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Anti-Drunk and Drugged Driving Act",
     "fullText": "Republic Act No. 10586 - Penalizes driving under the influence of alcohol, dangerous drugs, or other intoxicating substances. Blood alcohol concentration (BAC) limit: 0.05% for regular drivers. First offense: 3 months imprisonment and ₱20,000-₱80,000 fine. Subsequent offenses carry heavier penalties. Refusal to undergo chemical testing is punishable. License suspension or revocation applies.",
     "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10586_2013.html",
-    "keywords": "drunk driving, DUI, alcohol, driving under the influence, blood alcohol, BAC, drugged driving"
+    "keywords": "drunk driving, DUI, alcohol, driving under the influence, blood alcohol, BAC, drugged driving",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "LTO / local traffic office"
   },
   {
     "category": "Criminal",
     "name": "Electricity Theft (Anti-Pilferage of Electricity Act)",
     "fullText": "Republic Act No. 7832 - Criminalizes pilferage of electricity (meter tampering, bypassing, direct connection, or unauthorized use of electricity). Penalties: imprisonment of 2-6 years and a fine equivalent to three times the amount of electricity pilfered. Prima facie evidence includes meter tampering, jumpers, or unusual decrease in readings. Utility companies may disconnect service upon discovery.",
     "link": "https://lawphil.net/statutes/repacts/ra1994/ra_7832_1994.html",
-    "keywords": "electricity theft, meter tampering, pilferage, utility, electric bypass, illegal connection, Meralco"
+    "keywords": "electricity theft, meter tampering, pilferage, utility, electric bypass, illegal connection, Meralco",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Water Theft (National Water Crisis Act)",
     "fullText": "Republic Act No. 8041 - Penalizes illegal tapping, stealing, or diverting water from pipelines, mains, or other waterworks. Penalties: imprisonment of 2-6 years and fines. Includes unauthorized connections, tampering with water meters, and destroying water infrastructure.",
     "link": "https://lawphil.net/statutes/repacts/ra1995/ra_8041_1995.html",
-    "keywords": "water theft, illegal connection, water meter, pipeline, waterworks, utility theft"
+    "keywords": "water theft, illegal connection, water meter, pipeline, waterworks, utility theft",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Intellectual Property Code",
     "fullText": "Republic Act No. 8293 - Protects intellectual property rights including patents, trademarks, copyrights, and industrial designs. Copyright protection is automatic upon creation of original work. Trademark infringement and unfair competition are actionable. Penalties for infringement: imprisonment of 1-9 years and fines of ₱50,000-₱1,500,000. Intellectual Property Office of the Philippines (IPOPHL) handles registration and disputes.",
     "link": "https://lawphil.net/statutes/repacts/ra1997/ra_8293_1997.html",
-    "keywords": "intellectual property, copyright, trademark, patent, infringement, piracy, IPOPHL, counterfeit"
+    "keywords": "intellectual property, copyright, trademark, patent, infringement, piracy, IPOPHL, counterfeit",
+    "priority": "low",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Immigration",
     "name": "Philippine Immigration Act",
     "fullText": "Commonwealth Act No. 613 - Governs the entry, stay, and departure of aliens in the Philippines. Covers visa requirements, deportation grounds, and the powers of the Bureau of Immigration (BI). Grounds for deportation include overstaying, criminal conviction, working without a permit, and being a public charge. Philippine citizens have the right to travel and return. Covers issues of foreign spouses, alien registration, and immigration violations.",
     "link": "https://lawphil.net/statutes/comacts/ca_613_1940.html",
-    "keywords": "immigration, visa, deportation, alien, foreign, Bureau of Immigration, overstay, passport"
+    "keywords": "immigration, visa, deportation, alien, foreign, Bureau of Immigration, overstay, passport",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Violence Against Persons with Disability Act",
     "fullText": "Republic Act No. 7277 (Magna Carta for Persons with Disability) as amended by R.A. 9442 - Provides for the rehabilitation, self-development, and self-reliance of persons with disabilities. Penalizes public ridicule, vilification, inciting or abetting discrimination, and denial of PWD privileges or discounts. PWDs are entitled to 20% discount on medical and transportation, educational assistance, and accessibility accommodations.",
     "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7277_1992.html",
-    "keywords": "PWD, disability, discrimination, discount, accessibility, rights, magna carta"
+    "keywords": "PWD, disability, discrimination, discount, accessibility, rights, magna carta",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Anti-Age Discrimination in Employment Act",
     "fullText": "Republic Act No. 10911 - Prohibits discrimination against employees and job applicants based on age. Employers cannot impose age requirements in job advertisements, decline employment based on age, or forcefully retire employees below 60 (for private sector) or 65 (for government). Penalties: fine of ₱50,000-₱500,000 and/or imprisonment of 3 months to 2 years.",
     "link": "https://lawphil.net/statutes/repacts/ra2016/ra_10911_2016.html",
-    "keywords": "age discrimination, employment, hiring, retirement, job applicant, ageism"
+    "keywords": "age discrimination, employment, hiring, retirement, job applicant, ageism",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Wiretapping Act",
     "fullText": "Republic Act No. 4200 - Prohibits and penalizes wiretapping, interception, or recording of private communications without the consent of all parties involved. Includes phone calls, private conversations, and electronic messages. Illegally obtained recordings are inadmissible in court. Penalties: imprisonment of 6 months to 6 years.",
     "link": "https://lawphil.net/statutes/repacts/ra1965/ra_4200_1965.html",
-    "keywords": "wiretapping, recording, private conversation, interception, phone tapping, eavesdropping"
+    "keywords": "wiretapping, recording, private conversation, interception, phone tapping, eavesdropping",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Alarms, Scandals, and Unlawful Use of Means",
     "fullText": "Act No. 3815 (Art. 153-155) - Art. 153: Tumults and disturbances of public order. Art. 154: Unlawful use of means of publication for false news. Art. 155: Alarms and scandals including discharging firearms, causing disturbances while intoxicated, and disturbing public peace. Applied to cases of public nuisance, noise complaints, and disorderly conduct.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "public disturbance, noise, disorder, scandal, fake news, false alarm, drunkenness"
+    "keywords": "public disturbance, noise, disorder, scandal, fake news, false alarm, drunkenness",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Environmental",
     "name": "Philippine Fisheries Code",
     "fullText": "Republic Act No. 8550 as amended by R.A. 10654 - Governs fisheries management and conservation. Criminalizes illegal fishing methods including dynamite fishing, cyanide fishing, use of fine mesh nets, fishing in marine protected areas, and commercial fishing in municipal waters. Penalties: imprisonment of 6 months to 5 years and fines of ₱100,000-₱50,000,000, confiscation of catch and fishing vessels. BFAR enforces compliance.",
     "link": "https://lawphil.net/statutes/repacts/ra1998/ra_8550_1998.html",
-    "keywords": "illegal fishing, dynamite fishing, cyanide, fisheries, BFAR, marine, commercial fishing, Visayas"
+    "keywords": "illegal fishing, dynamite fishing, cyanide, fisheries, BFAR, marine, commercial fishing, Visayas",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Cattle Rustling Law",
     "fullText": "Presidential Decree No. 533 - Penalizes cattle rustling: the taking away of large cattle (carabao, horse, cow, bull) or any portion thereof belonging to another without the owner's consent. Penalties: imprisonment of 10 years to life and fine of ₱1,000-₱15,000 depending on the number and value of the cattle. Applies heavily in rural agricultural areas of Mindanao, Visayas, and provincial Luzon.",
     "link": "https://lawphil.net/statutes/presdecs/pd1974/pd_533_1974.html",
-    "keywords": "cattle rustling, carabao, cow, horse, livestock, theft, rural, Mindanao, farm"
+    "keywords": "cattle rustling, carabao, cow, horse, livestock, theft, rural, Mindanao, farm",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Environmental",
     "name": "Coconut Preservation Act",
     "fullText": "Republic Act No. 8048 - Prohibits the cutting, felling, or destroying of coconut trees without a permit from the Philippine Coconut Authority (PCA). Penalties: imprisonment of 2-6 years and/or a fine of ₱20,000-₱50,000. Owners may only cut trees after obtaining a permit and planting replacement trees. Critical in coconut-producing provinces of Mindanao, Eastern Visayas, and Bicol.",
     "link": "https://lawphil.net/statutes/repacts/ra1995/ra_8048_1995.html",
-    "keywords": "coconut, tree cutting, PCA, Philippine Coconut Authority, Mindanao, copra, coconut farm"
+    "keywords": "coconut, tree cutting, PCA, Philippine Coconut Authority, Mindanao, copra, coconut farm",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Environmental",
     "name": "Philippine Clean Air Act",
     "fullText": "Republic Act No. 8749 - Provides for a comprehensive air quality management policy. Bans smoking in public places, regulates emissions from motor vehicles and industries, and penalizes burning of wastes. DENR, LGUs, and MMDA enforce air quality standards. Penalties: fine of ₱10,000-₱100,000 and/or imprisonment of 6 months to 6 years.",
     "link": "https://lawphil.net/statutes/repacts/ra1999/ra_8749_1999.html",
-    "keywords": "clean air, pollution, smoke, emissions, burning, vehicle emissions, DENR, smoking ban"
+    "keywords": "clean air, pollution, smoke, emissions, burning, vehicle emissions, DENR, smoking ban",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Environmental",
     "name": "Ecological Solid Waste Management Act",
     "fullText": "Republic Act No. 9003 - Provides an ecological solid waste management framework. Mandates segregation of waste at source, prohibits open dumping and burning, and requires LGUs to establish materials recovery facilities. Improper waste disposal penalties: fine of ₱300-₱1,000 for first offense. Illegal dumping: imprisonment of 1 day to 6 years and/or fine of ₱100-₱1,000,000.",
     "link": "https://lawphil.net/statutes/repacts/ra2000/ra_9003_2000.html",
-    "keywords": "waste management, garbage, segregation, dumping, recycling, burning trash, environment"
+    "keywords": "waste management, garbage, segregation, dumping, recycling, burning trash, environment",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Comprehensive Law on Firearms — Illegal Possession of Loose Firearms",
     "fullText": "Republic Act No. 10591 (Section 28) - Any person who possesses an unlicensed firearm or who carries a licensed firearm outside residence without proper permit to carry (PTCFOR) may be penalized with prision mayor to reclusion perpetua depending on the type of firearm. Applies to cases of election-related gun carrying, bringing firearms into schools or government offices, and smuggled weapons.",
     "link": "https://lawphil.net/statutes/repacts/ra2013/ra_10591_2013.html",
-    "keywords": "loose firearms, unlicensed gun, illegal gun, permit, PNP, firearms, election gun ban"
+    "keywords": "loose firearms, unlicensed gun, illegal gun, permit, PNP, firearms, election gun ban",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "LTO / local traffic office"
   },
   {
     "category": "Criminal",
     "name": "Anti-Money Laundering Act",
     "fullText": "Republic Act No. 9160 as amended - Criminalizes money laundering involving proceeds of unlawful activities. Covered institutions (banks, remittance companies, casinos) must report suspicious transactions exceeding ₱500,000. AMLC (Anti-Money Laundering Council) investigates. Penalties: imprisonment of 7-14 years and fines of ₱3,000,000-₱300,000,000 (twice the monetary value involved).",
     "link": "https://lawphil.net/statutes/repacts/ra2001/ra_9160_2001.html",
-    "keywords": "money laundering, AMLC, suspicious transaction, proceeds, illegal funds, bank, remittance"
+    "keywords": "money laundering, AMLC, suspicious transaction, proceeds, illegal funds, bank, remittance",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Anti-Terrorism Act",
     "fullText": "Republic Act No. 11479 - Defines and penalizes terrorism: engaging in acts intended to cause death, serious bodily injury, or damage to property to intimidate the public or coerce the government. Penalties: life imprisonment without parole. Authorizes surveillance, detention of suspects for 14-24 days, and designation of terrorist organizations. Anti-Terrorism Council oversees implementation.",
     "link": "https://lawphil.net/statutes/repacts/ra2020/ra_11479_2020.html",
-    "keywords": "terrorism, terrorist, bomb, attack, Anti-Terrorism Council, security, insurgency, Mindanao"
+    "keywords": "terrorism, terrorist, bomb, attack, Anti-Terrorism Council, security, insurgency, Mindanao",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Family",
     "name": "Juvenile Justice and Welfare Act",
     "fullText": "Republic Act No. 9344 as amended by R.A. 10630 - Establishes a juvenile justice system for children in conflict with the law (CICL). Minimum age of criminal responsibility: 15 years old. Children aged 15-18 are exempt from criminal liability unless they acted with discernment. CICL must undergo community-based intervention programs. Social workers must be present during investigation.",
     "link": "https://lawphil.net/statutes/repacts/ra2006/ra_9344_2006.html",
-    "keywords": "juvenile, minor, child offender, criminal responsibility, CICL, social worker, youth"
+    "keywords": "juvenile, minor, child offender, criminal responsibility, CICL, social worker, youth",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Adultery and Concubinage",
     "fullText": "Act No. 3815 (Art. 333-334) - Adultery (Art. 333): A married woman who has sexual intercourse with a man not her husband is guilty of adultery. Both are punished with prision correccional. Concubinage (Art. 334): A married man is guilty of concubinage when keeping a mistress in the conjugal dwelling, having sexual intercourse under scandalous circumstances, or cohabiting in any other place. Penalty: prision correccional for the husband; destierro for the concubine.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "adultery, concubinage, infidelity, cheating, mistress, spouse, married"
+    "keywords": "adultery, concubinage, infidelity, cheating, mistress, spouse, married",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Family",
     "name": "Expanded Solo Parents' Welfare Act",
     "fullText": "Republic Act No. 11861 - Amends R.A. 8972 to expand benefits for solo parents. Includes: 7 days parental leave, 10% discount on school tuition, priority in government housing programs, livelihood assistance, flexible work arrangements, and protection from termination due to solo parent status. DSWD issues the Solo Parent ID.",
     "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11861_2022.html",
-    "keywords": "solo parent, single parent, benefits, parental leave, discount, DSWD, expanded"
+    "keywords": "solo parent, single parent, benefits, parental leave, discount, DSWD, expanded",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Criminal",
     "name": "Anti-Online Sexual Abuse and Exploitation of Children (OSAEC) Act",
     "fullText": "Republic Act No. 11930 - Criminalizes online sexual abuse and exploitation of children including livestreaming, grooming, sexting with minors, and production/distribution of child sexual abuse materials. Penalties: life imprisonment and fines up to ₱5,000,000. ISPs and platforms must report and remove CSAM. PNP-WCPC and NBI handle enforcement.",
     "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11930_2022.html",
-    "keywords": "OSAEC, child exploitation, online abuse, grooming, sexting minor, livestream abuse"
+    "keywords": "OSAEC, child exploitation, online abuse, grooming, sexting minor, livestream abuse",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "SIM Registration Act",
     "fullText": "Republic Act No. 11934 - Requires registration of all SIM cards and social media accounts with valid government-issued ID. Aims to deter text scams, online fraud, and cybercrime by ensuring traceability. Penalties for non-registration: SIM deactivation. Use of fraudulently registered SIM: imprisonment of 6 months to 2 years and fine of ₱100,000-₱300,000.",
     "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11934_2022.html",
-    "keywords": "SIM registration, text scam, phone number, social media registration, fraud, cybercrime, Globe, Smart"
+    "keywords": "SIM registration, text scam, phone number, social media registration, fraud, cybercrime, Globe, Smart",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Financial Products and Services Consumer Protection Act",
     "fullText": "Republic Act No. 11765 - Protects consumers of financial products and services from abusive, unfair, and deceptive practices by banks, lending companies, insurance firms, and financing companies. BSP, SEC, IC, and CDA enforce compliance. Covers unauthorized charges, hidden fees, predatory lending, and unfair collection practices. Penalties: fines up to ₱2,000,000 per violation.",
     "link": "https://lawphil.net/statutes/repacts/ra2022/ra_11765_2022.html",
-    "keywords": "financial consumer protection, lending, bank, insurance, unfair collection, hidden fees, BSP, SEC"
+    "keywords": "financial consumer protection, lending, bank, insurance, unfair collection, hidden fees, BSP, SEC",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group.",
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened",
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Property",
     "name": "Condominium Act",
     "fullText": "Republic Act No. 4726 - Governs the creation, organization, and management of condominium corporations. Defines ownership rights of unit owners and common areas. Covers master deeds, by-laws, assessments, and disputes between unit owners and condo corporations. HLURB (now DHSUD) has jurisdiction over condominium disputes.",
     "link": "https://lawphil.net/statutes/repacts/ra1966/ra_4726_1966.html",
-    "keywords": "condominium, condo, unit owner, HOA, association dues, common area, DHSUD, HLURB"
+    "keywords": "condominium, condo, unit owner, HOA, association dues, common area, DHSUD, HLURB",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Property",
     "name": "Subdivision and Condominium Buyers' Protective Decree",
     "fullText": "Presidential Decree No. 957 - Protects buyers of subdivision lots and condominium units from unscrupulous developers. Developers must secure a license to sell and complete development within the specified time. Buyers who have paid at least 2 years of installments cannot be ejected. Refund procedures, non-delivery of titles, and developer obligations are covered. DHSUD handles complaints.",
     "link": "https://lawphil.net/statutes/presdecs/pd1976/pd_957_1976.html",
-    "keywords": "subdivision, lot buyer, developer, title, refund, installment, license to sell, DHSUD"
+    "keywords": "subdivision, lot buyer, developer, title, refund, installment, license to sell, DHSUD",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep copies of the title, tax declaration, or lease. Many land and rental disputes start at the barangay.",
+      "Write the seller a demand for repair, replacement, or refund and keep proof of purchase.",
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Title, tax declaration, lease, receipts, and demand letters",
+      "Official receipt, warranty card, photos of the defect, and chat or email with the seller",
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay / Register of Deeds / DHSUD or court as the law provides"
   },
   {
     "category": "Labor",
     "name": "Telecommuting Act",
     "fullText": "Republic Act No. 11165 - Establishes the legal framework for telecommuting (work from home) arrangements in the private sector. Employers must ensure telecommuting employees receive equivalent pay, benefits, and working conditions as on-site workers. Voluntary agreement between employer and employee is required.",
     "link": "https://lawphil.net/statutes/repacts/ra2018/ra_11165_2018.html",
-    "keywords": "work from home, telecommuting, remote work, WFH, employee rights, benefits"
+    "keywords": "work from home, telecommuting, remote work, WFH, employee rights, benefits",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Labor",
     "name": "Anti-Endo / Security of Tenure Act",
     "fullText": "Republic Act No. 11199 — Amends provisions of the Labor Code to strengthen security of tenure and prohibit labor-only contracting (endo or end-of-contract scheme). Requires legitimate contractors to have substantial capital. Workers engaged in labor-only contracting arrangements are deemed regular employees of the principal employer.",
     "link": "https://lawphil.net/statutes/repacts/ra2019/ra_11199_2019.html",
-    "keywords": "endo, contractualization, labor-only contracting, regular employee, security of tenure, contractor"
+    "keywords": "endo, contractualization, labor-only contracting, regular employee, security of tenure, contractor",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write down dates, pay, and what management said. File at DOLE or the NLRC if talks fail."
+    ],
+    "documentsNeeded": [
+      "Employment contract, payslips, company ID, and notices"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "DOLE / NLRC"
   },
   {
     "category": "Criminal",
     "name": "Revised Penal Code — Qualified Trespass to Dwelling",
     "fullText": "Act No. 3815 (Art. 280) — If the offender is a public officer or employee, or if violence or intimidation is used, the penalty is prision correccional and fine. Private persons who enter another's dwelling against the will of the occupant are punished with arresto mayor and fine. The prohibition protects the sanctity of the home. A roommate entering a locked personal room without consent may constitute trespass.",
     "link": "https://lawphil.net/statutes/acts/act_3815_1930.html",
-    "keywords": "trespass, break in, dwelling, home invasion, entering room, locked room, roommate, privacy"
+    "keywords": "trespass, break in, dwelling, home invasion, entering room, locked room, roommate, privacy",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Write the organization that holds your data, then complain to the National Privacy Commission if they do not act."
+    ],
+    "documentsNeeded": [
+      "Proof of the leak or misuse and copies of your requests"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "National Privacy Commission"
   },
   {
     "category": "Davao",
     "name": "Davao City Anti-Noise Ordinance (Muffler and Exhaust)",
     "fullText": "Davao City Ordinance No. 0292-06 — Penalizes the operation of motor vehicles with modified or defective mufflers producing excessive noise. Includes motorcycles with modified exhaust pipes, cars with modified mufflers, and vehicles producing noise exceeding permitted decibel levels. Violators face fines and confiscation of modified parts. Complements R.A. 8749 (Clean Air Act) provisions on vehicle emissions.",
-    "link": null,
-    "keywords": "noise, muffler, exhaust, loud car, motorcycle, Davao, ordinance, modified vehicle, decibel"
+    "link": "https://www.davaocity.gov.ph",
+    "keywords": "noise, muffler, exhaust, loud car, motorcycle, Davao, ordinance, modified vehicle, decibel",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Davao",
     "name": "Davao City Comprehensive Anti-Smoking Ordinance",
     "fullText": "Davao City Ordinance No. 0367-07 — One of the strictest anti-smoking laws in the Philippines. Prohibits smoking in all indoor public places, enclosed workplaces, and public conveyances. Smoking is only allowed in designated smoking areas at least 10 meters from entrances. Violators face fines of ₱500-₱5,000 per offense. Also bans sale of tobacco products to minors.",
-    "link": null,
-    "keywords": "smoking, cigarette, vape, tobacco, Davao, smoking ban, public place, indoor"
+    "link": "https://www.davaocity.gov.ph",
+    "keywords": "smoking, cigarette, vape, tobacco, Davao, smoking ban, public place, indoor",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Davao",
     "name": "Davao City Liquor Ban Ordinance",
     "fullText": "Davao City Ordinance No. 0309-07 — Prohibits the selling and consumption of liquor and alcoholic beverages in public places from 1:00 AM to 8:00 AM. Applies to streets, parks, and other public areas. Establishments may sell liquor only during permitted hours. Violators face fines and potential closure for repeat offenders.",
-    "link": null,
-    "keywords": "liquor ban, alcohol, drinking, Davao, curfew, public drinking, bar, nightlife"
+    "link": "https://www.davaocity.gov.ph",
+    "keywords": "liquor ban, alcohol, drinking, Davao, curfew, public drinking, bar, nightlife",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Davao",
     "name": "Davao City Speed Limit Ordinance",
     "fullText": "Davao City Ordinance — Imposes speed limits on major roads and barangay roads in Davao City. Speed limit of 60 km/h on national highways within city limits; 40 km/h on secondary roads; 20 km/h in school and hospital zones. Violators face fines and potential license suspension by the City Transportation and Traffic Management Office (CTTMO).",
-    "link": null,
-    "keywords": "speed limit, driving, traffic, Davao, CTTMO, road, highway, school zone"
+    "link": "https://www.davaocity.gov.ph",
+    "keywords": "speed limit, driving, traffic, Davao, CTTMO, road, highway, school zone",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Ask the barangay for conciliation under the Katarungang Pambarangay rules before going to court, when the dispute is covered.",
+      "Keep the citation or towing record and follow up with LTO or the local traffic office named on the ticket."
+    ],
+    "documentsNeeded": [
+      "Valid ID and a short written account of the dispute",
+      "Driver’s license, OR/CR, and the ticket or photos of the incident"
+    ],
+    "cautions": [
+      "Do not ignore a summons, demand letter, or hearing notice."
+    ],
+    "recommendedAgency": "Barangay"
   },
   {
     "category": "Criminal",
     "name": "Anti-Squatting Law Repeal and Urban Development Housing Act",
     "fullText": "Republic Act No. 7279 (Urban Development and Housing Act) - Provides for a comprehensive urban development and housing program. Repealed the Anti-Squatting Law (P.D. 772). Covers procedures for eviction and demolition of informal settler families: requires adequate relocation, 30-day notice, and consultation. Covers socialized housing, balanced housing, and the rights of underprivileged citizens to adequate shelter. DHSUD (formerly HUDCC) oversees implementation.",
     "link": "https://lawphil.net/statutes/repacts/ra1992/ra_7279_1992.html",
-    "keywords": "squatter, informal settler, eviction, demolition, relocation, housing, socialized housing, DHSUD"
+    "keywords": "squatter, informal settler, eviction, demolition, relocation, housing, socialized housing, DHSUD",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Cybercrime Prevention Act — Online Scams and Identity Theft",
     "fullText": "Republic Act No. 10175 (Sections 4 and 6) - Specifically penalizes computer-related fraud (phishing, online purchase scams, romance scams, investment scams), computer-related identity theft (using another person's identity online without consent), and illegal access (hacking social media accounts, email, or banking accounts). Penalties are one degree higher than equivalent RPC offenses. Victims should preserve screenshots, transaction records, and report to PNP-ACG or NBI Cybercrime Division.",
     "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10175_2012.html",
-    "keywords": "online scam, phishing, identity theft, hacking, Facebook hack, romance scam, investment scam, GCash scam, online fraud"
+    "keywords": "online scam, phishing, identity theft, hacking, Facebook hack, romance scam, investment scam, GCash scam, online fraud",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Access Devices Regulation Act",
     "fullText": "Republic Act No. 8484 - Penalizes fraudulent acts involving access devices such as credit cards, debit cards, ATM cards, and account numbers. Covers credit card fraud, skimming, cloning, and unauthorized use of stolen card information. Penalties: fine equal to twice the value obtained but not less than ₱10,000, plus imprisonment of 6 years to 10 years (for amounts exceeding ₱10,000). BSP and NBI handle enforcement.",
     "link": "https://lawphil.net/statutes/repacts/ra1998/ra_8484_1998.html",
-    "keywords": "credit card fraud, ATM fraud, skimming, cloning, access device, unauthorized use, bank card, debit card"
+    "keywords": "credit card fraud, ATM fraud, skimming, cloning, access device, unauthorized use, bank card, debit card",
+    "priority": "high",
+    "suggestedNextSteps": [
+      "Freeze or dispute the account with the bank or e-wallet issuer right away, then blotter with PNP or PNP Anti-Cybercrime Group."
+    ],
+    "documentsNeeded": [
+      "Account statements, SMS, receipts, and screenshots of the transfer",
+      "Valid ID and a written timeline of what happened"
+    ],
+    "cautions": [
+      "Do not send more money or share one-time PINs with anyone who claims they can reverse the transfer."
+    ],
+    "recommendedAgency": "Bank or e-wallet issuer / BSP / PNP-ACG / NBI"
   },
   {
     "category": "Criminal",
     "name": "Anti-Torture Act",
     "fullText": "Republic Act No. 9745 - Defines and penalizes torture, cruel, degrading, and inhuman treatment by persons in authority or their agents. Covers physical, psychological, and sexual forms of torture. Penalties: reclusion perpetua and disqualification from public office. Extrajudicial confessions obtained through torture are inadmissible. Commission on Human Rights (CHR) monitors compliance.",
     "link": "https://lawphil.net/statutes/repacts/ra2009/ra_9745_2009.html",
-    "keywords": "torture, police brutality, abuse of authority, human rights, CHR, extrajudicial, confession"
+    "keywords": "torture, police brutality, abuse of authority, human rights, CHR, extrajudicial, confession",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   },
   {
     "category": "Criminal",
     "name": "Anti-Enforced or Involuntary Disappearance Act",
     "fullText": "Republic Act No. 10353 - Criminalizes enforced disappearance: arrest, detention, abduction, or deprivation of liberty by agents of the State followed by refusal to acknowledge the detention. Penalties: reclusion perpetua. Covers extrajudicial killings (EJK) where the victim's body is hidden. Applies to military, police, and other state agents.",
     "link": "https://lawphil.net/statutes/repacts/ra2012/ra_10353_2012.html",
-    "keywords": "enforced disappearance, missing person, EJK, extrajudicial killing, state agents, abduction"
+    "keywords": "enforced disappearance, missing person, EJK, extrajudicial killing, state agents, abduction",
+    "priority": "medium",
+    "suggestedNextSteps": [
+      "Keep a written timeline and copies of papers. Ask the barangay or the agency named in this law where to file."
+    ],
+    "documentsNeeded": [
+      "Valid ID and any contracts, receipts, messages, or photos that prove what happened"
+    ],
+    "cautions": [
+      "Do not sign a waiver or quitclaim you do not understand."
+    ],
+    "recommendedAgency": "Barangay / PAO / the agency named in this law"
   }
 ]

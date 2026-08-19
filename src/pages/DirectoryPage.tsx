@@ -381,7 +381,7 @@ export const DirectoryPage: React.FC = () => {
                       <p className="dir-lawyer-card__loc" style={{ marginTop: 8 }}>{b.summary}</p>
                       {(b.hasLinkedAnalysis || b.consultationId) && (
                         <p className="dir-lawyer-card__loc" style={{ marginTop: 6 }}>
-                          Linked case analysis{b.analysisTitle ? `: ${b.analysisTitle}` : ''}
+                          Linked case identification{b.analysisTitle ? `: ${b.analysisTitle}` : ''}
                         </p>
                       )}
                     </div>

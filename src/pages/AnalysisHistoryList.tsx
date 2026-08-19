@@ -60,7 +60,7 @@ export const AnalysisHistoryList: React.FC = () => {
         <div className="list-panel__toolbar">
           <span className="list-panel__label">All analyses</span>
           <Link to="/ai-analysis" className="list-panel__link">
-            New analysis
+            New identification
             <span className="material-symbols-outlined dash-icon-xs" aria-hidden>add</span>
           </Link>
         </div>

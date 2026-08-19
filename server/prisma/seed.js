@@ -43,6 +43,13 @@ async function main() {
         fullText: law.fullText,
         link: law.link || null,
         keywords: law.keywords || '',
+        priority: law.priority || 'medium',
+        guidanceJson: JSON.stringify({
+          suggestedNextSteps: law.suggestedNextSteps || [],
+          documentsNeeded: law.documentsNeeded || [],
+          cautions: law.cautions || [],
+          recommendedAgency: law.recommendedAgency || '',
+        }),
       },
     });
   }

@@ -1,6 +1,7 @@
 /**
  * Legal knowledge retrieval — Prisma (Neon PostgreSQL) primary, local JSON fallback.
  */
+import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
 import { prisma } from '../config/prisma.js';
 import { tokenizeForMatch } from './textPreprocess.js';
 import fs from 'fs';
@@ -19,10 +20,30 @@ function scoreChunk(chunk, tokens, category) {
     score += 3;
   }
   if (chunk.region === 'Davao') score += 1;
+  if (chunk.priority === 'high') score += 4;
+  if (chunk.priority === 'low') score -= 2;
   return score;
 }
 
-
+function parseGuidance(law) {
+  if (law?.guidanceJson) {
+    try {
+      const g = JSON.parse(law.guidanceJson);
+      return {
+        suggestedNextSteps: g.suggestedNextSteps || [],
+        documentsNeeded: g.documentsNeeded || [],
+        cautions: g.cautions || [],
+        recommendedAgency: g.recommendedAgency || '',
+      };
+    } catch { /* fall through */ }
+  }
+  return {
+    suggestedNextSteps: law.suggestedNextSteps || [],
+    documentsNeeded: law.documentsNeeded || [],
+    cautions: law.cautions || [],
+    recommendedAgency: law.recommendedAgency || '',
+  };
+}
 
 async function retrieveFromPrisma({ category, description, limit = 8 }) {
   const where = category && category !== 'unsure' ? { category: { contains: category } } : {};
@@ -30,24 +51,33 @@ async function retrieveFromPrisma({ category, description, limit = 8 }) {
   const tokens = tokenizeForMatch(description);
 
   return rows
-    .map((law) => ({
-      id: law.id,
-      content: law.fullText,
-      keywords: law.keywords,
-      region: 'National',
-      name: law.name,
-      citation: law.name,
-      category: law.category,
-      source_url: law.link,
-      score: scoreChunk({
-        keywords: law.keywords,
+    .map((law) => {
+      const g = parseGuidance(law);
+      return {
+        id: law.id,
         content: law.fullText,
+        keywords: law.keywords,
+        region: 'National',
         name: law.name,
         citation: law.name,
         category: law.category,
-        region: 'National',
-      }, tokens, category),
-    }))
+        source_url: law.link,
+        priority: law.priority || 'medium',
+        suggestedNextSteps: g.suggestedNextSteps,
+        documentsNeeded: g.documentsNeeded,
+        cautions: g.cautions,
+        recommendedAgency: g.recommendedAgency,
+        score: scoreChunk({
+          keywords: law.keywords,
+          content: law.fullText,
+          name: law.name,
+          citation: law.name,
+          category: law.category,
+          region: 'National',
+          priority: law.priority || 'medium',
+        }, tokens, category),
+      };
+    })
     .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
@@ -118,25 +148,33 @@ async function retrieveFromLocalJson({ category, description, limit = 8 }) {
   if (!laws.length) return [];
   const tokens = tokenizeForMatch(description);
   return laws
-    .map((law, i) => ({
-      id: `local-${i}`,
-      content: law.fullText,
-      keywords: law.keywords,
-      region: law.region || 'National',
-      name: law.name,
-      citation: law.citation || law.name,
-      category: law.category,
-      source_url: law.link,
-      priority: law.priority || 'medium',
-      score: scoreChunk({
-        keywords: law.keywords,
+    .map((law, i) => {
+      const g = parseGuidance(law);
+      return {
+        id: `local-${i}`,
         content: law.fullText,
+        keywords: law.keywords,
+        region: law.region || 'National',
         name: law.name,
         citation: law.citation || law.name,
         category: law.category,
-        region: law.region || 'National',
-      }, tokens, category),
-    }))
+        source_url: law.link,
+        priority: law.priority || 'medium',
+        suggestedNextSteps: g.suggestedNextSteps,
+        documentsNeeded: g.documentsNeeded,
+        cautions: g.cautions,
+        recommendedAgency: g.recommendedAgency,
+        score: scoreChunk({
+          keywords: law.keywords,
+          content: law.fullText,
+          name: law.name,
+          citation: law.citation || law.name,
+          category: law.category,
+          region: law.region || 'National',
+          priority: law.priority || 'medium',
+        }, tokens, category),
+      };
+    })
     .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
@@ -160,7 +198,25 @@ export async function retrieveLegalContext({ category, description, limit = 8 })
     const key = (chunk.name || chunk.citation || '').toLowerCase().trim();
     if (!key) continue;
     const prev = byName.get(key);
-    if (!prev || (chunk.score || 0) > (prev.score || 0)) byName.set(key, chunk);
+    if (!prev || (chunk.score || 0) > (prev.score || 0)) {
+      const merged = { ...chunk };
+      if (prev?.suggestedNextSteps?.length && !merged.suggestedNextSteps?.length) {
+        merged.suggestedNextSteps = prev.suggestedNextSteps;
+        merged.documentsNeeded = prev.documentsNeeded;
+        merged.cautions = prev.cautions;
+        merged.recommendedAgency = prev.recommendedAgency || merged.recommendedAgency;
+      }
+      byName.set(key, merged);
+    } else if (chunk.suggestedNextSteps?.length && !prev.suggestedNextSteps?.length) {
+      byName.set(key, {
+        ...prev,
+        suggestedNextSteps: chunk.suggestedNextSteps,
+        documentsNeeded: chunk.documentsNeeded,
+        cautions: chunk.cautions,
+        recommendedAgency: chunk.recommendedAgency || prev.recommendedAgency,
+        priority: chunk.priority || prev.priority,
+      });
+    }
   }
   const chunks = [...byName.values()]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
@@ -177,6 +233,10 @@ export function formatChunksForPrompt(chunks) {
       `[${i + 1}] ID=${c.id} | ${c.name} (${c.citation}) | Region: ${c.region} | Category: ${c.category}\n` +
       `Status: ${status} | Priority: ${priority} | Last updated: ${lastChanged}\n` +
       `URL: ${c.source_url || 'n/a'}\n` +
+      (c.suggestedNextSteps?.length ? `LIBRARY_STEPS: ${c.suggestedNextSteps.join(' | ')}\n` : '') +
+      (c.documentsNeeded?.length ? `LIBRARY_DOCUMENTS: ${c.documentsNeeded.join(' | ')}\n` : '') +
+      (c.cautions?.length ? `LIBRARY_CAUTIONS: ${c.cautions.join(' | ')}\n` : '') +
+      (c.recommendedAgency ? `LIBRARY_AGENCY: ${c.recommendedAgency}\n` : '') +
       `${c.content}`
     );
   }).join('\n\n');
@@ -222,59 +282,48 @@ export function summarizeChunkFreshness(chunks) {
 }
 
 /**
- * Nourish the legal knowledge base from validated citizen consultations.
- * If a validated case has new keywords or represents an unusual legal scenario,
- * this automatically updates the database and local JSON cache.
+ * Save live-search page excerpts from allowlisted PH legal sites into the library.
+ * Does not insert model-written case names as if they were statutes.
  */
-export async function nourishCorpusFromConsultation({ category, aiResult, description }) {
+export async function nourishCorpusFromConsultation({ category, liveChunks = [], keywords = [] }) {
   try {
-    if (!aiResult || !Array.isArray(aiResult.possibleLegalCases) || aiResult.possibleLegalCases.length === 0) {
-      return;
-    }
-    const topCase = aiResult.possibleLegalCases[0];
-    if ((topCase.confidenceScore || 0) < 65 || !topCase.name) {
-      return;
-    }
+    const allowed = (liveChunks || []).filter(
+      (c) => isAllowedPhLegalUrl(c.source_url) && String(c.content || '').length > 200,
+    );
+    if (!allowed.length) return;
 
-    const keywords = (aiResult.extractedKeywords || [])
-      .map((k) => (k || '').trim().toLowerCase())
-      .filter((k) => k.length > 2);
+    const kw = (keywords || []).map((k) => String(k).trim().toLowerCase()).filter((k) => k.length > 2);
 
-    if (keywords.length === 0) return;
-
-    // 1. Check if law already exists in Prisma DB
-    const existing = await prisma.lawReference.findFirst({
-      where: {
-        OR: [
-          { name: { equals: topCase.name } },
-          { name: { contains: topCase.name } },
-        ],
-      },
-    });
-
-    if (existing) {
-      const existingKw = (existing.keywords || '').split(',').map((k) => k.trim().toLowerCase());
-      const newKw = keywords.filter((k) => !existingKw.includes(k));
-      if (newKw.length > 0) {
-        const mergedKw = [...existingKw, ...newKw].join(', ');
-        await prisma.lawReference.update({
-          where: { id: existing.id },
-          data: { keywords: mergedKw },
-        });
-        console.log(`[legalCorpus] 🧠 Nourished existing law "${existing.name}" with keywords: ${newKw.join(', ')}`);
-      }
-    } else if (topCase.applicableLaw && topCase.explanation) {
-      // Create a new LawReference entry for this unusual scenario
-      const created = await prisma.lawReference.create({
-        data: {
-          category: category || 'General',
-          name: topCase.name,
-          fullText: `${topCase.applicableLaw}: ${topCase.explanation}`,
-          link: topCase.sourceLink || null,
-          keywords: keywords.join(', '),
+    for (const chunk of allowed.slice(0, 2)) {
+      const existing = await prisma.lawReference.findFirst({
+        where: {
+          OR: [
+            { link: chunk.source_url },
+            { name: { equals: String(chunk.name || '').slice(0, 200) } },
+          ],
         },
       });
-      console.log(`[legalCorpus] 🧠 Added new verified legal reference "${created.name}" from citizen consultation.`);
+      if (existing) continue;
+
+      const guidance = {
+        suggestedNextSteps: chunk.suggestedNextSteps || [],
+        documentsNeeded: chunk.documentsNeeded || [],
+        cautions: chunk.cautions || [],
+        recommendedAgency: chunk.recommendedAgency || '',
+      };
+
+      await prisma.lawReference.create({
+        data: {
+          category: category || chunk.category || 'General',
+          name: String(chunk.name || chunk.citation || 'PH legal source').slice(0, 220),
+          fullText: String(chunk.content).slice(0, 6000),
+          link: chunk.source_url,
+          keywords: kw.join(', ') || (chunk.keywords || ''),
+          priority: 'medium',
+          guidanceJson: JSON.stringify(guidance),
+        },
+      });
+      console.log(`[legalCorpus] Saved live excerpt "${chunk.name}" from allowlisted source`);
     }
   } catch (err) {
     console.warn('[legalCorpus] Corpus nourishment skipped:', err.message);

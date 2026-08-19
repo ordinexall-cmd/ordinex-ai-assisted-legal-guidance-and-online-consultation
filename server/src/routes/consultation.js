@@ -223,8 +223,8 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
     if (outcomeType === 'full') {
       createNotification({
         userId: user.id,
-        title: 'AI analysis ready',
-        message: 'Your legal case analysis is complete.',
+        title: 'Case identification ready',
+        message: 'Your case identification is ready.',
         type: 'AI_READY',
         linkTo: `/ai-analysis?id=${consultation.id}`,
       }).catch(() => {});
@@ -242,13 +242,13 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
     // Asynchronously nourish legal knowledge base with validated case keywords
     nourishCorpusFromConsultation({
       category: category || 'General',
-      aiResult,
-      description,
+      liveChunks: meta?.liveChunks || [],
+      keywords: aiResult?.extractedKeywords || [],
     }).catch(() => {});
 
     const responseMessage =
       outcomeType === 'full'
-        ? 'Analysis complete.'
+        ? 'Identification complete.'
         : outcomeType === 'no_corpus'
           ? 'Legal database unavailable. No trial was used — try again later.'
           : 'Add more detail for a full analysis. No trial was used.';

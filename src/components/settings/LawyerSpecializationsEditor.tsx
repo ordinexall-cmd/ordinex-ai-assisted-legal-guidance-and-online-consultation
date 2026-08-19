@@ -12,7 +12,7 @@ export const LawyerSpecializationsEditor: React.FC<LawyerSpecializationsEditorPr
   value,
   onChange,
   disabled = false,
-  helperText = 'Citizens are matched to you based on these areas after AI case analysis.',
+  helperText = 'Citizens are matched to you based on these areas after case identification.',
 }) => {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);

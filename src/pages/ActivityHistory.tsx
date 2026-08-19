@@ -121,7 +121,7 @@ export const ActivityHistory: React.FC = () => {
           {([
             { key: 'consultations' as const, label: 'Consultations' },
             { key: 'transcripts' as const, label: 'Transcripts' },
-            { key: 'analyses' as const, label: 'Case analysis' },
+            { key: 'analyses' as const, label: 'Case identification' },
           ]).map((t) => (
             <button
               key={t.key}

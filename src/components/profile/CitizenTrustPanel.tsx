@@ -66,7 +66,7 @@ export const CitizenTrustPanel: React.FC<CitizenTrustPanelProps> = ({
       {consultationId && (
         <p className="citizen-trust-panel__ai-link">
           <Link to={`/ai-analysis?id=${consultationId}`} className="link-inline">
-            View linked AI analysis
+            View linked case identification
           </Link>
         </p>
       )}

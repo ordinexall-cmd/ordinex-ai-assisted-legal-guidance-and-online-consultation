@@ -89,7 +89,7 @@ async function resolveAnalysisTitle(consultationId, userId) {
     if (ai?.possibleLegalCases?.[0]?.name) return ai.possibleLegalCases[0].name;
     if (ai?.userConcernSummary) return String(ai.userConcernSummary).slice(0, 48);
   } catch { /* ignore */ }
-  return c.category || 'Case analysis';
+  return c.category || 'Case identification';
 }
 
 async function attachAnalysisLabel(brief, userId) {

@@ -68,7 +68,7 @@ export const AnalysisDetail: React.FC = () => {
                 }}
                 onDeleted={() => navigate('/analyses')}
               />
-              <Link to="/ai-analysis" className="ox-btn ox-btn-ghost">New analysis</Link>
+              <Link to="/ai-analysis" className="ox-btn ox-btn-ghost">New identification</Link>
             </div>
           </div>
 

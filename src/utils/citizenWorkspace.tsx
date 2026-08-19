@@ -15,7 +15,7 @@ export function getCitizenNav(userOrUnlocked: UserProfile | boolean | null | und
 
   return [
     { label: 'Home', icon: 'home', path: CITIZEN_DASHBOARD_PATH },
-    { label: 'Analysis', icon: 'grid_view', path: '/ai-analysis' },
+    { label: 'Identify', icon: 'grid_view', path: '/ai-analysis' },
     { label: 'Schedule', icon: 'calendar_today', path: '/schedule-calendar', locked: !unlocked },
     { label: 'Directory', icon: 'gavel', path: '/directory', locked: !unlocked },
     { label: 'Settings', icon: 'settings', path: '/settings' },

@@ -208,9 +208,9 @@ export const AiCaseAnalysis: React.FC = () => {
   return (
     <AppShell
       variant="flow"
-      title="AI Case Analysis"
+      title="Case identification"
       navItems={getCitizenNav(user)}
-      stepLabel="Analysis"
+      stepLabel="Identify"
       backTo={getAppBackFallback(false)}
     >
       <div className="analysis-describe">
@@ -390,12 +390,12 @@ export const AiCaseAnalysis: React.FC = () => {
                   {analyzing ? (
                     <>
                       <span className="spinner-14" aria-hidden />
-                      Analyzing…
+                      Identifying…
                     </>
                   ) : (
                     <>
                       <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                      Analyze
+                      Identify
                     </>
                   )}
                 </button>
@@ -464,7 +464,7 @@ export const AiCaseAnalysis: React.FC = () => {
                     }}
                   />
                   <button type="button" className="ox-btn ox-btn-ghost" onClick={startNewAnalysis}>
-                    New analysis
+                    New identification
                   </button>
                 </div>
 

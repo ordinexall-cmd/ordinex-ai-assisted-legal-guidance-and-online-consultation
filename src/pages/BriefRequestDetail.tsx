@@ -121,7 +121,7 @@ export const BriefRequestDetail: React.FC = () => {
               <p style={{ margin: 0, lineHeight: 1.55, color: '#334155' }}>{brief.summary}</p>
               {(brief.hasLinkedAnalysis || brief.consultationId) && brief.analysisTitle && (
                 <p className="staff-empty-hint" style={{ marginTop: 10 }}>
-                  Linked case analysis: {brief.analysisTitle}
+                  Linked case identification: {brief.analysisTitle}
                 </p>
               )}
             </section>
@@ -136,7 +136,7 @@ export const BriefRequestDetail: React.FC = () => {
                   <span className="material-symbols-outlined" aria-hidden>psychology</span>
                   <div>
                     <h3 id="brief-linked-analysis-title" className="booking-linked-analysis__title">
-                      Linked AI case analysis
+                      Linked case identification
                     </h3>
                     <p className="booking-linked-analysis__hint">
                       Review before offering consult — the citizen attached this as legal context.

@@ -24,6 +24,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from '../config/env.js';
 import { prisma } from '../config/prisma.js';
+import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +52,7 @@ const SOURCES = {
  * @returns {Promise<string|null>}
  */
 async function fetchPage(url) {
+  if (!isAllowedPhLegalUrl(url)) return null;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);

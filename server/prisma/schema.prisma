@@ -221,12 +221,14 @@ model Consultation {
 }
 
 model LawReference {
-  id       String  @id @default(uuid())
-  category String
-  name     String
-  fullText String
-  link     String?
-  keywords String
+  id           String  @id @default(uuid())
+  category     String
+  name         String
+  fullText     String
+  link         String?
+  keywords     String
+  priority     String  @default("medium")
+  guidanceJson String?
 }
 
 model Availability {

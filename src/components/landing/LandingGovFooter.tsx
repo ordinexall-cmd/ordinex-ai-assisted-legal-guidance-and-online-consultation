@@ -57,7 +57,7 @@ export const LandingGovFooter: React.FC = () => {
           <div className="landing-gov-footer__col">
             <h4>Government links</h4>
             <p className="landing-gov-footer__italic">
-              Public sources that inform Philippine legal research and AI case analysis grounding.
+              Public sources that inform Philippine legal research and case identification.
             </p>
             <ul>
               {GOV_LINKS.map((l) => (

@@ -361,6 +361,11 @@ export type GuestPreviewResult = {
   situationSummary: string;
   possibleLegalCases: GuestPreviewCase[];
   suggestedNextSteps: string[];
+  libraryNextSteps?: string[];
+  libraryDocuments?: string[];
+  libraryCautions?: string[];
+  possibleNextSteps?: string[];
+  possibleDocuments?: string[];
   penalties?: string;
   outlookLevel: CourtWinLevel;
   caseHint: string;
@@ -1318,6 +1323,11 @@ export interface LegalAnalysisResult {
   penalties: string;
   courtWinOutlook: CourtWinOutlook;
   suggestedNextSteps: string[];
+  libraryNextSteps?: string[];
+  libraryDocuments?: string[];
+  libraryCautions?: string[];
+  possibleNextSteps?: string[];
+  possibleDocuments?: string[];
   recommendedAgency?: string;
   lawyerSpecialty?: string;
   /** Canonical English specialty for directory matching */

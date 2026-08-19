@@ -14,16 +14,16 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
     a: 'No. Ordinex is an assistive pre-guidance tool that organizes facts and references applicable Philippine statutes and jurisprudence. Formal legal representation and binding legal advice can only be provided by a licensed attorney through an online consultation.',
   },
   {
-    q: 'What does an AI case identification produce?',
+    q: 'What does case identification produce?',
     a: 'A structured pre-guidance outline: legal issues in plain language, statutory citations (Republic Acts, Civil Code, Revised Penal Code), suggested questions for counsel, and flags where evidence or factual details are thin.',
   },
   {
     q: 'Can I test the system without creating an account?',
-    a: 'Yes. The home page allows any visitor to input a legal situation and receive an instant issue preview for straightforward matters. A free account is required for full case analysis, follow-up clarification, and booking private counsel.',
+    a: 'Yes. The home page identifies straightforward matters from the preloaded Philippine legal library. A free account is required for complex matters that need a live search of official legal sites, saved history, and booking a lawyer.',
   },
   {
     q: 'What features are included with a free citizen account?',
-    a: 'A free citizen account unlocks in-depth case analysis (including complex matters with deep statutory search), saved case history, access to the verified lawyer directory, scheduling, and encrypted video consultations.',
+    a: 'A free citizen account unlocks case identification for complex matters (live search of official Philippine legal sites), saved history, the verified lawyer directory, scheduling, and encrypted video consultations.',
   },
   {
     q: 'How does payment and escrow protection work?',
@@ -42,7 +42,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
     a: 'Yes. Bookings can be cancelled prior to the scheduled consultation day with automated refund processing to your original payment method under platform escrow rules.',
   },
   {
-    q: 'Will the AI always be 100% accurate?',
+    q: 'Will case identification always be 100% accurate?',
     a: 'No automated system is infallible. Pre-guidance is intended for preparation and issue-spotting only. Critical legal matters should always be reviewed with a verified lawyer.',
   },
 ];

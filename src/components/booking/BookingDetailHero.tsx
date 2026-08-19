@@ -90,7 +90,7 @@ export const BookingDetailHero: React.FC<BookingDetailHeroProps> = ({
         )}
         {onOpenAnalysis ? (
           <button type="button" className="link-inline" onClick={onOpenAnalysis}>
-            {isLawyerViewer ? 'Jump to case analysis' : 'View linked AI analysis'}
+            {isLawyerViewer ? 'Jump to case identification' : 'View linked case identification'}
             <span className="material-symbols-outlined" aria-hidden>arrow_forward</span>
           </button>
         ) : null}

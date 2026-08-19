@@ -56,6 +56,11 @@ function mapFullResult(result, category) {
     costBallpark: result.costBallpark,
     possibleDeadline: result.possibleDeadline || '',
     cautions: Array.isArray(result.cautions) ? result.cautions : [],
+    libraryNextSteps: result.libraryNextSteps || [],
+    libraryDocuments: result.libraryDocuments || [],
+    libraryCautions: result.libraryCautions || [],
+    possibleNextSteps: result.possibleNextSteps || [],
+    possibleDocuments: result.possibleDocuments || [],
     systemDisclaimer: result.systemDisclaimer || DISCLAIMER,
   };
   return {
@@ -77,6 +82,11 @@ function mapFullResult(result, category) {
     costBallpark: analysis.costBallpark,
     possibleDeadline: analysis.possibleDeadline,
     cautions: analysis.cautions,
+    libraryNextSteps: result.libraryNextSteps || analysis.libraryNextSteps || [],
+    libraryDocuments: result.libraryDocuments || analysis.libraryDocuments || [],
+    libraryCautions: result.libraryCautions || analysis.libraryCautions || [],
+    possibleNextSteps: result.possibleNextSteps || analysis.possibleNextSteps || [],
+    possibleDocuments: result.possibleDocuments || analysis.possibleDocuments || [],
     factorsFor: analysis.courtWinOutlook.factorsFor,
     factorsAgainst: analysis.courtWinOutlook.factorsAgainst,
     missingFacts: analysis.courtWinOutlook.missingFacts,

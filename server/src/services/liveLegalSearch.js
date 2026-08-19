@@ -2,13 +2,17 @@
  * On-demand live lookup of PH government legal pages when the preloaded
  * corpus cannot ground a signed-in analysis.
  */
+import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
+
 const SOURCES = [
   { name: 'Official Gazette', url: 'https://www.officialgazette.gov.ph/section/republic-acts/' },
   { name: 'LawPhil', url: 'https://www.lawphil.net/statutes/repacts/' },
   { name: 'SC E-Library', url: 'https://elibrary.judiciary.gov.ph/thebookshelf/list/1' },
+  { name: 'Senate laws', url: 'https://legacy.senate.gov.ph/lis/leg_sys.aspx?congress=19&type=law' },
 ];
 
 async function fetchPage(url) {
+  if (!isAllowedPhLegalUrl(url)) return null;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
@@ -83,6 +87,7 @@ export async function retrieveLiveLegalContext({ keywords = [], description = ''
     const html = await fetchPage(src.url);
     if (!html) continue;
     const links = extractLinks(html, src.url)
+      .filter((l) => isAllowedPhLegalUrl(l.url))
       .map((l) => ({ ...l, score: scoreTitle(l.title, tokens), source: src.name }))
       .filter((l) => l.score >= 1)
       .sort((a, b) => b.score - a.score)

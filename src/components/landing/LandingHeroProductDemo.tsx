@@ -130,7 +130,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
         Sign in
       </button>
       <button type="button" className="ox-btn ox-btn-outline landing-product-demo__restart-btn" onClick={restartDescribe}>
-        Analyze another situation
+        Identify another situation
       </button>
     </div>
   );
@@ -263,7 +263,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
                 <span className="material-symbols-outlined landing-product-demo__spinner" aria-hidden>
                   progress_activity
                 </span>
-                Analyzing your situation…
+                Identifying your situation…
               </p>
             ) : (
               <button
@@ -272,7 +272,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
                 disabled={!canSubmit}
                 onClick={() => void handleSubmit()}
               >
-                Get preview
+                Identify
                 <span className="material-symbols-outlined" aria-hidden>
                   arrow_forward
                 </span>
