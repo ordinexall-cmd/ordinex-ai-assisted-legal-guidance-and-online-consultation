@@ -376,6 +376,10 @@ body.ox-portal .page-container {
   box-sizing: border-box;
 }
 
+body.ox-portal .page-container:has(.booking-flow-layout--manage) {
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
+}
+
 body.ox-portal .page-container--wide {
   max-width: 1400px;
 }

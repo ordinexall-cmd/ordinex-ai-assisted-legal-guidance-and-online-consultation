@@ -1161,9 +1161,8 @@ function serializeLinkedAnalysisForBooking(c) {
 function overlaySessionOnAvailability(b) {
   const av = b.availability;
   if (!av) return av;
-  const start = b.sessionStartTime || b.preferredStartTime || av.startTime;
-  const end = b.sessionEndTime || av.endTime;
-  return { ...av, startTime: start, endTime: end };
+  const interval = sessionInterval(b, av.startTime, av.endTime);
+  return { ...av, startTime: interval.start, endTime: interval.end };
 }
 
 async function findSessionOverlap(db, { lawyerId, date, start, end, excludeBookingId }) {

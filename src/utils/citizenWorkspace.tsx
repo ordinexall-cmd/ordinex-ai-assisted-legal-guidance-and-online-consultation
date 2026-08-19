@@ -24,8 +24,9 @@ export function getCitizenNav(userOrUnlocked: UserProfile | boolean | null | und
 
 /** Resolve stored upload paths for img src (Vite proxies /uploads in dev). */
 export function resolveMediaUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return url;
-  return `/${url.replace(/^\//, '')}`;
+  const raw = String(url || '').trim();
+  if (!raw || raw === 'null' || raw === 'undefined') return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  if (raw.startsWith('/')) return raw;
+  return `/${raw.replace(/^\//, '')}`;
 }

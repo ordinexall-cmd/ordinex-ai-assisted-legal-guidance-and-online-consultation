@@ -42,7 +42,7 @@ export default defineConfig({
       // Use public/manifest.webmanifest; plugin still injects SW.
       strategies: 'generateSW',
       workbox: {
-        cacheId: 'ordinex-v3',
+        cacheId: 'ordinex-v4',
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
         runtimeCaching: [

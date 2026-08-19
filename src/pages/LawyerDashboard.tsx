@@ -15,6 +15,7 @@ import { canJoinBookingVideo } from '../utils/bookingSlotWindow';
 import { DashWelcome } from '../components/dashboard/DashWelcome';
 import { DashHistorySkeleton } from '../components/dashboard/DashHistorySkeleton';
 import { OxStatusCallout } from '../components/ui/OxStatusCallout';
+import { localDateKey } from '../components/schedule/ScheduleMonthGrid';
 
 const fmtSlot = (b: Booking) => {
   const dateStr = new Date(b.availability.date).toLocaleDateString('en-PH', {
@@ -34,8 +35,8 @@ export const LawyerDashboard: React.FC = () => {
   const [actionError, setActionError] = useState('');
   const [loadError, setLoadError] = useState('');
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback((opts?: { quiet?: boolean }) => {
+    if (!opts?.quiet) setLoading(true);
     setLoadError('');
     Promise.all([
       bookingsApi.getMy({ limit: 100 }),
@@ -54,8 +55,8 @@ export const LawyerDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => onBookingUpdated(() => load()), [load]);
-  useEffect(() => onNotificationNew(() => load()), [load]);
+  useEffect(() => onBookingUpdated(() => load({ quiet: true })), [load]);
+  useEffect(() => onNotificationNew(() => load({ quiet: true })), [load]);
 
   useEffect(() => {
     if (loading) return;
@@ -72,12 +73,12 @@ export const LawyerDashboard: React.FC = () => {
     () => bookings.filter((b) => b.status === 'PAYMENT_SUBMITTED'),
     [bookings],
   );
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localDateKey(new Date());
   const todaySessions = useMemo(
     () => bookings.filter(
       (b) =>
         ['CONFIRMED', 'IN_PROGRESS', 'APPROVED'].includes(b.status) &&
-        b.availability.date.slice(0, 10) === todayKey,
+        localDateKey(new Date(b.availability.date)) === todayKey,
     ),
     [bookings, todayKey],
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { resolveMediaUrl } from '../utils/citizenWorkspace';
 
 interface UserAvatarProps {
@@ -10,6 +10,15 @@ interface UserAvatarProps {
 
 const sizePx = { sm: 28, md: 36, lg: 56 };
 
+function EmptyMark() {
+  return (
+    <span className="avatar-empty" aria-hidden>
+      <span className="avatar-empty__ring" />
+      <span className="material-symbols-outlined avatar-empty__cam">photo_camera</span>
+    </span>
+  );
+}
+
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   avatarUrl,
   name,
@@ -18,6 +27,13 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 }) => {
   const px = sizePx[size];
   const src = resolveMediaUrl(avatarUrl);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  const showPhoto = Boolean(src) && !failed;
 
   return (
     <div
@@ -27,7 +43,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         height: px,
         borderRadius: '50%',
         overflow: 'hidden',
-        background: src ? 'rgba(0, 52, 43, 0.08)' : 'var(--color-ox-brand, #0D3B2E)',
+        background: showPhoto ? 'rgba(0, 52, 43, 0.08)' : 'var(--color-ox-brand, #0D3B2E)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -37,13 +53,15 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       aria-hidden={!name}
       title={name || 'No profile photo'}
     >
-      {src ? (
-        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {showPhoto ? (
+        <img
+          src={src!}
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={() => setFailed(true)}
+        />
       ) : (
-        <span className="avatar-empty" aria-hidden>
-          <span className="avatar-empty__ring" />
-          <span className="material-symbols-outlined avatar-empty__cam">photo_camera</span>
-        </span>
+        <EmptyMark />
       )}
     </div>
   );

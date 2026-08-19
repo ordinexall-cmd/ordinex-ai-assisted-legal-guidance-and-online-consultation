@@ -84,8 +84,8 @@ export const LawyerSchedule: React.FC = () => {
     [startDate, rangeEnd, previewDays],
   );
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback((opts?: { quiet?: boolean }) => {
+    if (!opts?.quiet) setLoading(true);
     const from = new Date();
     from.setHours(0, 0, 0, 0);
     const to = new Date(from);
@@ -104,8 +104,8 @@ export const LawyerSchedule: React.FC = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => onAvailabilityChanged(() => load()), [load]);
-  useEffect(() => onBookingUpdated(() => load()), [load]);
+  useEffect(() => onAvailabilityChanged(() => load({ quiet: true })), [load]);
+  useEffect(() => onBookingUpdated(() => load({ quiet: true })), [load]);
 
   const toggleDay = (day: number, e?: React.MouseEvent) => {
     e?.preventDefault();

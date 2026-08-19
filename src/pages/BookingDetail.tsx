@@ -56,7 +56,7 @@ export const BookingDetail: React.FC = () => {
     if (!booking) return;
     const prev = prevStatusRef.current;
     if (prev !== 'CONFIRMED' && booking.status === 'CONFIRMED' && isDockableBooking(booking)) {
-      bookingDock.openBooking(booking.id, { expand: true });
+      bookingDock.openBooking(booking.id, { expand: false });
     }
     prevStatusRef.current = booking.status;
   }, [booking, bookingDock]);
@@ -67,7 +67,7 @@ export const BookingDetail: React.FC = () => {
       const { booking: next } = await fn();
       setBooking(next);
       if (isDockableBooking(next)) {
-        bookingDock.openBooking(next.id, { expand: true });
+        bookingDock.openBooking(next.id, { expand: false });
       }
     } catch (e: unknown) {
       setError(getErrorMessage(e, 'Action failed. Please try again.'));

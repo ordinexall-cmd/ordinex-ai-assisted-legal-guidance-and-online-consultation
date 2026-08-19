@@ -127,7 +127,7 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
             const { booking } = await bookingsApi.getById(payload.bookingId);
             if (isDockableBooking(booking)) {
               setActiveBookingId(payload.bookingId);
-              setMode((m) => (m === 'hidden' ? 'open' : m));
+              setMode((m) => (m === 'hidden' ? 'minimized' : m));
             }
           } catch { /* ignore */ }
         }

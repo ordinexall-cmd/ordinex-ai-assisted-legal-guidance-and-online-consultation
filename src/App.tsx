@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import './styles/design-system.css';
@@ -13,33 +14,12 @@ import './styles/account-ui.css';
 import './styles/docked-messenger.css';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
-import CitizenDashboard from './pages/CitizenDashboardPremium';
-import AiCaseAnalysis from './pages/AiCaseAnalysis';
-import DirectoryPage, { DirectorySearchRedirect } from './pages/DirectoryPage';
-import LawyerProfile from './pages/LawyerProfile';
-import BriefRequestDetail from './pages/BriefRequestDetail';
-import LawyerBookConsultation from './pages/LawyerBookConsultation';
-import ScheduleConsultation from './pages/ScheduleConsultation';
-import BookingDetail from './pages/BookingDetail';
 import {
   LegacyPaymentRedirect,
   LegacyBookingConfirmationRedirect,
 } from './routes/LegacyRedirects';
 import RegisterPage from './pages/RegisterPage';
-import AccountSettings from './pages/AccountSettings';
-import AdminKycPage from './pages/AdminKycPage';
-import LawyerDashboard from './pages/LawyerDashboard';
-import LawyerSchedule from './pages/LawyerSchedule';
-import VideoConsultation from './pages/VideoConsultation';
-import VideoConsultationSession from './pages/VideoConsultationSession';
-import ConsultationPreflightPage from './pages/ConsultationPreflightPage';
-import AnalysisHistoryList from './pages/AnalysisHistoryList';
-import AnalysisDetail from './pages/AnalysisDetail';
-import ActivityHistory from './pages/ActivityHistory';
-import ScheduleCalendar from './pages/ScheduleCalendar';
 import GoogleAuthDone from './pages/GoogleAuthDone';
-import LawyerActivityHistory from './pages/LawyerActivityHistory';
-import CheckoutPage from './pages/CheckoutPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import LicensesPage from './pages/LicensesPage';
@@ -49,6 +29,35 @@ import { SideNavProvider } from './context/SideNavContext';
 import { FloatingBookingDock } from './components/booking/FloatingBookingDock';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 
+const CitizenDashboard = lazy(() => import('./pages/CitizenDashboardPremium'));
+const AiCaseAnalysis = lazy(() => import('./pages/AiCaseAnalysis'));
+const DirectoryPage = lazy(() => import('./pages/DirectoryPage'));
+const DirectorySearchRedirect = lazy(() =>
+  import('./pages/DirectoryPage').then((m) => ({ default: m.DirectorySearchRedirect })),
+);
+const LawyerProfile = lazy(() => import('./pages/LawyerProfile'));
+const BriefRequestDetail = lazy(() => import('./pages/BriefRequestDetail'));
+const LawyerBookConsultation = lazy(() => import('./pages/LawyerBookConsultation'));
+const ScheduleConsultation = lazy(() => import('./pages/ScheduleConsultation'));
+const BookingDetail = lazy(() => import('./pages/BookingDetail'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
+const AdminKycPage = lazy(() => import('./pages/AdminKycPage'));
+const LawyerDashboard = lazy(() => import('./pages/LawyerDashboard'));
+const LawyerSchedule = lazy(() => import('./pages/LawyerSchedule'));
+const VideoConsultation = lazy(() => import('./pages/VideoConsultation'));
+const VideoConsultationSession = lazy(() => import('./pages/VideoConsultationSession'));
+const ConsultationPreflightPage = lazy(() => import('./pages/ConsultationPreflightPage'));
+const AnalysisHistoryList = lazy(() => import('./pages/AnalysisHistoryList'));
+const AnalysisDetail = lazy(() => import('./pages/AnalysisDetail'));
+const ActivityHistory = lazy(() => import('./pages/ActivityHistory'));
+const ScheduleCalendar = lazy(() => import('./pages/ScheduleCalendar'));
+const LawyerActivityHistory = lazy(() => import('./pages/LawyerActivityHistory'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+
+function PageFallback() {
+  return <p className="staff-empty-hint" style={{ padding: '1.5rem' }}>Loading…</p>;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -57,6 +66,7 @@ function App() {
       </a>
       <SideNavProvider>
       <BookingDockProvider>
+      <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
@@ -204,6 +214,7 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
       <FloatingBookingDock />
       <InstallPrompt />
       </BookingDockProvider>

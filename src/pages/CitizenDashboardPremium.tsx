@@ -51,8 +51,8 @@ export const CitizenDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
-  const loadData = useCallback(() => {
-    setLoading(true);
+  const loadData = useCallback((opts?: { quiet?: boolean }) => {
+    if (!opts?.quiet) setLoading(true);
     setLoadError('');
     bookingsApi.getMy({ limit: 50 })
       .then(({ bookings: list }) => setBookings(list))
@@ -67,8 +67,8 @@ export const CitizenDashboard: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  useEffect(() => onBookingUpdated(() => loadData()), [loadData]);
-  useEffect(() => onNotificationNew(() => loadData()), [loadData]);
+  useEffect(() => onBookingUpdated(() => loadData({ quiet: true })), [loadData]);
+  useEffect(() => onNotificationNew(() => loadData({ quiet: true })), [loadData]);
 
   useEffect(() => {
     if (loading) return;

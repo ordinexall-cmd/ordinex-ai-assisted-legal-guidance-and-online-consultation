@@ -7,6 +7,7 @@ import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireLawyer, requireLawyerVerified } from '../middleware/premium.js';
 import { emitAvailabilityChanged } from '../socket/bookingSocket.js';
+import { intervalsOverlap } from '../utils/sessionOverlap.js';
 
 const router = Router();
 
@@ -224,7 +225,7 @@ function validateSlot(s) {
 }
 
 function overlaps(aStart, aEnd, bStart, bEnd) {
-  return aStart < bEnd && bStart < aEnd;
+  return intervalsOverlap(aStart, aEnd, bStart, bEnd);
 }
 
 export default router;

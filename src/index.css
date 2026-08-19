@@ -11619,13 +11619,22 @@ textarea.landing-input {
 }
 
 .booking-flow-layout--manage .booking-flow-rail {
-  grid-row: 1 / span 2;
+  grid-row: 1;
+}
+
+.booking-flow-layout--manage .booking-flow-main {
+  grid-row: 1;
+}
+
+.booking-flow-layout--manage .booking-flow-aside {
+  grid-row: 1;
 }
 
 .booking-flow-layout--manage .booking-flow-footer-slot {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   grid-row: 2;
   min-width: 0;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 1100px) {
@@ -11674,10 +11683,7 @@ textarea.landing-input {
 
 @media (min-width: 1100px) {
   .booking-flow-aside {
-    position: sticky;
-    top: var(--space-4);
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
+    align-self: start;
   }
 }
 
@@ -13182,6 +13188,7 @@ textarea.landing-input {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
   padding: 12px 14px;
   border-radius: 12px;
   background: rgba(13, 59, 46, 0.04);
@@ -13213,7 +13220,6 @@ textarea.landing-input {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
 }
 
 .booking-detail-footer__report {
