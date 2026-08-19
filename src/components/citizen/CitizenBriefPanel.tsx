@@ -93,7 +93,7 @@ export const CitizenBriefPanel: React.FC = () => {
       document.getElementById('consult-offers')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
     return () => window.clearTimeout(t);
-  }, [location.hash, inquiries.length]);
+  }, [location.hash, location.state, inquiries.length]);
 
   if (!unlocked) return null;
 

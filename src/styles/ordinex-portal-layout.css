@@ -175,27 +175,18 @@ body.ox-portal {
 }
 
 .pao-side-nav-link .material-symbols-outlined {
-  font-size: 20px;
+  font-size: 22px;
   flex-shrink: 0;
 }
 
-.pao-side-nav-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.5rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.9);
+.pao-side-nav-icon {
+  width: 22px;
+  text-align: center;
 }
 
-.pao-side-nav-toggle-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+.pao-side-nav-toggle-icon {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .pao-side-nav-link:hover {

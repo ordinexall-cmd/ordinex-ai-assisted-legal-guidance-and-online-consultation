@@ -88,6 +88,53 @@ router.post('/', requireAuth, requireLawyer, requireLawyerVerified, async (req, 
 });
 
 /**
+ * POST /api/availability/remove-many
+ * Body: { all: true } or { from: "YYYY-MM-DD", to: "YYYY-MM-DD" }
+ * Skips windows that already have bookings.
+ */
+router.post('/remove-many', requireAuth, requireLawyer, requireLawyerVerified, async (req, res, next) => {
+  try {
+    const all = Boolean(req.body.all);
+    const fromStr = req.body.from ? String(req.body.from).slice(0, 10) : '';
+    const toStr = req.body.to ? String(req.body.to).slice(0, 10) : '';
+    if (!all && (!/^\d{4}-\d{2}-\d{2}$/.test(fromStr) || !/^\d{4}-\d{2}-\d{2}$/.test(toStr))) {
+      return res.status(400).json({ error: 'Choose a start and end date, or remove all unused hours.' });
+    }
+    if (!all && fromStr > toStr) {
+      return res.status(400).json({ error: 'End date must be on or after start date.' });
+    }
+
+    const where = {
+      lawyerId: req.user.id,
+      ...(!all
+        ? {
+            date: {
+              gte: new Date(`${fromStr}T00:00:00.000Z`),
+              lte: new Date(`${toStr}T00:00:00.000Z`),
+            },
+          }
+        : {}),
+    };
+
+    const slots = await prisma.availability.findMany({
+      where,
+      include: { bookings: { select: { id: true } } },
+    });
+    const removable = slots.filter((s) => !(s.bookings || []).length);
+    const skipped = slots.length - removable.length;
+    if (removable.length) {
+      await prisma.availability.deleteMany({
+        where: { id: { in: removable.map((s) => s.id) } },
+      });
+      emitAvailabilityChanged(req.user.id);
+    }
+    res.json({ removed: removable.length, skipped });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * DELETE /api/availability/:id
  * Allowed when no bookings exist on this duty window.
  */

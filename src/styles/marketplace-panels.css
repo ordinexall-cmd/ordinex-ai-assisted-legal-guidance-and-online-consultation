@@ -771,7 +771,7 @@ p.dir-filter-opt:hover {
   height: 88px;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(13, 59, 46, 0.08);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -779,6 +779,11 @@ p.dir-filter-opt:hover {
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--color-ox-emerald, #0D3B2E);
+}
+
+.dir-lawyer-card__avatar .avatar {
+  width: 88px !important;
+  height: 88px !important;
 }
 
 .dir-lawyer-card__avatar img {

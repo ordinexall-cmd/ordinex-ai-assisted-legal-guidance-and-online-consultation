@@ -10,6 +10,7 @@ import {
 } from '../services/api';
 import { getAppBackFallback } from '../utils/navigation';
 import { LawyerDirectoryCard } from '../components/lawyer/LawyerDirectoryCard';
+import { UserAvatar } from '../components/UserAvatar';
 import { LawyerCardSkeleton } from '../components/dashboard/LawyerCardSkeleton';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getLawyerNav } from '../utils/lawyerWorkspace';
@@ -373,7 +374,7 @@ export const DirectoryPage: React.FC = () => {
                       }}
                     >
                       <div className="dir-lawyer-card__avatar" aria-hidden>
-                        <span>{(b.displayName || '?').slice(0, 1).toUpperCase()}</span>
+                        <UserAvatar name={b.displayName} size="lg" />
                       </div>
                       <h3 className="dir-lawyer-card__name">{b.displayName}</h3>
                       <p className="dir-lawyer-card__loc">{placeLabel(b)}</p>

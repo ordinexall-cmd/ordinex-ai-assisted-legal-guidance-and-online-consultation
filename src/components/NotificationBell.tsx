@@ -4,6 +4,35 @@ import { useNavigate } from 'react-router-dom';
 import { notificationsApi, type AppNotification } from '../services/api';
 import { onNotificationNew } from '../services/appSocket';
 
+function resolveNotificationHref(n: AppNotification): string | null {
+  const raw = (n.linkTo || '').trim();
+  if (n.type === 'BRIEF_OFFER_ACCEPTED') {
+    if (raw.includes('/directory/requests/')) return raw;
+    return '/lawyer/dashboard#offers';
+  }
+  if (n.type === 'BRIEF_OFFER') {
+    if (raw.includes('#consult-offers')) return raw;
+    return '/dashboard#consult-offers';
+  }
+  return raw || null;
+}
+
+function goToAppHref(navigate: ReturnType<typeof useNavigate>, href: string) {
+  const url = new URL(href, window.location.origin);
+  const pathname = url.pathname;
+  const search = url.search;
+  const hash = url.hash;
+  const samePlace =
+    window.location.pathname === pathname && window.location.search === search;
+  navigate(
+    { pathname, search, hash },
+    { replace: samePlace, state: { scrollTo: hash.replace(/^#/, ''), t: Date.now() } },
+  );
+  if (samePlace && hash) {
+    window.location.hash = hash;
+  }
+}
+
 function fmtWhen(iso: string) {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
@@ -102,7 +131,8 @@ export const NotificationBell: React.FC<{ className?: string }> = ({
       } catch { /* ignore */ }
     }
     setOpen(false);
-    if (n.linkTo) navigate(n.linkTo);
+    const href = resolveNotificationHref(n);
+    if (href) goToAppHref(navigate, href);
   };
 
   const markAll = async () => {

@@ -31,6 +31,7 @@ interface Props {
   readonly events: ScheduleCalendarEvent[];
   readonly emptyHint?: string;
   readonly compact?: boolean;
+  readonly boxed?: boolean;
   readonly selectedDate?: string | null;
   readonly onSelectDate?: (dateKey: string) => void;
 }
@@ -39,6 +40,7 @@ export const ScheduleMonthGrid: React.FC<Props> = ({
   events,
   emptyHint,
   compact = false,
+  boxed = false,
   selectedDate = null,
   onSelectDate,
 }) => {
@@ -72,7 +74,7 @@ export const ScheduleMonthGrid: React.FC<Props> = ({
   };
 
   return (
-    <div className={`staff-panel schedule-calendar-grid${compact ? ' schedule-calendar-grid--compact' : ''}`}>
+    <div className={`staff-panel schedule-calendar-grid${compact ? ' schedule-calendar-grid--compact' : ''}${boxed ? ' schedule-calendar-grid--boxed' : ''}`}>
       <div className="schedule-calendar-grid__head">
         <button type="button" className="schedule-calendar-grid__nav" onClick={prevMonth} aria-label="Previous month">
           <span className="material-symbols-outlined">chevron_left</span>
@@ -121,7 +123,14 @@ export const ScheduleMonthGrid: React.FC<Props> = ({
                   {dayEvents.map((ev) => {
                     const variant = ev.colorVariant || 'green';
                     const isCompleted = ev.completed;
-                    return (
+                    return compact || onSelectDate ? (
+                      <span
+                        key={ev.id}
+                        className={`schedule-calendar-grid__event schedule-calendar-grid__event--${variant}${isCompleted ? ' schedule-calendar-grid__event--done' : ''}`}
+                      >
+                        {ev.label}
+                      </span>
+                    ) : (
                       <button
                         key={ev.id}
                         type="button"
@@ -137,7 +146,7 @@ export const ScheduleMonthGrid: React.FC<Props> = ({
             </>
           );
 
-          if (compact && onSelectDate) {
+          if (onSelectDate) {
             return (
               <button
                 key={key}
@@ -145,7 +154,7 @@ export const ScheduleMonthGrid: React.FC<Props> = ({
                 className={cellClass}
                 onClick={() => onSelectDate(key)}
                 aria-pressed={isSelected}
-                aria-label={`${day.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' })}${dayEvents.length ? `, ${dayEvents.length} bookings` : ''}`}
+                aria-label={`${day.toLocaleDateString('en-PH', { month: 'long', day: 'numeric' })}${dayEvents.length ? `, ${dayEvents.length} open` : ''}`}
               >
                 {inner}
               </button>

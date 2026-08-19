@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserAvatar } from '../UserAvatar';
 import type { LawyerCardSummary } from '../../services/api';
 import { appendConsultationIdToPath, buildLawyerBookPath, specialtyDisplayLabel } from '../../constants/legalCategories';
 
@@ -56,11 +57,7 @@ export const LawyerDirectoryCard: React.FC<LawyerDirectoryCardProps> = ({
         onClick={() => navigate(profilePath)}
       >
         <div className="dir-lawyer-card__avatar">
-          {l.avatarUrl ? (
-            <img src={l.avatarUrl} alt="" />
-          ) : (
-            <span aria-hidden>{(l.name || '?').slice(0, 1).toUpperCase()}</span>
-          )}
+          <UserAvatar avatarUrl={l.avatarUrl} name={l.name} size="lg" />
         </div>
         <h3 className="dir-lawyer-card__name">
           {l.name}

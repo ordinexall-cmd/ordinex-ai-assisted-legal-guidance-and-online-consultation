@@ -678,6 +678,12 @@ export const availabilityApi = {
   remove: (id: string) =>
     request<{ message: string }>(`/availability/${id}`, { method: 'DELETE' }),
 
+  removeMany: (body: { all?: boolean; from?: string; to?: string }) =>
+    request<{ removed: number; skipped: number }>('/availability/remove-many', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
   getMy: (from?: string, to?: string) => {
     const qs = new URLSearchParams();
     if (from) qs.set('from', from);

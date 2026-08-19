@@ -78,7 +78,7 @@ export const CitizenDashboard: React.FC = () => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
     return () => window.clearTimeout(t);
-  }, [location.hash, loading]);
+  }, [location.hash, location.state, loading]);
 
   const active = useMemo(
     () => bookings.filter((b) => ['CONFIRMED', 'IN_PROGRESS'].includes(b.status)),

@@ -65,7 +65,7 @@ export const LawyerDashboard: React.FC = () => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
     return () => window.clearTimeout(t);
-  }, [location.hash, loading]);
+  }, [location.hash, location.state, loading]);
 
   const pending = useMemo(() => bookings.filter((b) => b.status === 'REQUESTED'), [bookings]);
   const paymentsToVerify = useMemo(

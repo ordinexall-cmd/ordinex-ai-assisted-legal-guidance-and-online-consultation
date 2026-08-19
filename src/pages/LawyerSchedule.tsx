@@ -68,12 +68,20 @@ export const LawyerSchedule: React.FC = () => {
   const [newEnd, setNewEnd] = useState('12:00');
   const [selectedDays, setSelectedDays] = useState<number[]>([...WEEKDAY_PRESET]);
 
-  const effectiveEnd = selectedDays.length > 0 && startDate === endDate
-    ? addMonthsYmd(startDate, DEFAULT_RANGE_MONTHS)
+  const [mode, setMode] = useState<'weekly' | 'onetime'>('weekly');
+  const [duration, setDuration] = useState<'permanent' | 'until'>('permanent');
+  const [untilDate, setUntilDate] = useState(() => addMonthsYmd(toDateInput(new Date()), DEFAULT_RANGE_MONTHS));
+  const [rangeFrom, setRangeFrom] = useState(defaultDate);
+  const [rangeTo, setRangeTo] = useState(() => addMonthsYmd(toDateInput(new Date()), DEFAULT_RANGE_MONTHS));
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const rangeEnd = mode === 'weekly'
+    ? (duration === 'permanent' ? addMonthsYmd(startDate, 12) : untilDate)
     : endDate;
+  const previewDays = mode === 'weekly' ? selectedDays : [];
   const previewDates = useMemo(
-    () => expandWeekdayRange(startDate, effectiveEnd, selectedDays),
-    [startDate, effectiveEnd, selectedDays],
+    () => expandWeekdayRange(startDate, rangeEnd, previewDays),
+    [startDate, rangeEnd, previewDays],
   );
 
   const load = useCallback(() => {
@@ -108,27 +116,33 @@ export const LawyerSchedule: React.FC = () => {
   };
 
   const handleAdd = async () => {
-    if (!startDate || !endDate) {
-      setError('Start and end dates are required.');
-      return;
-    }
-    if (startDate > endDate) {
-      setError('End date must be on or after start date.');
-      return;
-    }
-    if (selectedDays.length === 0 && startDate !== endDate) {
-      setError('Select at least one day of the week.');
+    if (!startDate) {
+      setError('Start date is required.');
       return;
     }
     if (newStart >= newEnd) {
       setError('End time must be after start time.');
       return;
     }
-    const rangeEnd = selectedDays.length > 0 && startDate === endDate
-      ? addMonthsYmd(startDate, DEFAULT_RANGE_MONTHS)
-      : endDate;
-    if (rangeEnd !== endDate) setEndDate(rangeEnd);
-    const dates = expandWeekdayRange(startDate, rangeEnd, selectedDays);
+    let dates: string[] = [];
+    if (mode === 'weekly') {
+      if (selectedDays.length === 0) {
+        setError('Select at least one day of the week.');
+        return;
+      }
+      const until = duration === 'permanent' ? addMonthsYmd(startDate, 12) : untilDate;
+      if (until < startDate) {
+        setError('Until date must be on or after Valid from.');
+        return;
+      }
+      dates = expandWeekdayRange(startDate, until, selectedDays);
+    } else {
+      if (!endDate || endDate < startDate) {
+        setError('End date must be on or after start date.');
+        return;
+      }
+      dates = expandWeekdayRange(startDate, endDate, []);
+    }
     if (dates.length === 0) {
       setError('No matching weekdays in the selected range. Adjust dates or days of week.');
       return;
@@ -161,6 +175,22 @@ export const LawyerSchedule: React.FC = () => {
       load();
     } catch (e: unknown) {
       setError(getErrorMessage(e, 'Failed to remove slot.'));
+    }
+  };
+
+  const handleBulk = async (body: { all?: boolean; from?: string; to?: string }) => {
+    setBulkBusy(true);
+    setError('');
+    try {
+      const res = await availabilityApi.removeMany(body);
+      if (res.removed === 0 && res.skipped > 0) {
+        setError('Those days have bookings and cannot be removed.');
+      }
+      load();
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'Could not remove hours.'));
+    } finally {
+      setBulkBusy(false);
     }
   };
 
@@ -213,14 +243,45 @@ export const LawyerSchedule: React.FC = () => {
         ) : (
           <div className="staff-page-grid staff-page-grid--2">
             <div>
-              <div className="staff-panel staff-panel--compact" style={{ marginBottom: '0.75rem' }}>
+              <div className="staff-panel staff-panel--compact placer-roster-card" style={{ marginBottom: '0.75rem' }}>
                 <h3 className="staff-panel__title">Add duty hours</h3>
-                <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
-                  Pick start and end dates, then weekdays. Mon–Fri over a 3-month range creates every weekday in that span.
-                </p>
+                <div className="placer-mode-toggle" role="tablist" aria-label="Duty type">
+                  <button
+                    type="button"
+                    className={`placer-mode-toggle__btn${mode === 'weekly' ? ' is-active' : ''}`}
+                    onClick={() => setMode('weekly')}
+                  >
+                    Weekly recurring
+                  </button>
+                  <button
+                    type="button"
+                    className={`placer-mode-toggle__btn${mode === 'onetime' ? ' is-active' : ''}`}
+                    onClick={() => setMode('onetime')}
+                  >
+                    One-time range
+                  </button>
+                </div>
                 <div className="staff-form--compact">
+                  {mode === 'weekly' && (
+                    <div>
+                      <span className="placer-field-label">Repeat on</span>
+                      <div className="staff-weekday-pills placer-day-squares" role="group" aria-label="Days of week">
+                        {DAY_LABELS.map((label, day) => (
+                          <button
+                            key={`dow-${day}`}
+                            type="button"
+                            className={`staff-weekday-pill${selectedDays.includes(day) ? ' staff-weekday-pill--active' : ''}`}
+                            onClick={(e) => toggleDay(day, e)}
+                            aria-pressed={selectedDays.includes(day)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div>
-                    <label htmlFor="duty-start-date">Start date</label>
+                    <label htmlFor="duty-start-date">{mode === 'weekly' ? 'Valid from' : 'Start date'}</label>
                     <input
                       id="duty-start-date"
                       type="date"
@@ -231,60 +292,65 @@ export const LawyerSchedule: React.FC = () => {
                         const v = e.target.value;
                         setStartDate(v);
                         if (endDate < v) setEndDate(addMonthsYmd(v, DEFAULT_RANGE_MONTHS));
+                        if (untilDate < v) setUntilDate(addMonthsYmd(v, DEFAULT_RANGE_MONTHS));
                       }}
                     />
                   </div>
-                  <div>
-                    <label htmlFor="duty-end-date">End date</label>
-                    <input
-                      id="duty-end-date"
-                      type="date"
-                      className="ox-input"
-                      min={startDate || toDateInput(new Date())}
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--color-ox-emerald)' }}>
-                      Days of week
-                    </span>
-                    <p className="staff-empty-hint" style={{ margin: '0.25rem 0 0' }}>
-                      Every selected weekday between Start and End is added. If Start and End are the same day, the range extends 3 months.
-                    </p>
-                    <div className="staff-weekday-pills" role="group" aria-label="Days of week" style={{ marginTop: 6 }}>
-                      {DAY_LABELS.map((label, day) => (
-                        <button
-                          key={`dow-${day}`}
-                          type="button"
-                          className={`staff-weekday-pill${selectedDays.includes(day) ? ' staff-weekday-pill--active' : ''}`}
-                          onClick={(e) => toggleDay(day, e)}
-                          aria-pressed={selectedDays.includes(day)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    {previewDates.length > 0 && (
-                      <p className="staff-empty-hint" style={{ marginTop: 8 }}>
-                        Will create {previewDates.length} {weekdayPreviewLabel(selectedDays)} slot{previewDates.length === 1 ? '' : 's'}
-                        {' '}({previewDates[0]} to {previewDates[previewDates.length - 1]}).
-                      </p>
-                    )}
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  {mode === 'weekly' ? (
                     <div>
-                      <label htmlFor="duty-start-time">Start</label>
+                      <span className="placer-field-label">Duration</span>
+                      <label className="placer-radio">
+                        <input type="radio" name="duty-dur" checked={duration === 'permanent'} onChange={() => setDuration('permanent')} />
+                        Permanent (repeats weekly)
+                      </label>
+                      <label className="placer-radio">
+                        <input type="radio" name="duty-dur" checked={duration === 'until'} onChange={() => setDuration('until')} />
+                        Until date
+                      </label>
+                      {duration === 'until' && (
+                        <input
+                          type="date"
+                          className="ox-input"
+                          min={startDate}
+                          value={untilDate}
+                          onChange={(e) => setUntilDate(e.target.value)}
+                          aria-label="Until date"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label htmlFor="duty-end-date">End date</label>
+                      <input
+                        id="duty-end-date"
+                        type="date"
+                        className="ox-input"
+                        min={startDate || toDateInput(new Date())}
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
+                    <div>
+                      <label htmlFor="duty-start-time">Start time</label>
                       <input id="duty-start-time" type="time" className="ox-input" value={newStart} onChange={(e) => setNewStart(e.target.value)} />
                     </div>
                     <div>
-                      <label htmlFor="duty-end-time">End</label>
+                      <label htmlFor="duty-end-time">End time</label>
                       <input id="duty-end-time" type="time" className="ox-input" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
                     </div>
+                    <button type="button" className="ox-btn ox-btn-primary" disabled={adding} onClick={() => { void handleAdd(); }}>
+                      {adding ? 'Adding…' : '+ Add Rule'}
+                    </button>
                   </div>
-                  <button type="button" className="ox-btn ox-btn-primary" disabled={adding} onClick={() => { void handleAdd(); }}>
-                    {adding ? 'Adding…' : 'Add slots'}
-                  </button>
+                  {previewDates.length > 0 && (
+                    <p className="staff-empty-hint" style={{ marginTop: 4 }}>
+                      {mode === 'weekly'
+                        ? `Repeats every ${weekdayPreviewLabel(selectedDays)} · ${newStart}–${newEnd} · ${duration === 'permanent' ? 'ongoing' : `until ${untilDate}`}`
+                        : `Will create ${previewDates.length} day${previewDates.length === 1 ? '' : 's'} (${previewDates[0]} to ${previewDates[previewDates.length - 1]}).`}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -321,12 +387,37 @@ export const LawyerSchedule: React.FC = () => {
 
             <div>
               <ScheduleMonthGrid
+                boxed
                 events={calEvents}
                 emptyHint="No duty slots yet. Add hours on the left."
               />
               <details className="staff-details" open>
                 <summary>Open duty slots ({openSlots.length})</summary>
                 <div className="staff-details__body">
+                  <div className="placer-bulk-row">
+                    <button
+                      type="button"
+                      className="ox-btn ox-btn-ghost ox-btn-sm"
+                      disabled={bulkBusy || openSlots.length === 0}
+                      onClick={() => {
+                        if (window.confirm(`Remove ${openSlots.length} unused open days? Hours with bookings stay.`)) {
+                          void handleBulk({ all: true });
+                        }
+                      }}
+                    >
+                      Remove all
+                    </button>
+                    <input type="date" className="ox-input" value={rangeFrom} onChange={(e) => setRangeFrom(e.target.value)} aria-label="Range start" />
+                    <input type="date" className="ox-input" value={rangeTo} onChange={(e) => setRangeTo(e.target.value)} aria-label="Range end" />
+                    <button
+                      type="button"
+                      className="ox-btn ox-btn-ghost ox-btn-sm"
+                      disabled={bulkBusy}
+                      onClick={() => { void handleBulk({ from: rangeFrom, to: rangeTo }); }}
+                    >
+                      Remove range
+                    </button>
+                  </div>
                   {openSlots.length === 0 ? (
                     <p className="staff-empty-hint">No open slots.</p>
                   ) : (
@@ -337,7 +428,7 @@ export const LawyerSchedule: React.FC = () => {
                           {' · '}
                           {s.startTime}–{s.endTime}
                         </span>
-                        <button type="button" className="ox-btn ox-btn-ghost ox-btn-sm" onClick={() => { void handleDelete(s.id); }}>
+                        <button type="button" className="ox-btn ox-btn-ghost ox-btn-sm placer-remove" onClick={() => { void handleDelete(s.id); }}>
                           Remove
                         </button>
                       </div>

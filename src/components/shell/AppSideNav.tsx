@@ -14,14 +14,6 @@ function accountLabel(isLawyer: boolean): string {
   return isLawyer ? 'Lawyer account' : 'Citizen account';
 }
 
-function markFromLabel(label: string): string {
-  const parts = label.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return label.slice(0, 2).toUpperCase();
-}
-
 function useMobileNav(): boolean {
   const [mobile, setMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches,
@@ -72,9 +64,9 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
 
     const inner = (
       <>
-        {!showLabels ? (
-          <span className="pao-side-nav-mark" aria-hidden>{markFromLabel(item.label)}</span>
-        ) : null}
+        <span className="material-symbols-outlined pao-side-nav-icon" aria-hidden>
+          {item.icon}
+        </span>
         {showLabels ? <span>{item.label}</span> : null}
         {item.locked ? (
           <span
@@ -143,8 +135,8 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
             aria-label={expanded ? 'Close navigation' : 'Open navigation'}
             aria-expanded={expanded}
           >
-            <span className="pao-side-nav-toggle-label">
-              {mobile ? 'Close' : (collapsed ? 'Open' : 'Hide')}
+            <span className="material-symbols-outlined pao-side-nav-toggle-icon" aria-hidden>
+              {collapsed ? 'chevron_right' : 'chevron_left'}
             </span>
           </button>
         </div>
@@ -178,9 +170,9 @@ export const AppSideNav: React.FC<AppSideNavProps> = ({ navItems }) => {
             className="pao-side-nav-link"
             onClick={() => { logout(); navigate('/'); closeDrawer(); }}
             aria-label="Log out"
+            title={!showLabels ? 'Log out' : undefined}
           >
             <span className="material-symbols-outlined" aria-hidden>logout</span>
-            {!showLabels ? <span className="pao-side-nav-mark" aria-hidden>LO</span> : null}
             {showLabels ? <span>Log out</span> : null}
           </button>
         </div>

@@ -1,19 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AvailabilitySlot, ConsultationResult, LawyerProfile } from '../../services/api';
 import { hasBookingCaseContext, bookingCaseContextError } from '../../utils/bookingCaseContext';
-import { holdEnd } from '../../utils/sessionOverlap';
+import { holdEnd, preferredStartsInWindow } from '../../utils/sessionOverlap';
+import { UserAvatar } from '../UserAvatar';
+import '../../styles/consult-booking.css';
 
 const CASE_DESCRIPTION_MAX = 2000;
 
 const STEP_LABELS = ['Case context', 'Pick a slot'];
-
-function formatSlotDate(isoDate: string): string {
-  return new Date(`${isoDate.slice(0, 10)}T12:00:00`).toLocaleDateString('en-PH', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-}
 
 export interface CitizenBookingWizardProps {
   readonly lawyer: LawyerProfile;
@@ -25,6 +19,7 @@ export interface CitizenBookingWizardProps {
   /** When parent calendar picks a day, jump to slot step (if case context is ready). */
   readonly preferredDate?: string | null;
   readonly onPreferredDateConsumed?: () => void;
+  readonly onDatePicked?: (date: string) => void;
   readonly onSubmit: (payload: {
     availabilityId: string;
     preferredStartTime: string;
@@ -42,6 +37,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
   error = '',
   preferredDate = null,
   onPreferredDateConsumed,
+  onDatePicked,
   onSubmit,
 }) => {
   const [step, setStep] = useState(0);
@@ -52,7 +48,10 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [preferredStart, setPreferredStart] = useState<string | null>(null);
 
-  const openSlots = useMemo(() => slots.filter((s) => (s.openStarts?.length ?? 0) > 0 || !s.isBooked), [slots]);
+  const openSlots = useMemo(
+    () => slots.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || []).length > 0),
+    [slots],
+  );
 
   const datesWithSlots = useMemo(() => {
     const set = new Set<string>();
@@ -64,6 +63,16 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
     if (!selectedDate) return [];
     return openSlots.filter((s) => s.date.slice(0, 10) === selectedDate);
   }, [openSlots, selectedDate]);
+
+  const startsForDate = useMemo(() => {
+    const rows: { slotId: string; start: string; holdUntil: string }[] = [];
+    for (const s of slotsForDate) {
+      for (const t of preferredStartsInWindow(s.startTime, s.endTime, s.taken || [])) {
+        rows.push({ slotId: s.id, start: t, holdUntil: holdEnd(t, s.endTime) });
+      }
+    }
+    return rows;
+  }, [slotsForDate]);
 
   const hasCaseContext = hasBookingCaseContext({ consultationId: linkedConsultationId, caseDescription });
 
@@ -86,14 +95,15 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
     onPreferredDateConsumed?.();
   }, [preferredDate, datesWithSlots, hasCaseContext, onPreferredDateConsumed]);
 
+  useEffect(() => {
+    if (selectedDate) onDatePicked?.(selectedDate);
+  }, [selectedDate, onDatePicked]);
+
   const goNext = () => {
     if (step === 0) {
       if (!hasCaseContext) {
         setCaseContextAttempted(true);
         return;
-      }
-      if (!selectedDate && datesWithSlots.length > 0) {
-        setSelectedDate(datesWithSlots[0]);
       }
       setStep(1);
       return;
@@ -124,13 +134,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
       </div>
 
       <div className="consult-lawyer-mini">
-        <div className="consult-lawyer-mini__avatar">
-          {lawyer.avatarUrl ? (
-            <img src={lawyer.avatarUrl} alt="" />
-          ) : (
-            <span className="material-symbols-outlined">person</span>
-          )}
-        </div>
+        <UserAvatar avatarUrl={lawyer.avatarUrl} name={lawyer.name} size="md" />
         <div>
           <p className="consult-lawyer-mini__name">{lawyer.name}</p>
           <p className="consult-lawyer-mini__spec">
@@ -202,74 +206,53 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
       {step === 1 && (
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
-            Choose a date, then a start time inside the lawyer&apos;s open hours. Your request holds 60 minutes. Other people can still book leftover time the same day.
+            Pick a date and time from this lawyer&apos;s open hours. Each request holds 60 minutes; leftover time stays open.
           </p>
 
           <div className="staff-form-group">
-            <span className="staff-form-label">Available dates</span>
-            {datesWithSlots.length === 0 ? (
-              <p className="staff-empty-hint" style={{ color: 'var(--color-ox-error)' }}>
-                No open slots in the next 30 days.
-              </p>
-            ) : (
-              <div className="staff-slot-chips" role="listbox" aria-label="Available dates">
-                {datesWithSlots.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    role="option"
-                    aria-selected={selectedDate === d}
-                    className={`staff-slot-chip${selectedDate === d ? ' staff-slot-chip--active' : ''}`}
-                    onClick={() => {
-                      setSelectedDate(d);
-                      setSelectedSlotId(null);
-                      setPreferredStart(null);
-                    }}
-                  >
-                    {formatSlotDate(d)}
-                  </button>
-                ))}
-              </div>
-            )}
+            <label className="placer-field-label" htmlFor="pref-date">Preferred date *</label>
+            <input
+              id="pref-date"
+              type="date"
+              className="ox-input"
+              min={datesWithSlots[0]}
+              max={datesWithSlots[datesWithSlots.length - 1]}
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setSelectedSlotId(null);
+                setPreferredStart(null);
+              }}
+            />
           </div>
 
           <div className="staff-form-group">
-            <span className="staff-form-label">Start time</span>
+            <span className="placer-field-label">Time slot *</span>
             {!selectedDate ? (
-              <p className="staff-empty-hint">Select a date above.</p>
-            ) : slotsForDate.length === 0 ? (
-              <p className="staff-empty-hint">No open hours on this date.</p>
+              <p className="staff-empty-hint">Select a date first.</p>
+            ) : startsForDate.length === 0 ? (
+              <p className="staff-empty-hint">No open times on this date.</p>
             ) : (
-              slotsForDate.map((s) => {
-                const starts = s.openStarts?.length ? s.openStarts : [s.startTime];
-                return (
-                  <div key={s.id} style={{ marginBottom: '0.75rem' }}>
-                    <p className="staff-empty-hint" style={{ marginBottom: '0.4rem' }}>
-                      Open {s.startTime}–{s.endTime}
-                    </p>
-                    <div className="staff-slot-chips" role="listbox" aria-label="Preferred start times">
-                      {starts.map((t) => {
-                        const active = selectedSlotId === s.id && preferredStart === t;
-                        return (
-                          <button
-                            key={`${s.id}-${t}`}
-                            type="button"
-                            role="option"
-                            aria-selected={active}
-                            className={`staff-slot-chip${active ? ' staff-slot-chip--active' : ''}`}
-                            onClick={() => {
-                              setSelectedSlotId(s.id);
-                              setPreferredStart(t);
-                            }}
-                          >
-                            {t}–{holdEnd(t, s.endTime)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })
+              <div className="placer-time-grid" role="listbox" aria-label="Preferred start times">
+                {startsForDate.map((row) => {
+                  const active = selectedSlotId === row.slotId && preferredStart === row.start;
+                  return (
+                    <button
+                      key={`${row.slotId}-${row.start}`}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      className={`placer-time-pill${active ? ' is-selected' : ''}`}
+                      onClick={() => {
+                        setSelectedSlotId(row.slotId);
+                        setPreferredStart(row.start);
+                      }}
+                    >
+                      {row.start}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
         </>
@@ -287,7 +270,7 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
           disabled={loading || (step === 0 && datesWithSlots.length === 0) || (step === 1 && (!selectedSlotId || !preferredStart))}
           onClick={goNext}
         >
-          {loading ? 'Submitting…' : step === 0 ? 'Continue to date & time' : 'Send booking request'}
+          {loading ? 'Submitting…' : step === 0 ? 'Continue to date & time' : 'Confirm & Schedule'}
         </button>
       </div>
     </div>

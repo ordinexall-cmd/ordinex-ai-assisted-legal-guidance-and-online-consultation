@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
 import { getErrorMessage } from '../utils/userFacingError';
 import { citizenBookingCalendarStyle } from '../utils/calendarEventStyle';
+import { preferredStartsInWindow } from '../utils/sessionOverlap';
 import { BookingFlowStepper } from '../components/booking/BookingFlowStepper';
 
 export const LawyerBookConsultation: React.FC = () => {
@@ -37,6 +38,7 @@ export const LawyerBookConsultation: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<{ date: string; time: string } | null>(null);
   const [preferredDate, setPreferredDate] = useState<string | null>(null);
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!lawyerId) return;
@@ -50,7 +52,7 @@ export const LawyerBookConsultation: React.FC = () => {
         bookingsApi.getMy({ limit: 50 }),
       ]);
       setLawyer(lw);
-      setSlots(sl.filter((s) => (s.openStarts?.length ?? 0) > 0 || !s.isBooked));
+      setSlots(sl.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || []).length > 0));
       setHistory(consultations);
       setMyBookings(
         bookings.filter((b) => b.lawyer.id === lawyerId && b.viewerRole === 'CITIZEN'),
@@ -77,15 +79,16 @@ export const LawyerBookConsultation: React.FC = () => {
   }, [lawyerId, load]);
 
   const calEvents: ScheduleCalendarEvent[] = useMemo(() => {
-    const open: ScheduleCalendarEvent[] = slots.map((s) => ({
-      id: `open-${s.id}`,
-      date: s.date,
-      label: s.openStarts?.length
-        ? `Open ${s.openStarts[0]}${s.openStarts.length > 1 ? '+' : ''}`
-        : `Open ${s.startTime}`,
-      colorVariant: 'gold' as const,
-      onClick: () => setPreferredDate(s.date.slice(0, 10)),
-    }));
+    const open: ScheduleCalendarEvent[] = slots.map((s) => {
+      const starts = preferredStartsInWindow(s.startTime, s.endTime, s.taken || []);
+      return {
+        id: `open-${s.id}`,
+        date: s.date,
+        label: starts[0] ? `${starts[0]}${starts.length > 1 ? '+' : ''}` : s.startTime,
+        colorVariant: 'gold' as const,
+        onClick: () => setPreferredDate(s.date.slice(0, 10)),
+      };
+    });
     const mine: ScheduleCalendarEvent[] = myBookings.map((b) => {
       const style = citizenBookingCalendarStyle(b.status);
       return {
@@ -177,6 +180,7 @@ export const LawyerBookConsultation: React.FC = () => {
                 error={error}
                 preferredDate={preferredDate}
                 onPreferredDateConsumed={() => setPreferredDate(null)}
+                onDatePicked={setPickedDate}
                 onSubmit={(p) => { void handleSubmit(p); }}
               />
             </div>
@@ -192,11 +196,14 @@ export const LawyerBookConsultation: React.FC = () => {
                 </p>
               </div>
               <ScheduleMonthGrid
+                boxed
+                selectedDate={pickedDate}
+                onSelectDate={(d) => setPreferredDate(d)}
                 events={calEvents}
                 emptyHint={
                   slots.length === 0
                     ? 'No open slots posted yet for this lawyer.'
-                    : 'Gold markers are open slots — tap one after entering your case details.'
+                    : 'Tap a day with a badge after entering your case details.'
                 }
               />
             </div>

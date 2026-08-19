@@ -266,7 +266,7 @@ router.post('/inquiries/:id/accept', requireAuth, requireCitizen, requireCitizen
       title: 'Consult offer accepted',
       message: `${publicDisplayName(inquiry.brief)} accepted your offer. They can book a slot with you.`,
       type: 'BRIEF_OFFER_ACCEPTED',
-      linkTo: '/lawyer/dashboard#offers',
+      linkTo: `/directory/requests/${inquiry.brief.id}`,
     }).catch(() => {});
     res.json({ lawyerId: inquiry.lawyerId });
   } catch (e) {
