@@ -26,6 +26,10 @@ export async function groqChat({ messages, jsonMode = false, maxTokens = 4096, t
     max_tokens: maxTokens,
   };
   if (jsonMode) body.response_format = { type: 'json_object' };
+  // GPT-OSS is a reasoning model; hide reasoning so JSON mode returns JSON only.
+  if (String(selectedModel).includes('gpt-oss')) {
+    body.include_reasoning = false;
+  }
 
   let lastError = null;
   // Try available keys in rotation if 429 or network errors occur

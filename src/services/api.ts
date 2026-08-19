@@ -831,21 +831,12 @@ export const bookingsApi = {
     }),
 
   getChat: (id: string) =>
-    request<{ messages: BookingChatMessage[]; isOpen: boolean; translateAvailable: boolean }>(
+    request<{ messages: BookingChatMessage[]; isOpen: boolean }>(
       `/bookings/${id}/chat`,
     ),
   sendChat: (id: string, content: string) =>
     request<{ message: BookingChatMessage }>(`/bookings/${id}/chat`, {
       method: 'POST', body: JSON.stringify({ content }),
-    }),
-  getTranslateLanguages: () =>
-    request<{ available: boolean; languages: { code: string; name: string }[] }>(
-      '/bookings/translate/languages',
-    ),
-  translateChatMessage: (id: string, messageId: string, targetLang?: string) =>
-    request<{ message: BookingChatMessage }>(`/bookings/${id}/chat/translate`, {
-      method: 'POST',
-      body: JSON.stringify({ messageId, targetLang }),
     }),
   closeChat: (id: string) =>
     request<{ booking: Booking }>(`/bookings/${id}/close-chat`, { method: 'PATCH' }),

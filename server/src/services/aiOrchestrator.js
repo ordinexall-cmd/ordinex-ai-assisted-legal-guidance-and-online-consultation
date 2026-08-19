@@ -1,6 +1,6 @@
 /**
  * Ordinex AI pipeline v2: preprocess → LLM keywords → RAG → LLM JSON → validate.
- * Groq primary (single llama-3.3-70b-versatile model); Gemini 3.6 Flash fallback when Groq fails.
+ * Groq primary (openai/gpt-oss-120b); Gemini 3.6 Flash fallback when Groq fails.
  */
 import { preprocessConcern } from './textPreprocess.js';
 import { llmChatWithMeta, llmChat } from './llmClient.js';
@@ -13,6 +13,7 @@ import {
 } from './legalCorpus.js';
 import { validateAndFilterAnalysis } from './legalValidator.js';
 import { retrieveLiveLegalContext } from './liveLegalSearch.js';
+import { toAiUserFacingError } from '../utils/userFacingError.js';
 
 const SYSTEM = `You are ORDINEX, an AI-assisted legal guidance system for the Philippines (Davao City and national law).
 You provide pre-guidance only — NOT legal advice. Never claim to be a lawyer.
@@ -208,7 +209,9 @@ ${OUTPUT_SCHEMA}`;
     raw = JSON.parse(text);
     providersUsed.push(`${provider}-main`);
   } catch (e) {
-    throw new Error(`AI analysis failed: ${e.message}`);
+    const friendly = new Error(toAiUserFacingError(e));
+    friendly.statusCode = e?.statusCode || 503;
+    throw friendly;
   }
 
   const result = validateAndFilterAnalysis(raw, chunks, detectedLang, category);

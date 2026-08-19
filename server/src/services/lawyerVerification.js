@@ -19,6 +19,8 @@ import { compareFaces, FACE_PROVIDER_WEIGHTS } from './faceMatchService.js';
 import { nameSimilarity, normalizeFullName } from '../utils/stringDistance.js';
 import { sendLawyerVerifiedEmail } from './email.js';
 import { env } from '../config/env.js';
+import { isDemoEmail } from '../../prisma/demoAccounts.js';
+import { lookupScRollEntry, findSeedRollEntry } from './scRollLookup.js';
 
 const HIGH_CONFIDENCE_THRESHOLD = 85;
 const MEDIUM_CONFIDENCE_THRESHOLD = 60;
@@ -61,23 +63,16 @@ function isCodeFresh(issuedAt) {
   return Date.now() - new Date(issuedAt).getTime() < ms;
 }
 
-/** Cheap fuzzy hit on the dev SC Roll table (case-insensitive). */
-async function findRollEntry({ rollNumber, fullName }) {
-  const where = {};
-  if (rollNumber) where.rollNumber = rollNumber.trim();
-  if (Object.keys(where).length === 0 && fullName) {
-    // Fallback: prefix match the full name
-    const rows = await prisma.rollOfAttorneys.findMany({
-      where: { fullName: { contains: fullName.trim().split(' ')[0] } },
-      take: 5,
-    });
-    return rows[0] || null;
+/** Official SC Lawyers List lookup; demo accounts may use the local seed. */
+async function findRollEntry({ rollNumber, fullName, allowSeed }) {
+  const live = await lookupScRollEntry({ rollNumber, fullName });
+  if (live.unavailable) return live;
+  if (live.entry) return live;
+  if (allowSeed) {
+    const seed = await findSeedRollEntry({ rollNumber, fullName });
+    return { entry: seed };
   }
-  try {
-    return await prisma.rollOfAttorneys.findUnique({ where });
-  } catch {
-    return null;
-  }
+  return { entry: null };
 }
 
 async function ensureVerificationRow(userId) {
@@ -89,8 +84,8 @@ async function ensureVerificationRow(userId) {
 }
 
 /**
- * Step 1 — submit professional info; cross-check against the seeded
- * SC Roll of Attorneys. On hit, the lawyer is moved to PENDING_UPLOAD.
+ * Step 1 — submit professional info; cross-check against the live
+ * Supreme Court Lawyers List (cached). On hit, the lawyer is moved to PENDING_UPLOAD.
  */
 export async function startVerification({ user, fullName, rollNumber }) {
   if (user.role !== 'LAWYER') {
@@ -112,7 +107,19 @@ export async function startVerification({ user, fullName, rollNumber }) {
     return { ok: false, code: 'MISSING_INPUT', message: 'Full legal name and SC roll number are required.' };
   }
 
-  const rollEntry = await findRollEntry({ rollNumber: trimmedRoll, fullName: trimmedName });
+  const lookup = await findRollEntry({
+    rollNumber: trimmedRoll,
+    fullName: trimmedName,
+    allowSeed: isDemoEmail(user.email),
+  });
+  if (lookup.unavailable) {
+    return {
+      ok: false,
+      code: 'ROLL_UNAVAILABLE',
+      message: lookup.message || 'We could not reach the Supreme Court Lawyers List right now. Please try again in a few minutes.',
+    };
+  }
+  const rollEntry = lookup.entry;
   if (rollEntry && rollEntry.status && rollEntry.status !== 'ACTIVE') {
     return {
       ok: false,

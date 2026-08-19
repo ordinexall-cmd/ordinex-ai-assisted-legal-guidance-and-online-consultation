@@ -170,12 +170,14 @@ model LawyerVerification {
 }
 
 model RollOfAttorneys {
-  rollNumber String  @id
-  fullName   String
-  admittedAt DateTime?
-  status     String  @default("ACTIVE") // ACTIVE | SUSPENDED | DISBARRED
-  region     String?
-  createdAt  DateTime @default(now())
+  rollNumber         String    @id
+  fullName           String
+  admittedAt         DateTime?
+  status             String    @default("ACTIVE") // ACTIVE | SUSPENDED | DISBARRED
+  region             String?
+  address            String?
+  lastLiveCheckedAt  DateTime?
+  createdAt          DateTime  @default(now())
 
   @@index([fullName])
 }

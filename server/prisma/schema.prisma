@@ -184,16 +184,17 @@ model LawyerVerification {
   updatedAt              DateTime @updatedAt
 }
 
-// Seeded subset of Supreme Court Roll of Attorneys used for grounding
-// the "registry cross-reference" verification step. Dev-only sample data
-// in this repo; production should sync from the official source.
+// Cached snapshot of the public Supreme Court Lawyers List used for
+// lawyer verification. Seed rows are for demo/dev only.
 model RollOfAttorneys {
-  rollNumber String  @id
-  fullName   String
-  admittedAt DateTime?
-  status     String  @default("ACTIVE") // ACTIVE | SUSPENDED | DISBARRED
-  region     String?
-  createdAt  DateTime @default(now())
+  rollNumber         String    @id
+  fullName           String
+  admittedAt         DateTime?
+  status             String    @default("ACTIVE") // ACTIVE | SUSPENDED | DISBARRED
+  region             String?
+  address            String?
+  lastLiveCheckedAt  DateTime?
+  createdAt          DateTime  @default(now())
 
   @@index([fullName])
 }

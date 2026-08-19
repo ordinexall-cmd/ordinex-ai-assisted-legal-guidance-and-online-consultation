@@ -24,9 +24,10 @@ if (process.env.GROQ_API_KEY) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
         messages: [{ role: 'user', content: 'Reply OK' }],
         max_tokens: 5,
+        include_reasoning: false,
       }),
     });
     const body = await res.json().catch(() => ({}));

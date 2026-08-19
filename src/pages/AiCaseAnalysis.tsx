@@ -33,6 +33,7 @@ const categories = CASE_ANALYSIS_CATEGORIES;
 
 const PIPELINE_FINISH_MS = 400;
 const MIN_DESCRIPTION_CHARS = 40;
+const MAX_DESCRIPTION_CHARS = 2000;
 
 export const AiCaseAnalysis: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -75,6 +76,10 @@ export const AiCaseAnalysis: React.FC = () => {
     const textLen = descText.trim().length;
     if (textLen < MIN_DESCRIPTION_CHARS) {
       setError(`Please describe your situation in at least ${MIN_DESCRIPTION_CHARS} characters (${textLen}/${MIN_DESCRIPTION_CHARS}).`);
+      return;
+    }
+    if (textLen > MAX_DESCRIPTION_CHARS) {
+      setError(`Please keep your description within ${MAX_DESCRIPTION_CHARS} characters.`);
       return;
     }
     const facts = assessDescriptionFacts(descText);
@@ -135,7 +140,11 @@ export const AiCaseAnalysis: React.FC = () => {
       const targetCat = draft.category || category;
       if (draft.category) setCategory(draft.category);
       clearGuestDraft();
-      if (draft.autoAnalyze && draft.description.trim().length >= MIN_DESCRIPTION_CHARS) {
+      if (
+        draft.autoAnalyze
+        && draft.description.trim().length >= MIN_DESCRIPTION_CHARS
+        && draft.description.trim().length <= MAX_DESCRIPTION_CHARS
+      ) {
         void runAnalysis(draft.description, targetCat, null);
       }
     }
@@ -254,14 +263,15 @@ export const AiCaseAnalysis: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={showPipeline}
+                maxLength={MAX_DESCRIPTION_CHARS}
                 aria-describedby="desc-char-hint"
               />
               <p
                 id="desc-char-hint"
                 className={`analysis-describe__hint${descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ' analysis-describe__hint--warn' : ''}`}
               >
-                {descLen}/{MIN_DESCRIPTION_CHARS} characters
-                {descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ' — add more detail for a full analysis' : ''}
+                {descLen}/{MAX_DESCRIPTION_CHARS} characters
+                {descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ` — at least ${MIN_DESCRIPTION_CHARS} characters for a full analysis` : ''}
               </p>
 
               <label className="analysis-describe__category">
@@ -375,7 +385,7 @@ export const AiCaseAnalysis: React.FC = () => {
                   type="button"
                   className="ox-btn ox-btn-primary"
                   onClick={handleAnalyze}
-                  disabled={showPipeline}
+                  disabled={showPipeline || descLen < MIN_DESCRIPTION_CHARS || descLen > MAX_DESCRIPTION_CHARS}
                 >
                   {analyzing ? (
                     <>

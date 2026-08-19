@@ -23,11 +23,6 @@ import {
   appendTranscriptSegment,
   patchTranscriptText,
 } from '../services/transcriptStore.js';
-import {
-  isTranslateAvailable,
-  getTranslateLanguages,
-  translateText,
-} from '../services/groqTranslate.js';
 import { createNotification } from '../services/notify.js';
 import { anchorBookingRecord } from '../services/recordHash.js';
 import { refundBookingPayment } from '../services/bookingPayments.js';
@@ -42,14 +37,6 @@ import { normalizeLegacyAiResult } from '../services/legalValidator.js';
 
 const router = Router();
 const CASE_DESCRIPTION_FROM_ANALYSIS_MAX = 500;
-
-// ======================== TRANSLATE (Groq) ========================
-router.get('/translate/languages', requireAuth, async (req, res) => {
-  if (!isTranslateAvailable()) {
-    return res.json({ available: false, languages: [] });
-  }
-  res.json({ available: true, languages: getTranslateLanguages() });
-});
 
 // ======================== CREATE ========================
 /**
@@ -759,7 +746,6 @@ router.get('/:id/chat', requireAuth, async (req, res, next) => {
     res.json({
       messages: msgs,
       isOpen: isChatOpen(booking.data),
-      translateAvailable: isTranslateAvailable(),
     });
   } catch (error) {
     next(error);
@@ -803,47 +789,6 @@ router.post('/:id/chat', requireAuth, async (req, res, next) => {
     emitBookingChatMessage(booking.data.id, newMsg);
     res.status(201).json({ message: newMsg });
   } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * POST /api/bookings/:id/chat/translate
- * Body: { messageId, targetLang? }
- */
-router.post('/:id/chat/translate', requireAuth, async (req, res, next) => {
-  try {
-    const { messageId, targetLang } = req.body;
-    if (!messageId) return res.status(400).json({ error: 'messageId is required.' });
-
-    const booking = await loadOwnedBooking(req, 'either');
-    if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
-
-    const msgs = booking.data.chatMessages ? safeJsonParse(booking.data.chatMessages, []) : [];
-    const idx = msgs.findIndex((m) => m.id === messageId);
-    if (idx < 0) return res.status(404).json({ error: 'Message not found.' });
-
-    const msg = msgs[idx];
-    const target = targetLang || req.user.language || 'en';
-    const translatedText = await translateText(msg.content, target);
-    msgs[idx] = {
-      ...msg,
-      translatedText,
-      translatedLang: target,
-      translatedAt: new Date().toISOString(),
-    };
-
-    await prisma.booking.update({
-      where: { id: booking.data.id },
-      data: { chatMessages: JSON.stringify(msgs) },
-    });
-
-    emitBookingChatMessage(booking.data.id, msgs[idx]);
-    res.json({ message: msgs[idx] });
-  } catch (error) {
-    if (error.code === 'TRANSLATE_NOT_CONFIGURED') {
-      return res.status(503).json({ error: error.message });
-    }
     next(error);
   }
 });

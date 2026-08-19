@@ -92,9 +92,9 @@ export const env = {
   // Groq — one text model for analysis, one vision model for KYC, Whisper for transcripts
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
   GROQ_API_KEYS: (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
-  GROQ_MODEL: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  GROQ_MODEL: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
   // Kept for backward compatibility; analysis now uses a single model (GROQ_MODEL).
-  GROQ_LIGHT_MODEL: process.env.GROQ_LIGHT_MODEL || 'llama-3.3-70b-versatile',
+  GROQ_LIGHT_MODEL: process.env.GROQ_LIGHT_MODEL || 'openai/gpt-oss-20b',
   // Multimodal vision model for ID OCR + selfie match (chat completions with image_url).
   GROQ_VISION_MODEL: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.6-27b',
   // Speech-to-text model for live consultation transcripts.

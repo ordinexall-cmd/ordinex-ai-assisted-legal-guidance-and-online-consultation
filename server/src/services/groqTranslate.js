@@ -1,5 +1,5 @@
 /**
- * Booking chat translation — Unified LLM (Groq 8B primary, Gemini 2.5 Flash fallback).
+ * Text translation — Groq light model primary, Gemini fallback.
  */
 import { llmChat } from './llmClient.js';
 import { env } from '../config/env.js';
@@ -36,7 +36,7 @@ function mapLang(code) {
 }
 
 /**
- * Translate chat message using Groq light model (llama-3.1-8b-instant) with Gemini 2.5 Flash fallback.
+ * Translate text using Groq light model with Gemini fallback.
  * @param {string} text
  * @param {string} targetLang
  * @param {string} [sourceLang]
@@ -55,7 +55,7 @@ export async function translateText(text, targetLang, sourceLang) {
       {
         role: 'system',
         content:
-          `You translate consultation chat messages ${sourceHint} into ${targetName}. `
+          `You translate legal analysis text ${sourceHint} into ${targetName}. `
           + 'Preserve meaning and tone. Output only the translation with no quotes, labels, or commentary.',
       },
       { role: 'user', content: text },

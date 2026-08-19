@@ -6,7 +6,7 @@
 // Fallback: Gemini 3.6 Flash audio transcription when Whisper fails.
 //
 // This path is deliberately ISOLATED from the case-analysis quota:
-// neither Whisper nor Gemini transcription touches the Llama chat
+// neither Whisper nor Gemini transcription touches the Groq chat
 // 429 counter, so a talkative session never shrinks a user's daily
 // analysis credits.
 // ============================================================

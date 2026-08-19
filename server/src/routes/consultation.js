@@ -78,6 +78,11 @@ router.post('/preview', guestPreviewLimiter, async (req, res, next) => {
         error: 'Please provide a detailed description (at least 40 characters).',
       });
     }
+    if (description.trim().length > 2000) {
+      return res.status(400).json({
+        error: 'Please keep your description within 2000 characters.',
+      });
+    }
 
     const facts = assessDescriptionFacts(description);
     if (!facts.ready) {
@@ -134,6 +139,11 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
     if (!description || description.trim().length < 40) {
       return res.status(400).json({
         error: 'Please provide a detailed description (at least 40 characters).',
+      });
+    }
+    if (description.trim().length > 2000) {
+      return res.status(400).json({
+        error: 'Please keep your description within 2000 characters.',
       });
     }
 

@@ -212,7 +212,6 @@ export const FloatingBookingDock: React.FC = () => {
                       chatIsOpen={activeBooking.chatIsOpen}
                       viewerId={user.id}
                       viewerRole={activeBooking.viewerRole}
-                      userLanguage={user.language}
                       compact
                       onChatClosed={() => { void refresh(); }}
                     />

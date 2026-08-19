@@ -1,6 +1,7 @@
 import { env } from '../config/env.js';
 import { groqChat, getAdaptiveDailyLimit } from './groqClient.js';
 import { geminiChat } from './geminiClient.js';
+import { toAiUserFacingError } from '../utils/userFacingError.js';
 
 // Simple in-memory response cache & daily usage tracking
 const responseCache = new Map();
@@ -130,8 +131,16 @@ export async function llmChatWithMeta(options) {
     geminiError = new Error('GEMINI_API_KEY is not configured.');
   }
 
-  throw new Error(
-    `AI unavailable — Groq: ${groqError.message}; Gemini: ${geminiError.message}.`,
+  console.error(
+    '[llm] All providers failed:',
+    groqError?.message || groqError,
+    '|',
+    geminiError?.message || geminiError,
   );
+  const friendly = new Error(toAiUserFacingError(
+    `AI unavailable — ${groqError?.message || 'unavailable'}; ${geminiError?.message || 'unavailable'}.`,
+  ));
+  friendly.statusCode = 503;
+  throw friendly;
 }
 

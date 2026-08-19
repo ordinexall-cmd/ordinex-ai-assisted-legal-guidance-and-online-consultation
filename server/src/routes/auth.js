@@ -1548,7 +1548,7 @@ router.get('/me/lawyer-verification', requireLawyerKyc, async (req, res, next) =
 /**
  * POST /api/auth/me/lawyer-verification/start
  * Body: { fullName, rollNumber }
- * Step 1 — cross-reference the SC Roll seed and issue a challenge code.
+ * Step 1 — cross-reference the live Supreme Court Lawyers List and issue a challenge code.
  */
 router.post('/me/lawyer-verification/start', requireLawyerKyc, async (req, res, next) => {
   try {

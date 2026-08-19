@@ -1,12 +1,9 @@
 // ============================================================
 // Ordinex - OCR adapter for government-ID name extraction.
 //
-// Tries Tesseract.js when installed (no native deps required:
-// the npm package ships a WASM bundle), and falls back to a
-// deterministic hint-based reader for dev environments without
-// the optional dependency installed. This keeps the verification
-// pipeline functional out-of-the-box while remaining defensible
-// in production: the same JSON contract is returned in both modes.
+// Tries Groq vision first, then Gemini vision. Tesseract.js is last-resort
+// only (heavy on small hosts). Falls back to a deterministic hint-based
+// reader when no vision provider is available.
 // ============================================================
 
 import { analyzeImageWithGemini } from './geminiClient.js';
