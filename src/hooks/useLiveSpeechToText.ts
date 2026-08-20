@@ -21,8 +21,10 @@ function getRecognitionCtor(): (new () => RecognitionInstance) | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
-/** Length of each audio clip sent to Whisper. Short enough to feel "live". */
+/** Length of each audio clip sent to Gemini. */
 const CHUNK_MS = 5000;
+/** Skip near-silent clips (average peak from AnalyserNode over the chunk). */
+const SILENCE_RMS = 0.025;
 
 function pickAudioMime(): string {
   if (typeof MediaRecorder === 'undefined') return '';
@@ -33,14 +35,18 @@ function pickAudioMime(): string {
   return '';
 }
 
+/** True when text has no real speech content (e.g. "." alone). */
+function isNonSpeechText(text: string): boolean {
+  const t = text.replace(/^["'`“”‘’]+|["'`“”‘’]+$/g, '').trim();
+  if (!t) return true;
+  if (!/\p{L}|\p{N}/u.test(t)) return true;
+  return /^(silence|\[silence\]|\(silence\)|no[- ]?speech|inaudible|\.+|…+)$/i.test(t);
+}
+
 /**
- * Live speech-to-text.
- *
- * Primary engine: Groq Whisper — we capture short audio clips with
- * MediaRecorder and upload them to the server, which transcribes them to
- * text in the SAME spoken language (en/tl/ceb) and appends transcript
- * segments. Falls back to the browser Web Speech API when microphone
- * capture / MediaRecorder is unavailable.
+ * Live speech-to-text via Gemini (server).
+ * Captures short mic clips and uploads them. Falls back to browser Web Speech
+ * only when MediaRecorder / getUserMedia is unavailable.
  */
 export function useLiveSpeechToText(
   bookingId: string | undefined,
@@ -51,13 +57,14 @@ export function useLiveSpeechToText(
   const [supported, setSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Whisper (MediaRecorder) refs
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const listeningRef = useRef(false);
   const mimeRef = useRef<string>('');
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const peakRmsRef = useRef(0);
 
-  // Web Speech fallback refs
   const recRef = useRef<RecognitionInstance | null>(null);
   const usingFallbackRef = useRef(false);
 
@@ -68,23 +75,44 @@ export function useLiveSpeechToText(
     setSupported(canRecord || Boolean(getRecognitionCtor()));
   }, []);
 
+  const teardownAudioMeter = useCallback(() => {
+    analyserRef.current = null;
+    if (audioCtxRef.current) {
+      void audioCtxRef.current.close().catch(() => undefined);
+      audioCtxRef.current = null;
+    }
+    peakRmsRef.current = 0;
+  }, []);
+
   const stop = useCallback(() => {
     listeningRef.current = false;
-    // Stop Whisper capture
     try { recorderRef.current?.stop(); } catch { /* ignore */ }
     recorderRef.current = null;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    // Stop Web Speech fallback
+    teardownAudioMeter();
     try { recRef.current?.stop(); } catch { /* ignore */ }
     recRef.current = null;
     usingFallbackRef.current = false;
     setListening(false);
+  }, [teardownAudioMeter]);
+
+  const samplePeakRms = useCallback(() => {
+    const analyser = analyserRef.current;
+    if (!analyser) return;
+    const data = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(data);
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      const n = (data[i] - 128) / 128;
+      sum += n * n;
+    }
+    const rms = Math.sqrt(sum / data.length);
+    if (rms > peakRmsRef.current) peakRmsRef.current = rms;
   }, []);
 
-  // --- Browser Web Speech fallback (used only if mic capture is unavailable) ---
   const startWebSpeech = useCallback(() => {
     if (!bookingId) return false;
     const Ctor = getRecognitionCtor();
@@ -102,7 +130,7 @@ export function useLiveSpeechToText(
         const result = event.results[i];
         if (!result.isFinal) continue;
         const text = result[0]?.transcript?.trim();
-        if (!text) continue;
+        if (!text || isNonSpeechText(text)) continue;
         void bookingsApi.appendTranscriptSegment(bookingId, {
           text,
           lang: userLang || 'en',
@@ -144,7 +172,6 @@ export function useLiveSpeechToText(
     }
   }, [bookingId, userLang]);
 
-  // --- Primary: capture a single clip, upload to Whisper, then loop ---
   const recordClip = useCallback(() => {
     const stream = streamRef.current;
     if (!stream || !listeningRef.current || !bookingId) return;
@@ -159,20 +186,24 @@ export function useLiveSpeechToText(
     }
     recorderRef.current = recorder;
     const parts: BlobPart[] = [];
+    peakRmsRef.current = 0;
+    const meterTimer = window.setInterval(samplePeakRms, 200);
 
     recorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) parts.push(e.data);
     };
 
     recorder.onstop = () => {
+      clearInterval(meterTimer);
+      samplePeakRms();
       const blob = new Blob(parts, { type: mimeRef.current || 'audio/webm' });
-      // Ignore near-empty clips (silence).
-      if (blob.size > 1200) {
+      const loudEnough = peakRmsRef.current >= SILENCE_RMS;
+      // Quiet clips: do not upload at all (avoids Gemini inventing ".")
+      if (blob.size > 2200 && loudEnough) {
         void bookingsApi
           .appendTranscriptAudio(bookingId, blob, userLang)
-          .catch((err) => console.warn('[SpeechToText] Whisper upload failed:', err?.message || err));
+          .catch((err) => console.warn('[SpeechToText] Gemini upload failed:', err?.message || err));
       }
-      // Loop while still listening.
       if (listeningRef.current) recordClip();
     };
 
@@ -185,14 +216,14 @@ export function useLiveSpeechToText(
         }
       }, CHUNK_MS);
     } catch {
-      // If recording can't start, degrade to Web Speech.
+      clearInterval(meterTimer);
       if (!startWebSpeech()) {
         setError('Could not start microphone for transcription.');
         listeningRef.current = false;
         setListening(false);
       }
     }
-  }, [bookingId, userLang, startWebSpeech]);
+  }, [bookingId, userLang, startWebSpeech, samplePeakRms]);
 
   const start = useCallback(async () => {
     if (!bookingId || !enabled) return;
@@ -212,6 +243,18 @@ export function useLiveSpeechToText(
         }
         streamRef.current = stream;
         mimeRef.current = pickAudioMime();
+        try {
+          const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const ctx = new Ctx();
+          const src = ctx.createMediaStreamSource(stream);
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 1024;
+          src.connect(analyser);
+          audioCtxRef.current = ctx;
+          analyserRef.current = analyser;
+        } catch {
+          // Meter optional — server still filters punctuation-only.
+        }
         setListening(true);
         setError(null);
         recordClip();
@@ -224,7 +267,6 @@ export function useLiveSpeechToText(
           setListening(false);
           return;
         }
-        // Other capture errors → try Web Speech fallback below.
       }
     }
 

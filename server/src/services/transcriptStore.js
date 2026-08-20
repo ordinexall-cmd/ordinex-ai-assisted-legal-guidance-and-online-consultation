@@ -61,17 +61,19 @@ function rebuildPlainText(segments) {
  */
 export function appendTranscriptSegment(booking, body, userId) {
   const doc = parseTranscript(booking.transcript);
+  const text = String(body.text || '').trim();
+  // Never persist silence / punctuation-only (e.g. ".")
+  if (!text || !/\p{L}|\p{N}/u.test(text)) {
+    throw new Error('Segment text is required.');
+  }
   const segment = {
     id: crypto.randomUUID(),
     speaker: body.speaker || speakerRole(booking, userId),
     lang: (body.lang || 'en').slice(0, 12),
-    text: String(body.text || '').trim(),
+    text,
     startMs: typeof body.startMs === 'number' ? body.startMs : Date.now(),
     isFinal: body.isFinal !== false,
   };
-  if (!segment.text) {
-    throw new Error('Segment text is required.');
-  }
   doc.segments.push(segment);
   doc.plainText = rebuildPlainText(doc.segments);
   return { doc, segment };

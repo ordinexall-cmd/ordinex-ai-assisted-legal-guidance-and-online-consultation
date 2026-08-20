@@ -62,7 +62,20 @@ For local LAN testing during development, use the Network URL Vite prints when y
 ## External services
 
 - **Groq** — AI case identification and booking chat translation (`GROQ_API_KEY` in `server/.env`)
+- **Gemini** — Live consultation captions (`GEMINI_API_KEY`). Tap **Start listening** in the video room; silence / lone `.` clips are dropped.
 - Copy `server/.env.example` → `server/.env` for local API config
+
+## Video consultations (PeerJS)
+
+Private 1:1 video uses **PeerJS** WebRTC (no paid video SaaS).
+
+- Both parties must open the **deployed HTTPS** URL (e.g. Render). Camera fails on plain `http://` LAN (“operation is insecure”).
+- Join order is retried automatically. If laptop ↔ phone still cannot see each other across networks, add a free TURN provider and set on the **frontend** env (Vite):
+  - `VITE_TURN_URL` (e.g. `turn:openrelay.metered.ca:80`)
+  - `VITE_TURN_USERNAME` / `VITE_TURN_CREDENTIAL`
+  - Or `VITE_ICE_SERVERS` as a JSON array of `RTCIceServer` objects
+- Optional PeerServer override: `VITE_PEERJS_HOST`, `VITE_PEERJS_PATH`, `VITE_PEERJS_SECURE=true`
+- In-call: manual **Record**, **Share screen**, tap the PiP tile to **swap** views, side **Chat**, transcript strip below (Gemini when listening).
 
 ## Deploy (free) — Render + Neon
 

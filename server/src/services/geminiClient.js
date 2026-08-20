@@ -154,10 +154,23 @@ export async function analyzeImageWithGemini({ prompt, imageBuffer, images, mime
  * Speech-to-text fallback: transcribe an audio clip with Gemini, keeping the
  * spoken language. Returns plain transcript text.
  */
-export async function transcribeAudioWithGemini({ audioBuffer, mimeType = 'audio/webm' }) {
+export async function transcribeAudioWithGemini({ audioBuffer, mimeType = 'audio/webm', langHint } = {}) {
+  const hint = String(langHint || '').toLowerCase();
+  const langLine = hint.startsWith('ceb')
+    ? 'Prefer Cebuano (Bisaya) spelling when that is spoken.'
+    : hint.startsWith('tl') || hint.startsWith('fil')
+      ? 'Prefer Tagalog/Filipino spelling when that is spoken.'
+      : 'Keep English, Tagalog/Filipino, or Cebuano as spoken (including Taglish code-switching).';
   const prompt =
-    'Transcribe this audio exactly as spoken. Keep the original language (English, Tagalog, or Cebuano). ' +
-    'Return ONLY the transcript text with no labels, quotes, or commentary.';
-  return generateFromMedia({ prompt, media: [{ buffer: audioBuffer, mimeType }] });
+    'Transcribe spoken words from this consultation audio. ' +
+    `${langLine} ` +
+    'CRITICAL: If there is silence, background noise, breathing, or no clear words, ' +
+    'return an EMPTY string with zero characters. Never output ".", "..", "...", "…", or any punctuation alone. ' +
+    'Return ONLY spoken transcript text when words are present — no labels, quotes, or commentary.';
+  const raw = await generateFromMedia({ prompt, media: [{ buffer: audioBuffer, mimeType }] });
+  const text = String(raw || '').trim();
+  // Hard drop punctuation-only / empty before caller sees it
+  if (!text || !/\p{L}|\p{N}/u.test(text)) return '';
+  return text;
 }
 

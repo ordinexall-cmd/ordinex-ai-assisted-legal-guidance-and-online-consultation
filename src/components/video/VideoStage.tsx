@@ -9,8 +9,6 @@ export interface VideoStageProps {
   selfLabel: string;
   onOpenChat: () => void;
   onEndCall: () => void;
-  /** Start recording once media is available (matches preflight recording policy). */
-  autoStartRecording?: boolean;
   /** Notify parent when an upload finishes (success or local fallback). */
   onRecordingUploadDone?: (recordingUrl?: string) => void;
 }
@@ -32,11 +30,10 @@ function createMixedStream(
     if (remoteStream.getAudioTracks().length > 0) {
       ctx.createMediaStreamSource(remoteStream).connect(dest);
     }
-    if (localStream && localStream.getAudioTracks().length > 0) {
+    if (localStream.getAudioTracks().length > 0) {
       ctx.createMediaStreamSource(localStream).connect(dest);
     }
 
-    // Use remote video track as the main visual (or local if remote has none)
     const mixed = new MediaStream();
     const videoTracks = remoteStream.getVideoTracks().length > 0
       ? remoteStream.getVideoTracks()
@@ -46,7 +43,6 @@ function createMixedStream(
     for (const at of dest.stream.getAudioTracks()) mixed.addTrack(at);
     return mixed;
   } catch {
-    // Fallback: just use the remote stream
     return remoteStream;
   }
 }
@@ -58,7 +54,6 @@ export const VideoStage: React.FC<VideoStageProps> = ({
   selfLabel,
   onOpenChat,
   onEndCall,
-  autoStartRecording = false,
   onRecordingUploadDone,
 }) => {
   const active = booking.status === 'IN_PROGRESS' || booking.status === 'CONFIRMED';
@@ -66,25 +61,27 @@ export const VideoStage: React.FC<VideoStageProps> = ({
 
   const remoteRef = useRef<HTMLVideoElement>(null);
   const localRef = useRef<HTMLVideoElement>(null);
+  const [swapped, setSwapped] = useState(false);
 
-  // Recording state
   const [recording, setRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [uploading, setUploading] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autoStartedRef = useRef(false);
+
+  const mainStream = swapped ? video.localStream : video.remoteStream;
+  const pipStream = swapped ? video.remoteStream : video.localStream;
+  const mainIsLocal = swapped;
 
   useEffect(() => {
-    if (remoteRef.current) remoteRef.current.srcObject = video.remoteStream;
-  }, [video.remoteStream]);
+    if (remoteRef.current) remoteRef.current.srcObject = mainStream;
+  }, [mainStream]);
 
   useEffect(() => {
-    if (localRef.current) localRef.current.srcObject = video.localStream;
-  }, [video.localStream]);
+    if (localRef.current) localRef.current.srcObject = pipStream;
+  }, [pipStream]);
 
-  // Clean up timer on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -116,13 +113,6 @@ export const VideoStage: React.FC<VideoStageProps> = ({
     }
   }, [video.localStream, video.remoteStream]);
 
-  useEffect(() => {
-    if (!autoStartRecording || autoStartedRef.current) return;
-    if (!video.localStream && !video.remoteStream) return;
-    autoStartedRef.current = true;
-    startRecording();
-  }, [autoStartRecording, video.localStream, video.remoteStream, startRecording]);
-
   const stopRecording = useCallback(async () => {
     const recorder = recorderRef.current;
     if (!recorder || recorder.state === 'inactive') return;
@@ -147,7 +137,6 @@ export const VideoStage: React.FC<VideoStageProps> = ({
           const res = await bookingsApi.uploadRecording(booking.id, blob);
           onRecordingUploadDone?.(res.recordingUrl);
         } catch {
-          // Download locally as a fallback
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -164,11 +153,11 @@ export const VideoStage: React.FC<VideoStageProps> = ({
     });
   }, [booking.id, onRecordingUploadDone]);
 
-  // Auto-stop recording when call ends
   const handleEndCall = useCallback(async () => {
     if (recording) await stopRecording();
+    if (video.screenSharing) await video.stopScreenShare();
     onEndCall();
-  }, [recording, stopRecording, onEndCall]);
+  }, [recording, stopRecording, onEndCall, video]);
 
   const formatDuration = (s: number) => {
     const m = Math.floor(s / 60);
@@ -176,21 +165,28 @@ export const VideoStage: React.FC<VideoStageProps> = ({
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  const showMainVideo = Boolean(mainStream);
+  const statusText = video.state === 'connecting'
+    ? 'Connecting video…'
+    : video.state === 'error'
+      ? (video.error || 'Video unavailable')
+      : 'Waiting for the other participant…';
+
   return (
     <section className="video-stage" aria-label="Video call">
       <div className="video-stage__canvas">
-        {video.remoteStream ? (
-          <video ref={remoteRef} className="video-stage__remote" autoPlay playsInline />
+        {showMainVideo ? (
+          <video
+            ref={remoteRef}
+            className="video-stage__remote"
+            autoPlay
+            playsInline
+            muted={mainIsLocal}
+          />
         ) : (
           <div className="video-stage__placeholder">
             <span className="material-symbols-outlined">videocam</span>
-            <p>
-              {video.state === 'connecting'
-                ? 'Connecting video…'
-                : video.state === 'error'
-                  ? video.error || 'Video unavailable'
-                  : 'Waiting for the other participant…'}
-            </p>
+            <p>{statusText}</p>
             {booking.roomId && (
               <p className="video-stage__room">room {booking.roomId.slice(0, 8)}…</p>
             )}
@@ -199,11 +195,10 @@ export const VideoStage: React.FC<VideoStageProps> = ({
 
         <div className="video-stage__live">
           <span className="video-stage__live-dot" aria-hidden />
-          {peerName || 'Participant'}
+          {swapped ? selfLabel : (peerName || 'Participant')}
           {video.state === 'connected' && ' · Live'}
         </div>
 
-        {/* Recording indicator */}
         {recording && (
           <div className="video-stage__rec-badge" aria-live="polite">
             <span className="video-stage__rec-dot" aria-hidden />
@@ -217,14 +212,28 @@ export const VideoStage: React.FC<VideoStageProps> = ({
           </div>
         )}
 
-        <div className="video-stage__pip">
-          {video.localStream ? (
-            <video ref={localRef} className="video-stage__local" autoPlay playsInline muted />
+        <button
+          type="button"
+          className="video-stage__pip"
+          onClick={() => setSwapped((v) => !v)}
+          title="Tap to swap views"
+          aria-label="Swap local and remote video"
+        >
+          {pipStream ? (
+            <video
+              ref={localRef}
+              className="video-stage__local"
+              autoPlay
+              playsInline
+              muted={!swapped}
+            />
           ) : (
             <span className="material-symbols-outlined">person</span>
           )}
-          <span className="video-stage__pip-label">{selfLabel}</span>
-        </div>
+          <span className="video-stage__pip-label">
+            {swapped ? (peerName || 'Them') : selfLabel}
+          </span>
+        </button>
 
         <div className="video-stage__controls">
           <button
@@ -240,15 +249,25 @@ export const VideoStage: React.FC<VideoStageProps> = ({
             className="video-stage__ctrl"
             aria-label={video.videoOff ? 'Camera on' : 'Camera off'}
             onClick={() => video.setVideoOff(!video.videoOff)}
+            disabled={video.screenSharing}
           >
             <span className="material-symbols-outlined">{video.videoOff ? 'videocam_off' : 'videocam'}</span>
           </button>
-          {/* Recording toggle */}
+          <button
+            type="button"
+            className={`video-stage__ctrl${video.screenSharing ? ' video-stage__ctrl--active' : ''}`}
+            aria-label={video.screenSharing ? 'Stop sharing screen' : 'Share screen'}
+            onClick={() => (video.screenSharing ? video.stopScreenShare() : video.startScreenShare())}
+          >
+            <span className="material-symbols-outlined">
+              {video.screenSharing ? 'stop_screen_share' : 'present_to_all'}
+            </span>
+          </button>
           <button
             type="button"
             className={`video-stage__ctrl${recording ? ' video-stage__ctrl--recording' : ''}`}
             aria-label={recording ? 'Stop recording' : 'Start recording'}
-            onClick={() => recording ? stopRecording() : startRecording()}
+            onClick={() => (recording ? stopRecording() : startRecording())}
             disabled={(!video.remoteStream && !video.localStream) || uploading}
           >
             <span className="material-symbols-outlined">{recording ? 'stop_circle' : 'fiber_manual_record'}</span>

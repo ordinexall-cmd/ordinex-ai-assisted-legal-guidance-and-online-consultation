@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useBookingDock } from '../context/BookingDockContext';
-import { isDockableBooking } from '../utils/dockableBooking';
 import { BookingTranscriptPanel } from '../components/booking/BookingTranscriptPanel';
+import { BookingChatPanel } from '../components/booking/BookingChatPanel';
 import { VideoStage } from '../components/video/VideoStage';
 import { ConsultationPostCall } from '../components/consultation/ConsultationPostCall';
 import { ReportUserModal } from '../components/trust/ReportUserModal';
@@ -30,10 +30,10 @@ export const VideoConsultationSession: React.FC = () => {
   const [postCall, setPostCall] = useState(false);
   const [uploadingRec, setUploadingRec] = useState(false);
   const [showTranscript, setShowTranscript] = useState(true);
+  const [showChat, setShowChat] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const bookingDock = useBookingDock();
-  const dockOpenedForBooking = useRef<string | null>(null);
 
   const load = useCallback(async () => {
     if (!bookingId) return;
@@ -63,11 +63,9 @@ export const VideoConsultationSession: React.FC = () => {
   }, [bookingId, load]);
 
   useEffect(() => {
-    if (!bookingId || !booking || !isDockableBooking(booking) || postCall) return;
-    if (dockOpenedForBooking.current === bookingId) return;
-    dockOpenedForBooking.current = bookingId;
-    bookingDock.openBooking(bookingId, { expand: false });
-  }, [bookingId, booking?.id, bookingDock, postCall]);
+    // Keep floating dock out of the live room — in-call chat is the side panel.
+    bookingDock.dismiss();
+  }, [bookingId, bookingDock]);
 
   const slotWindow = useBookingSlotWindow(
     booking?.availability,
@@ -208,6 +206,13 @@ export const VideoConsultationSession: React.FC = () => {
           >
             {showTranscript ? 'Hide' : 'Show'} transcript
           </button>
+          <button
+            type="button"
+            className="consult-chromeless__btn"
+            onClick={() => setShowChat((v) => !v)}
+          >
+            {showChat ? 'Hide' : 'Show'} chat
+          </button>
           {booking && reportedUserId && (
             <button type="button" className="consult-chromeless__btn" onClick={() => setShowReport(true)}>
               Report
@@ -262,46 +267,79 @@ export const VideoConsultationSession: React.FC = () => {
       )}
 
       {!err && liveOk && booking && (
-        <div className={`consult-room${showTranscript ? ' consult-room--transcript' : ''}`}>
-          <div className="consult-room__stage">
-            {(booking.status === 'COMPLETED' || booking.status === 'RATED') ? (
-              <div className="consult-room__gate">
-                <h3>Consultation ended</h3>
-                <p>View the transcript and recording below, or open the booking.</p>
-                <button type="button" className="consult-chromeless__btn consult-chromeless__btn--primary" onClick={() => navigate(`/booking/${bookingId}`)}>
-                  Open booking
-                </button>
-              </div>
-            ) : (
-              <VideoStage
-                booking={booking}
-                role={role as 'citizen' | 'lawyer'}
-                peerName={peerName || ''}
-                selfLabel={selfLabel}
-                autoStartRecording
-                onOpenChat={() => bookingDock.openBooking(booking.id, { expand: true })}
-                onEndCall={() => setShowEndModal(true)}
-                onRecordingUploadDone={(url) => {
-                  if (url) setBooking((prev) => (prev ? { ...prev, recordingUrl: url } : prev));
-                }}
-              />
+        <div
+          className={[
+            'consult-room',
+            'consult-room--meet',
+            showTranscript ? 'consult-room--transcript' : '',
+            showChat ? 'consult-room--chat' : '',
+          ].filter(Boolean).join(' ')}
+        >
+          <div className="consult-room__main">
+            <div className="consult-room__stage">
+              {(booking.status === 'COMPLETED' || booking.status === 'RATED') ? (
+                <div className="consult-room__gate">
+                  <h3>Consultation ended</h3>
+                  <p>View the transcript and recording below, or open the booking.</p>
+                  <button type="button" className="consult-chromeless__btn consult-chromeless__btn--primary" onClick={() => navigate(`/booking/${bookingId}`)}>
+                    Open booking
+                  </button>
+                </div>
+              ) : (
+                <VideoStage
+                  booking={booking}
+                  role={role as 'citizen' | 'lawyer'}
+                  peerName={peerName || ''}
+                  selfLabel={selfLabel}
+                  onOpenChat={() => setShowChat(true)}
+                  onEndCall={() => setShowEndModal(true)}
+                  onRecordingUploadDone={(url) => {
+                    if (url) setBooking((prev) => (prev ? { ...prev, recordingUrl: url } : prev));
+                  }}
+                />
+              )}
+            </div>
+
+            {showTranscript && (
+              <aside className="consult-room__transcript">
+                <div className="consult-room__transcript-inner">
+                  <BookingTranscriptPanel
+                    bookingId={booking.id}
+                    status={booking.status}
+                    userLanguage={user.language}
+                    recordingUrl={booking.recordingUrl}
+                    liveEnabled
+                  />
+                </div>
+                <p className="consult-room__transcript-foot">
+                  Approximate live text (Gemini). English, Tagalog, and Cebuano. Tap Start listening when needed. Not a verbatim official record.
+                </p>
+              </aside>
             )}
           </div>
 
-          {showTranscript && (
-            <aside className="consult-room__transcript">
-              <div className="consult-room__transcript-inner">
-                <BookingTranscriptPanel
+          {showChat && user && (
+            <aside className="consult-room__chat" aria-label="In-call chat">
+              <div className="consult-room__chat-head">
+                <span>Chat with {peerName || 'participant'}</span>
+                <button
+                  type="button"
+                  className="consult-chromeless__btn"
+                  onClick={() => setShowChat(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="consult-room__chat-body">
+                <BookingChatPanel
                   bookingId={booking.id}
-                  status={booking.status}
-                  userLanguage={user.language}
-                  recordingUrl={booking.recordingUrl}
-                  liveEnabled
+                  chatIsOpen={Boolean(booking.chatIsOpen ?? true)}
+                  viewerId={user.id}
+                  viewerRole={user.role === 'LAWYER' ? 'LAWYER' : 'CITIZEN'}
+                  compact
+                  hideHeader
                 />
               </div>
-              <p className="consult-room__transcript-foot">
-                Approximate live text. English, Tagalog, and Cebuano. Not a verbatim official record.
-              </p>
             </aside>
           )}
         </div>

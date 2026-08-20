@@ -1,16 +1,9 @@
 // ============================================================
 // Ordinex - Live speech-to-text for consultation transcripts.
 //
-// Primary engine: Groq Whisper (whisper-large-v3-turbo) — hears the
-// spoken audio and writes it back as TEXT in the SAME language.
-// Fallback: Gemini 3.6 Flash audio transcription when Whisper fails.
-//
-// This path is deliberately ISOLATED from the case-analysis quota:
-// neither Whisper nor Gemini transcription touches the Groq chat
-// 429 counter, so a talkative session never shrinks a user's daily
-// analysis credits.
+// Engine: Gemini audio transcription only (EN / Tagalog / Cebuano).
+// Isolated from case-analysis quotas.
 // ============================================================
-import { transcribeAudioWithGroq } from './groqClient.js';
 import { transcribeAudioWithGemini } from './geminiClient.js';
 import { env } from '../config/env.js';
 
@@ -18,16 +11,13 @@ import { env } from '../config/env.js';
 const SUPPORTED_LANGS = new Set(['en', 'tl', 'ceb']);
 
 /**
- * Normalize a Whisper/Gemini/browser language tag down to en | tl | ceb.
- * Whisper returns ISO-639-1 ("en", "tl") or full names ("english",
- * "tagalog", "cebuano"); Cebuano is often mislabeled as Tagalog/Filipino.
+ * Normalize a language tag down to en | tl | ceb.
  */
 export function clampTranscriptLang(raw, hint) {
   const val = String(raw || '').toLowerCase().trim();
   if (val.startsWith('ceb')) return 'ceb';
   if (val.startsWith('tl') || val.startsWith('fil') || val.includes('tagalog') || val.includes('filipino')) return 'tl';
   if (val.startsWith('en') || val.includes('english')) return 'en';
-  // Fall back to the caller's hint (the participant's chosen language) if valid.
   const h = String(hint || '').toLowerCase().slice(0, 3);
   if (SUPPORTED_LANGS.has(h)) return h;
   if (h.startsWith('ceb')) return 'ceb';
@@ -35,16 +25,27 @@ export function clampTranscriptLang(raw, hint) {
   return 'en';
 }
 
-function hasGroq() {
-  return env.GROQ_API_KEYS.length > 0 || Boolean(env.GROQ_API_KEY);
-}
-
 function hasGemini() {
   return env.GEMINI_API_KEYS.length > 0 || Boolean(env.GEMINI_API_KEY);
 }
 
+/** Reject silence / non-speech. Anything without a real letter or digit is dropped (including "."). */
+export function isUselessTranscriptText(text) {
+  const t = String(text || '')
+    .replace(/^["'`“”‘’]+|["'`“”‘’]+$/g, '')
+    .trim();
+  if (!t) return true;
+  // No letter or number anywhere → punctuation/noise only (e.g. ".", "...", "—")
+  if (!/\p{L}|\p{N}/u.test(t)) return true;
+  // Common model placeholders for quiet audio
+  if (/^(silence|\[silence\]|\(silence\)|no[- ]?speech|inaudible|blank|n\/?a|\.+|…+)$/i.test(t)) {
+    return true;
+  }
+  return false;
+}
+
 /**
- * Transcribe a short audio clip captured during a live session.
+ * Transcribe a short audio clip captured during a live session (Gemini only).
  *
  * @param {{ audioBuffer: Buffer, mimeType?: string, filename?: string, langHint?: string }} opts
  * @returns {Promise<{ text: string, lang: string, provider: string }>}
@@ -54,30 +55,27 @@ export async function transcribeLiveAudio({ audioBuffer, mimeType = 'audio/webm'
     return { text: '', lang: clampTranscriptLang(null, langHint), provider: 'noop' };
   }
 
-  // 1. Primary: Groq Whisper (same-language speech → text)
-  if (hasGroq()) {
-    try {
-      const hint = ['en', 'tl'].includes(String(langHint || '').slice(0, 2)) ? langHint.slice(0, 2) : undefined;
-      const { text, language } = await transcribeAudioWithGroq({ audioBuffer, mimeType, filename, language: hint });
-      if (text) {
-        return { text, lang: clampTranscriptLang(language, langHint), provider: 'groq-whisper' };
-      }
-    } catch (e) {
-      console.warn('[liveTranscribe] Groq Whisper failed, trying Gemini fallback:', e.message);
-    }
+  if (!hasGemini()) {
+    console.warn('[liveTranscribe] GEMINI_API_KEY missing; live transcript disabled.');
+    return { text: '', lang: clampTranscriptLang(null, langHint), provider: 'noop' };
   }
 
-  // 2. Fallback: Gemini audio transcription
-  if (hasGemini()) {
-    try {
-      const text = await transcribeAudioWithGemini({ audioBuffer, mimeType });
-      if (text) {
-        return { text, lang: clampTranscriptLang(null, langHint), provider: 'gemini-audio' };
-      }
-    } catch (e) {
-      console.warn('[liveTranscribe] Gemini transcription failed:', e.message);
+  try {
+    const text = await transcribeAudioWithGemini({
+      audioBuffer,
+      mimeType,
+      langHint: clampTranscriptLang(null, langHint),
+    });
+    if (!text || isUselessTranscriptText(text)) {
+      return { text: '', lang: clampTranscriptLang(null, langHint), provider: 'gemini-audio' };
     }
+    return {
+      text: String(text).trim(),
+      lang: clampTranscriptLang(null, langHint),
+      provider: 'gemini-audio',
+    };
+  } catch (e) {
+    console.warn('[liveTranscribe] Gemini transcription failed:', e.message);
+    return { text: '', lang: clampTranscriptLang(null, langHint), provider: 'noop' };
   }
-
-  return { text: '', lang: clampTranscriptLang(null, langHint), provider: 'noop' };
 }

@@ -117,12 +117,12 @@ export const BookingTranscriptPanel: React.FC<BookingTranscriptPanelProps> = ({
 
       {speech.error && <p className="transcript-hint transcript-hint--warn">{speech.error}</p>}
       {canLive && !speech.supported && (
-        <p className="transcript-hint">Live speech-to-text works best in Chrome or Edge (no API key).</p>
+        <p className="transcript-hint">Live captions need a microphone. Use Chrome or Edge with Gemini configured on the server.</p>
       )}
 
       {canLive && speech.supported && !speech.listening && (
         <p className="transcript-hint">
-          Start listening for approximate live captions (English, Tagalog, Cebuano). Not a verbatim record.
+          Tap Start listening for Gemini captions (English, Tagalog, Cebuano). Quiet moments are ignored. Not a verbatim record.
         </p>
       )}
 

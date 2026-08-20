@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBookingDock } from '../../context/BookingDockContext';
 import { BookingChatPanel } from './BookingChatPanel';
@@ -47,6 +47,7 @@ function ConversationRow({
 
 export const FloatingBookingDock: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const {
     dockableBookings,
     activeBooking,
@@ -59,6 +60,11 @@ export const FloatingBookingDock: React.FC = () => {
     refresh,
     dismiss,
   } = useBookingDock();
+
+  // Live consultation room has its own side chat — hide the floating dock.
+  const hideForVideoSession =
+    /^\/consultation\/(?!video$)[^/]+$/.test(location.pathname)
+    || /^\/consultation\/[^/]+\/preflight$/.test(location.pathname);
 
   const [mobileShowList, setMobileShowList] = useState(false);
   const [isNarrow, setIsNarrow] = useState(() =>
@@ -93,6 +99,7 @@ export const FloatingBookingDock: React.FC = () => {
     activeBooking?.joinExtendedUntil,
   );
 
+  if (hideForVideoSession) return null;
   if (!user || dockableBookings.length === 0) return null;
 
   const bubbleLabel = user?.role === 'CITIZEN' ? 'Atty.' : peerName.split(' ')[0];

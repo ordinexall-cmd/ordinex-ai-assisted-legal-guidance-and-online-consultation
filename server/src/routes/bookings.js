@@ -39,7 +39,7 @@ import {
   normalizeHm,
 } from '../utils/sessionOverlap.js';
 import { recordingUpload, audioChunkUpload, persistUploadedFile } from '../services/uploads.js';
-import { transcribeLiveAudio } from '../services/liveTranscribe.js';
+import { transcribeLiveAudio, isUselessTranscriptText } from '../services/liveTranscribe.js';
 import { daysRemainingInTrash, trashCutoffDate, TRASH_RETENTION_DAYS } from '../services/recycleBin.js';
 import { normalizeLegacyAiResult } from '../services/legalValidator.js';
 
@@ -1099,6 +1099,10 @@ router.post('/:id/transcript/segment', requireAuth, async (req, res, next) => {
       return res.status(409).json({ error: 'Live transcript is only available during an active session.' });
     }
 
+    if (isUselessTranscriptText(req.body?.text)) {
+      return res.json({ segment: null, plainText: parseTranscript(booking.data.transcript).plainText });
+    }
+
     const { doc, segment } = appendTranscriptSegment(booking.data, req.body, req.user.id);
     await prisma.booking.update({
       where: { id: booking.data.id },
@@ -1116,10 +1120,9 @@ router.post('/:id/transcript/segment', requireAuth, async (req, res, next) => {
 });
 
 /**
- * POST /api/bookings/:id/transcript/audio — live STT via Groq Whisper (IN_PROGRESS only)
- * Accepts a short audio clip captured during the session, transcribes it to
- * text in the SAME spoken language, then appends it as a transcript segment.
- * Falls back to Gemini transcription if Whisper is unavailable.
+ * POST /api/bookings/:id/transcript/audio — live STT via Gemini (IN_PROGRESS only)
+ * Accepts a short audio clip, transcribes EN/Tagalog/Cebuano, appends a segment.
+ * Silence / punctuation-only results are dropped.
  */
 router.post('/:id/transcript/audio', requireAuth, audioChunkUpload.single('audio'), async (req, res, next) => {
   try {
