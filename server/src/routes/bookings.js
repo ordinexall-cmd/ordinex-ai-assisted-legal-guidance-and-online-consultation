@@ -27,7 +27,6 @@ import {
 import { createNotification } from '../services/notify.js';
 import { anchorBookingRecord } from '../services/recordHash.js';
 import { refundBookingPayment } from '../services/bookingPayments.js';
-import { notifyLawyerBookingRequest } from '../services/smsNotify.js';
 import { env } from '../config/env.js';
 import { hasBookingCaseContext, bookingCaseContextError } from '../utils/bookingCaseContext.js';
 import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
@@ -143,7 +142,6 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
       linkTo: `/booking/${booking.id}`,
     }).catch(() => {});
 
-    notifyLawyerBookingRequest(slot.lawyer, req.user.name).catch(() => {});
     emitAvailabilityChanged(slot.lawyerId);
 
     const consultationMap = linkedConsultation

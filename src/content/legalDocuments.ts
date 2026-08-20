@@ -48,7 +48,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
       heading: 'Why we use it',
       paragraphs: ['We use your information to:'],
       bullets: [
-        'Create and protect your account (including SMS codes and optional Google sign-in)',
+        'Create and protect your account (including email verification codes and Google sign-in)',
         'Run AI pre-guidance so you can understand your situation before booking a lawyer',
         'Help you find, book, and pay for consultations',
         'Support chat and optional video between you and your lawyer',
@@ -66,7 +66,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
         'PayMongo — to process GCash / checkout payments',
         'Supabase — cloud database and file storage when the project is configured for production hosting',
         'Google — sign-in, fonts/icons, and helping video calls connect',
-        'Email / SMS providers (such as Google SMTP or Semaphore) — for one-time codes or notifications when enabled',
+        'Gmail SMTP — one-time codes and notices',
         'PeerJS network defaults — to help video consultation connect across different networks',
       ],
     },
@@ -199,7 +199,7 @@ export const LICENSES_DOCUMENT: LegalDocument = {
         'Groq and Google Gemini — case identification, translation, and identity-document checks',
         'Supabase — hosted database and files when configured',
         'Google — sign-in, fonts, and helping video calls connect',
-        'SMS / email providers — one-time codes and notices when enabled',
+        'Gmail SMTP — one-time codes and notices',
       ],
     },
     {

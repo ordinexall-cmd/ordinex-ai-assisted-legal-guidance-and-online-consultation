@@ -155,7 +155,7 @@ model LawyerVerification {
   govIdType              String?  // e.g. PRC, Driver, Passport, NBI
   govIdUrl               String?
   govIdOcrName           String?  // extracted name from ID
-  govIdOcrProvider       String?  // engine that read the ID: groq-vision | gemini-vision | tesseract.js | noop
+  govIdOcrProvider       String?  // engine that read the ID: groq-vision | gemini-vision | noop
   govIdUploadedAt        DateTime?
 
   // Selfie + dynamic challenge note
@@ -166,7 +166,7 @@ model LawyerVerification {
 
   // Scoring artefacts (each 0..1 unless noted)
   faceMatchScore         Float?   // 1 - normalized euclidean distance
-  faceMatchProvider      String?  // engine that compared faces: groq-vision | gemini-vision | face-api.js | hash-stub | noop
+  faceMatchProvider      String?  // engine that compared faces: groq-vision | gemini-vision | noop
   ocrNameMatchScore      Float?   // 0..1 similarity of OCR name vs roll name
   paymentAccountName     String?
   paymentNameMatchScore  Float?   // 0..1

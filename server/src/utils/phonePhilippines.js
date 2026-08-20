@@ -11,10 +11,3 @@ export function normalizePhilippinePhone(raw) {
   if (!/^09\d{9}$/.test(p)) return null;
   return p;
 }
-
-/** Semaphore API expects international format: 639XXXXXXXXX (no +). */
-export function toSemaphoreNumber(phone09) {
-  const normalized = normalizePhilippinePhone(phone09);
-  if (!normalized) return null;
-  return `63${normalized.slice(1)}`;
-}

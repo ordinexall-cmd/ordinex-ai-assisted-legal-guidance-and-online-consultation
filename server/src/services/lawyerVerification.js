@@ -207,7 +207,7 @@ export async function attachGovernmentId({ user, govIdUrl, govIdType, govIdBuffe
   const row = await ensureVerificationRow(user.id);
 
   // Run OCR best-effort; pass the lawyer's entered name as a soft fallback
-  // so the scoring engine still has comparable text even without Tesseract.
+  // when vision providers are unavailable.
   let ocrResult = { provider: 'noop', rawText: '', extractedName: row.submittedFullName || '' };
   if (govIdBuffer) {
     ocrResult = await extractIdText({
@@ -359,10 +359,10 @@ export function computeVerificationOutcome(row, {
   // columns existed.
   const faceProvider = faceProviderOverride
     ?? row.faceMatchProvider
-    ?? (row.faceMatchScore == null ? null : (row.faceMatchScore > 0 ? 'hash-stub' : 'noop'));
+    ?? 'noop';
   const ocrProvider = ocrProviderOverride
     ?? row.govIdOcrProvider
-    ?? (row.govIdOcrName ? 'tesseract.js' : 'noop');
+    ?? 'noop';
 
   // Provider-aware down-weighting: when face/OCR providers are stubs
   // (or absent), multiply ONLY their contribution — do NOT shrink the
@@ -591,8 +591,8 @@ export async function panelAdvanceVerification({
       return scoreAndDecide({
         user,
         providerOverrides: {
-          faceProviderOverride: 'face-api.js',
-          ocrProviderOverride: 'tesseract.js',
+          faceProviderOverride: 'groq-vision',
+          ocrProviderOverride: 'groq-vision',
         },
       });
     default: {

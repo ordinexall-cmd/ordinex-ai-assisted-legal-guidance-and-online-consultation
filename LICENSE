@@ -139,9 +139,8 @@ not licensed as open source under this MIT grant:
 3. Supabase Cloud — database, storage, vector search (when configured)
 4. PayMongo — GCash / checkout payments (test or live keys)
 5. Google OAuth, Google Fonts CDN, Google STUN (WebRTC)
-6. Semaphore — SMS OTP (when configured)
-7. Gmail SMTP — transactional email & verification OTP (when configured)
-8. PeerJS public cloud / TURN — WebRTC signaling and relay defaults
+6. Gmail SMTP — transactional email & verification OTP
+7. PeerJS public cloud / TURN — WebRTC signaling and relay defaults
 
 See docs/legal/PRIVACY_POLICY.md for processor disclosure under RA 10173.
 

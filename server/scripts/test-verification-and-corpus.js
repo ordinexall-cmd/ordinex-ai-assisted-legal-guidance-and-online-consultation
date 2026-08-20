@@ -91,8 +91,8 @@ function rowOf(overrides = {}) {
 
 test('high confidence -> AUTO_APPROVE/VERIFIED', () => {
   const out = computeVerificationOutcome(rowOf(), {
-    faceProviderOverride: 'face-api.js',
-    ocrProviderOverride: 'tesseract.js',
+    faceProviderOverride: 'groq-vision',
+    ocrProviderOverride: 'groq-vision',
   });
   assert.equal(out.decision, VERIFICATION_DECISION.AUTO_APPROVE);
   assert.equal(out.status, VERIFICATION_STATUS.VERIFIED);
@@ -102,7 +102,7 @@ test('high confidence -> AUTO_APPROVE/VERIFIED', () => {
 test('medium confidence -> NEEDS_REUPLOAD', () => {
   const out = computeVerificationOutcome(
     rowOf({ faceMatchScore: 0.55, paymentNameMatchScore: 0.5, govIdOcrName: 'Juan D Cruz' }),
-    { faceProviderOverride: 'face-api.js', ocrProviderOverride: 'tesseract.js' },
+    { faceProviderOverride: 'groq-vision', ocrProviderOverride: 'groq-vision' },
   );
   assert.equal(out.decision, VERIFICATION_DECISION.NEEDS_REUPLOAD);
   assert.equal(out.status, VERIFICATION_STATUS.NEEDS_REUPLOAD);
@@ -112,7 +112,7 @@ test('medium confidence -> NEEDS_REUPLOAD', () => {
 test('low confidence -> AUTO_REJECT', () => {
   const out = computeVerificationOutcome(
     rowOf({ faceMatchScore: 0.15, paymentNameMatchScore: 0.1, govIdOcrName: 'Pedro Santos' }),
-    { faceProviderOverride: 'face-api.js', ocrProviderOverride: 'tesseract.js' },
+    { faceProviderOverride: 'groq-vision', ocrProviderOverride: 'groq-vision' },
   );
   assert.equal(out.decision, VERIFICATION_DECISION.AUTO_REJECT);
   assert.equal(out.status, VERIFICATION_STATUS.REJECTED);
@@ -120,8 +120,8 @@ test('low confidence -> AUTO_REJECT', () => {
 
 test('missing roll match -> hard fail AUTO_REJECT', () => {
   const out = computeVerificationOutcome(rowOf({ rollMatchHit: false }), {
-    faceProviderOverride: 'face-api.js',
-    ocrProviderOverride: 'tesseract.js',
+    faceProviderOverride: 'groq-vision',
+    ocrProviderOverride: 'groq-vision',
   });
   assert.equal(out.decision, VERIFICATION_DECISION.AUTO_REJECT);
   assert.match(out.reason, /SC Roll match missing/i);
@@ -129,23 +129,22 @@ test('missing roll match -> hard fail AUTO_REJECT', () => {
 
 test('challenge code mismatch -> hard fail with specific reason', () => {
   const out = computeVerificationOutcome(rowOf({ challengeCodeMatched: false }), {
-    faceProviderOverride: 'face-api.js',
-    ocrProviderOverride: 'tesseract.js',
+    faceProviderOverride: 'groq-vision',
+    ocrProviderOverride: 'groq-vision',
   });
   assert.equal(out.decision, VERIFICATION_DECISION.AUTO_REJECT);
   assert.match(out.reason, /challenge code/i);
 });
 
-test('stub providers must not auto-approve on perfect synthetic signals', () => {
-  // Same row as the high-confidence case but providers are noop/hash-stub.
+test('noop providers must not auto-approve on perfect synthetic signals', () => {
   const out = computeVerificationOutcome(rowOf(), {
-    faceProviderOverride: 'hash-stub',
+    faceProviderOverride: 'noop',
     ocrProviderOverride: 'noop',
   });
   assert.notEqual(
     out.decision,
     VERIFICATION_DECISION.AUTO_APPROVE,
-    `stub providers should never produce AUTO_APPROVE (got ${out.decision} @ ${out.score})`,
+    `noop providers should never produce AUTO_APPROVE (got ${out.decision} @ ${out.score})`,
   );
 });
 

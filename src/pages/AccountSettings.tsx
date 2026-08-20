@@ -411,7 +411,7 @@ export const AccountSettings: React.FC = () => {
         });
         setPhoneOtpSent(true);
         setPhoneChangeOtp('');
-        setFeedback('Verification code sent to the new mobile number.', true);
+        setFeedback('Verification code sent to your email.', true);
       } catch (err) {
         setFeedback(getErrorMessage(err, 'Could not send verification code.'), false);
       } finally {
@@ -420,7 +420,7 @@ export const AccountSettings: React.FC = () => {
       return;
     }
     if (phoneChangeOtp.trim().length !== 6) {
-      setFeedback('Enter the 6-digit verification code sent to the new number.', false);
+      setFeedback('Enter the 6-digit verification code sent to your email.', false);
       return;
     }
     setSaving(true);
@@ -1067,7 +1067,7 @@ export const AccountSettings: React.FC = () => {
                   Change phone
                 </h3>
                 <p style={{ margin: '0 0 1.25rem', fontSize: '0.85rem', color: '#64748b' }}>
-                  Confirm with your current password. We send a 6-digit SMS code to the new number to prove you own it.
+                  Confirm with your current password. We send a 6-digit code to your email.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
                   <div className="form-field">
@@ -1093,13 +1093,13 @@ export const AccountSettings: React.FC = () => {
                 </div>
                 {phoneOtpSent && (
                   <div style={{ marginTop: '1.25rem' }}>
-                    <label className="ox-label">Code sent to the new number</label>
+                    <label className="ox-label">Code sent to your email</label>
                     <OtpCodeInput value={phoneChangeOtp} onChange={setPhoneChangeOtp} disabled={saving} />
                   </div>
                 )}
                 <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
                   <button type="submit" className="ox-btn ox-btn-secondary" disabled={saving}>
-                    {saving ? 'Processing…' : phoneOtpSent ? 'Update phone' : 'Send code to new number'}
+                    {saving ? 'Processing…' : phoneOtpSent ? 'Update phone' : 'Send code to email'}
                   </button>
                 </div>
               </div>

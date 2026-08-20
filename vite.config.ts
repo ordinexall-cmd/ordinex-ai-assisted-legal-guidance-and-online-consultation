@@ -69,7 +69,6 @@ export default defineConfig({
     // Allow phones on same WiFi / laptop hotspot: http://LAPTOP_IP:5173
     host: true,
     port: 5173,
-    // Cloudflare quick tunnel hostnames change every run (*.trycloudflare.com)
     allowedHosts: true,
     proxy: {
       '/api': {

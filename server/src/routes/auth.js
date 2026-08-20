@@ -229,7 +229,7 @@ router.post('/register', authLimiter, async (req, res, next) => {
     }
 
     res.status(200).json({
-      message: 'Verification code sent to your email and phone.',
+      message: 'Verification code sent to your email.',
       phone: phoneClean,
       email: email.toLowerCase(),
       // Dev mode: include OTP so frontend can auto-fill
@@ -735,7 +735,7 @@ async function verifyUserSecurityAnswer(user, answer) {
  * POST /api/auth/me/request-change-otp
  * CHANGE_PASSWORD: send Gmail OTP to the logged-in account (no current password).
  * CHANGE_EMAIL: current password required; OTP is sent to the new email.
- * CHANGE_PHONE: current password required; OTP is sent to the new mobile number.
+ * CHANGE_PHONE: current password required; OTP is sent to the account email.
  * Body: { purpose, currentPassword?, newEmail?, newPhone? }
  */
 router.post('/me/request-change-otp', requireAuth, authLimiter, async (req, res, next) => {
@@ -779,8 +779,9 @@ router.post('/me/request-change-otp', requireAuth, authLimiter, async (req, res,
       }
       const otp = generateOTP();
       await sendOTP(phoneClean, otp, 'CHANGE_PHONE');
+      await sendEmailOTP({ to: req.user.email, code: otp, purpose: 'RESET_PASSWORD' });
       return res.json({
-        message: 'Verification code sent to the new mobile number.',
+        message: 'Verification code sent to your email.',
         ...(process.env.NODE_ENV !== 'production' && { devOtp: otp }),
       });
     }
@@ -890,7 +891,7 @@ router.patch('/me/email', requireAuth, authLimiter, async (req, res, next) => {
 /**
  * PATCH /api/auth/me/phone
  * Body: { currentPassword, code, newPhone }
- * OTP was sent to the new mobile number.
+ * OTP was sent to the account email.
  */
 router.patch('/me/phone', requireAuth, authLimiter, async (req, res, next) => {
   try {
@@ -1181,7 +1182,7 @@ router.post('/me/avatar', requireAuth, avatarUpload.single('avatar'), async (req
 
 /**
  * POST /api/auth/me/citizen-verification
- * Upload citizen/student ID photo(s), run Gemini/Tesseract OCR, match against profile, and verify citizen.
+ * Upload citizen/student ID photo(s), run Groq/Gemini vision OCR, match against profile, and verify citizen.
  */
 router.post(
   '/me/citizen-verification',
@@ -1258,15 +1259,9 @@ router.post(
         idBuffer: frontFile.buffer,
         selfieBuffer: selfieFile.buffer,
       });
-      // Fail closed: only trust real biometric/vision providers with a genuine
-      // similarity score. Stub providers (hash-stub/noop) can never pass, so a
-      // random ID + selfie pair cannot self-verify a citizen.
-      let facePass = false;
-      if (face.provider === 'face-api.js') {
-        facePass = face.score >= 0.4;
-      } else if (face.provider === 'groq-vision' || face.provider === 'gemini-vision') {
-        facePass = face.score >= 0.6;
-      }
+      // Fail closed: only Groq/Gemini vision providers with a genuine similarity score can pass.
+      const facePass = (face.provider === 'groq-vision' || face.provider === 'gemini-vision')
+        && face.score >= 0.6;
 
       if (!facePass) {
         const updatedUser = await prisma.user.update({

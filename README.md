@@ -36,9 +36,7 @@ Logged-in app pages use a **vertical icon sidebar** (`AppSideNav`) with labels o
 | `npm run dev` | Frontend dev server |
 | `npm run dev:all` | Frontend + API together |
 | `npm run build` | Production frontend build |
-| `npm run phone:tunnel:dev` | HTTPS Cloudflare tunnel to Vite `:5173` (use with `dev:all`) |
-| `npm run phone:preview` | Serve production build on `:4173` (API proxy enabled) |
-| `npm run phone:tunnel` | HTTPS Cloudflare tunnel to preview `:4173` |
+| `npm run preview` | Serve production build locally |
 | `npm run server:dev` | API dev server |
 | `npm run server:seed` | Seed database |
 | `npm run server:reset-demo` | Fresh demo data (requires `CONFIRM_RESET_DEMO=1` or `--yes`) |
@@ -51,39 +49,15 @@ Logged-in app pages use a **vertical icon sidebar** (`AppSideNav`) with labels o
 | `npm run server:test:demo` | Login + role checks for the citizen and lawyer demo accounts |
 | `npm run server:test:socket` | Socket.IO connect smoke (server must be running) |
 
-## Test on iPhone (Safari home screen)
+## iPhone home screen (PWA)
 
-Ordinex can open as a home-screen app on iPhone. Use **Safari** (not Chrome).
+Ordinex is a PWA on your deployed Render URL. On iPhone, use **Safari**:
 
-### Fast path (recommended)
+1. Open `https://<your-app>.onrender.com` in Safari and log in.
+2. Tap **Share** → **Add to Home Screen** → **Add**.
+3. Open the Ordinex icon — it launches full-screen from the same URL.
 
-1. On your laptop, start the stack:
-   ```bash
-   npm run dev:all
-   ```
-2. In a **second** terminal, start an HTTPS tunnel:
-   ```bash
-   npm run phone:tunnel:dev
-   ```
-3. Cloudflare prints a URL like `https://xxxx.trycloudflare.com`.
-4. On your iPhone, open that link in **Safari**. Confirm the site loads and you can log in.
-5. Tap **Share** → **Add to Home Screen** → **Add**.
-6. Open the new Ordinex icon — it should launch full-screen.
-
-Keep both laptop processes running while you use the phone. Same Wi‑Fi is not required (internet on phone + laptop is enough).
-
-### Full PWA build path (optional)
-
-```bash
-npm run server:dev
-npm run build
-npm run phone:preview
-npm run phone:tunnel
-```
-
-Then use the printed `https://…` URL in Safari the same way (Share → Add to Home Screen).
-
-**Notes:** Email/password login works through the Vite proxy. Google Sign-In may fail on a changing tunnel hostname unless OAuth / `FRONTEND_URL` match that host.
+For local LAN testing during development, use the Network URL Vite prints when you run `npm run dev:all` (same Wi‑Fi as your laptop).
 
 ## External services
 
@@ -117,7 +91,7 @@ Socket.IO, and auth-gated uploads on a single origin. Postgres is hosted on Neon
    - `FRONTEND_URL` and `API_PUBLIC_URL` — optional; they default to the Render
      URL. Set both to `https://<your-app>.onrender.com` once you know it.
    - `NODE_ENV=production`, `TRUST_PROXY=1`, `PAYMENTS_MODE=simulated`
-   - Optional: `SMTP_*`, `SEMAPHORE_API_KEY`, `GOOGLE_CLIENT_ID/SECRET`, `ADMIN_EMAILS`
+   - `SMTP_*`, `GOOGLE_CLIENT_ID/SECRET`, `ADMIN_EMAILS`
 4. **First deploy:** Render builds, then on start pushes the Prisma schema to
    Neon. Verify `https://<your-app>.onrender.com/api/health` returns
    `{"status":"ok"}`, then optionally seed demo data from a local machine

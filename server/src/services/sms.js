@@ -1,93 +1,37 @@
 // ============================================================
-// Ordinex — SMS Service (Semaphore) + DB-backed OTP
+// Ordinex — DB-backed OTP (delivered by email, not SMS)
 // ============================================================
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
-import { toSemaphoreNumber } from '../utils/phonePhilippines.js';
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 /**
- * @param {'REGISTER'|'RESET_PASSWORD'} purpose
+ * Store a hashed OTP against phone or email. Delivery is Gmail SMTP.
+ * @param {string} identifier
+ * @param {string} code
+ * @param {'REGISTER'|'RESET_PASSWORD'|'CHANGE_PASSWORD'|'CHANGE_EMAIL'|'CHANGE_PHONE'} purpose
  */
-export async function sendOTP(phone, code, purpose = 'REGISTER') {
+export async function sendOTP(identifier, code, purpose = 'REGISTER') {
   const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await prisma.otpChallenge.upsert({
-    where: { phone_purpose: { phone, purpose } },
-    create: { phone, purpose, codeHash, expiresAt },
+    where: { phone_purpose: { phone: identifier, purpose } },
+    create: { phone: identifier, purpose, codeHash, expiresAt },
     update: { codeHash, attempts: 0, expiresAt },
   });
 
-  const smsConfigured = Boolean(process.env.SEMAPHORE_API_KEY);
-
-  // Never print the OTP code to logs in production. Only the local/dev flow
-  // (or an explicit email channel) may surface the code on the console.
-  if (!env.isProd && (phone.includes('@') || env.isDev || !smsConfigured)) {
-    console.log(`\n🔐 ═══ OTP FOR ${phone} (${purpose}) ═══`);
+  if (!env.isProd) {
+    console.log(`\n🔐 ═══ OTP FOR ${identifier} (${purpose}) ═══`);
     console.log(`   Code: ${code}`);
     console.log(`   Expires: 5 minutes`);
     console.log(`   ═══════════════════════\n`);
-    return true;
   }
 
-  if (env.isProd && !smsConfigured) {
-    console.error('[sms] SEMAPHORE_API_KEY is not configured; cannot deliver OTP in production.');
-    return false;
-  }
-
-  const semaphoreNumber = toSemaphoreNumber(phone);
-  if (!semaphoreNumber) {
-    console.error('Semaphore SMS error: invalid phone for', phone);
-    return false;
-  }
-
-  try {
-    const response = await fetch('https://api.semaphore.co/api/v4/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        apikey: process.env.SEMAPHORE_API_KEY,
-        number: semaphoreNumber,
-        message: `Your ORDINEX verification code is: ${code}. Valid for 5 minutes. Do not share this code.`,
-        sendername: process.env.SEMAPHORE_SENDER_NAME || 'ORDINEX',
-      }),
-    });
-
-    const bodyText = await response.text();
-    if (!response.ok) {
-      console.error('Semaphore SMS error:', response.status, bodyText);
-      return false;
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(bodyText);
-    } catch {
-      console.error('Semaphore SMS unexpected response:', bodyText);
-      return false;
-    }
-
-    const results = Array.isArray(parsed) ? parsed : [parsed];
-    const ok = results.every((r) => {
-      const status = String(r?.status || '').toLowerCase();
-      return status === 'queued' || status === 'pending' || status === 'sent' || r?.message_id != null;
-    });
-    if (!ok) {
-      console.error('Semaphore SMS delivery not queued:', parsed);
-      return false;
-    }
-
-    const ids = results.map((r) => r?.message_id).filter(Boolean);
-    console.log(`[sms] OTP queued for ${semaphoreNumber} (${purpose}) message_id=${ids.join(',')}`);
-    return true;
-  } catch (error) {
-    console.error('SMS send failed:', error);
-    return false;
-  }
+  return true;
 }
 
 /**

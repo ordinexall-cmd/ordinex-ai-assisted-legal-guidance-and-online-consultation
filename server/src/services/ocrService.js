@@ -1,9 +1,8 @@
 // ============================================================
 // Ordinex - OCR adapter for government-ID name extraction.
 //
-// Tries Groq vision first, then Gemini vision. Tesseract.js is last-resort
-// only (heavy on small hosts). Falls back to a deterministic hint-based
-// reader when no vision provider is available.
+// Groq vision first, then Gemini vision. Falls back to profile
+// hints when no vision provider is available.
 // ============================================================
 
 import { analyzeImageWithGemini } from './geminiClient.js';
@@ -14,7 +13,6 @@ import { env } from '../config/env.js';
 export const OCR_PROVIDER_WEIGHTS = {
   'groq-vision': 1,
   'gemini-vision': 1,
-  'tesseract.js': 0.9,
   noop: 0,
 };
 
@@ -24,49 +22,6 @@ function hasGroqVision() {
 
 function hasGemini() {
   return env.GEMINI_API_KEYS.length > 0 || Boolean(env.GEMINI_API_KEY);
-}
-
-let tesseractLoadAttempted = false;
-let tesseractCreateWorker = null;
-
-async function loadTesseract() {
-  if (tesseractLoadAttempted) return tesseractCreateWorker;
-  tesseractLoadAttempted = true;
-  try {
-    const mod = await import('tesseract.js');
-    tesseractCreateWorker = mod.createWorker || mod.default?.createWorker;
-  } catch {
-    tesseractCreateWorker = null;
-  }
-  return tesseractCreateWorker;
-}
-
-/**
- * Heuristic name extractor: pulls the longest line of capitalised words
- * from an OCR result.
- */
-function pickLikelyName(rawText) {
-  if (!rawText) return '';
-  const lines = rawText
-    .split(/\r?\n/)
-    .map((l) => l.replace(/\s+/g, ' ').trim())
-    .filter(Boolean);
-
-  const scored = lines
-    .map((line) => {
-      const letters = line.replace(/[^a-zA-Z]/g, '').length;
-      const ratio = letters / Math.max(1, line.length);
-      const words = line.split(' ').filter((w) => /[A-Za-z]{2,}/.test(w));
-      const looksName = words.length >= 2 && words.length <= 6 && ratio > 0.7;
-      const upperHit = /^[A-Z][A-Z .'-]{6,}$/.test(line) ? 1 : 0;
-      return {
-        line,
-        score: (looksName ? 2 : 0) + upperHit + Math.min(3, words.length),
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-
-  return scored[0]?.line || '';
 }
 
 /**
@@ -80,7 +35,6 @@ export async function extractIdText(input) {
   const prompt = 'Extract the full legal name printed on this Philippine government ID card. Return ONLY the full name, nothing else.';
   const mimeType = input.mimeType || 'image/jpeg';
 
-  // 1. Primary: Groq vision (isolated from analysis quota)
   if (hasGroqVision()) {
     try {
       const extractedName = await analyzeImageWithGroq({
@@ -99,7 +53,6 @@ export async function extractIdText(input) {
     }
   }
 
-  // 2. Fallback: Gemini Vision AI
   if (hasGemini()) {
     try {
       const extractedName = await analyzeImageWithGemini({
@@ -115,29 +68,7 @@ export async function extractIdText(input) {
         };
       }
     } catch (e) {
-      console.warn('[ocrService] Gemini Vision OCR failed, trying Tesseract fallback:', e.message);
-    }
-  }
-
-  // 3. Secondary: Tesseract WASM
-  const createWorker = await loadTesseract();
-  if (createWorker) {
-    let worker;
-    try {
-      worker = await createWorker('eng');
-      const { data } = await worker.recognize(input.buffer);
-      const rawText = data?.text || '';
-      return {
-        provider: 'tesseract.js',
-        rawText,
-        extractedName: pickLikelyName(rawText),
-      };
-    } catch (err) {
-      console.warn('[ocrService] Tesseract failed, falling back:', err.message);
-    } finally {
-      if (worker) {
-        try { await worker.terminate(); } catch { /* ignore */ }
-      }
+      console.warn('[ocrService] Gemini Vision OCR failed:', e.message);
     }
   }
 
@@ -178,7 +109,6 @@ Return ONLY a valid JSON object with these keys:
     };
   };
 
-  // 1. Primary: Groq vision (isolated from analysis quota)
   if (hasGroqVision()) {
     try {
       const jsonStr = await analyzeImageWithGroq({
@@ -192,7 +122,6 @@ Return ONLY a valid JSON object with these keys:
     }
   }
 
-  // 2. Fallback: Gemini Vision
   if (hasGemini()) {
     try {
       const jsonStr = await analyzeImageWithGemini({
@@ -203,34 +132,7 @@ Return ONLY a valid JSON object with these keys:
       });
       return parseIdJson(jsonStr);
     } catch (e) {
-      console.warn('[ocrService] Gemini extractCitizenIdData failed, trying Tesseract fallback:', e.message);
-    }
-  }
-
-  // 3. Fallback to text OCR
-  const createWorker = await loadTesseract();
-  if (createWorker) {
-    let worker;
-    try {
-      worker = await createWorker('eng');
-      const { data } = await worker.recognize(input.buffer);
-      const rawText = data?.text || '';
-      const likelyName = pickLikelyName(rawText);
-      // Heuristic ID number regex
-      const idMatch = rawText.match(/\b([A-Z0-9]{4,}[-\s]?[A-Z0-9]{4,}[-\s]?[A-Z0-9]{0,8})\b/i);
-      return {
-        fullName: likelyName,
-        idNumber: idMatch ? idMatch[0].trim() : '',
-        idType: 'DETECTED',
-        birthDate: null,
-        rawText,
-      };
-    } catch (err) {
-      console.warn('[ocrService] Tesseract fallback failed:', err.message);
-    } finally {
-      if (worker) {
-        try { await worker.terminate(); } catch { /* ignore */ }
-      }
+      console.warn('[ocrService] Gemini extractCitizenIdData failed:', e.message);
     }
   }
 
@@ -242,4 +144,3 @@ Return ONLY a valid JSON object with these keys:
     rawText: '',
   };
 }
-

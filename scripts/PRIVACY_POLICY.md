@@ -74,8 +74,7 @@ Ordinex may share data with the following processors **only as needed** to run t
 | **Supabase** | Cloud database, file storage, and vector search (when configured for production) |
 | **PayMongo** | Payment checkout (e.g. GCash) |
 | **Google** | OAuth sign-in; Fonts/Icons CDN; WebRTC STUN |
-| **Semaphore** | SMS OTP delivery (when configured) |
-| **Gmail SMTP** | Transactional email & OTP delivery (when configured) |
+| **Gmail SMTP** | Transactional email & OTP delivery |
 | **PeerJS cloud / TURN** | WebRTC signaling and NAT traversal defaults for video |
 
 Local development may use SQLite and simulated payments without cloud processors.
