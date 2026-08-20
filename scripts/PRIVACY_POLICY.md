@@ -37,7 +37,7 @@ Depending on your role and features you use, we may process:
 |----------|----------|
 | Account | Name, email, phone, password hash, role (citizen/lawyer) |
 | Profile | Bio, avatar, address, occupation, civil status, date of birth (citizen); bar/roll number, specializations, fees, credentials (lawyer) |
-| Case / AI | Case descriptions, uploaded documents (PDF/DOCX text extracts), AI analysis results, follow-up chat |
+| Case / AI | Case descriptions, uploaded documents (PDF/DOCX text extracts), case identification results, follow-up chat |
 | Booking | Slot times, case notes shared with a booked lawyer, booking status |
 | Payments | Booking amounts, platform fee (10%), PayMongo session/payment references (not full card numbers stored by Ordinex) |
 | Communications | In-app booking chat, optional translations, video session metadata; recording/transcript only if you consent in preflight |
@@ -69,7 +69,7 @@ Ordinex may share data with the following processors **only as needed** to run t
 
 | Processor | Role |
 |-----------|------|
-| **Groq** | Large-language-model inference for analysis, follow-up, and translation (when configured) |
+| **Groq** | Large-language-model inference for case identification, follow-up, and translation (when configured) |
 | **Google Gemini** | LLM fallback, vision KYC, and multimodal (when configured) |
 | **Supabase** | Cloud database, file storage, and vector search (when configured for production) |
 | **PayMongo** | Payment checkout (e.g. GCash) |

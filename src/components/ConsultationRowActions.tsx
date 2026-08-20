@@ -30,7 +30,7 @@ export const ConsultationRowActions: React.FC<Props> = ({ item, onUpdated, onDel
       onUpdated();
     } catch (err) {
       setTitle(consultationDisplayTitle(item));
-      setActionError(getErrorMessage(err, 'Could not rename analysis.'));
+      setActionError(getErrorMessage(err, 'Could not rename case identification.'));
     } finally {
       setBusy(false);
     }
@@ -44,7 +44,7 @@ export const ConsultationRowActions: React.FC<Props> = ({ item, onUpdated, onDel
       await consultationApi.remove(item.id);
       onDeleted(item.id);
     } catch (err) {
-      setActionError(getErrorMessage(err, 'Could not move analysis to Recycle Bin.'));
+      setActionError(getErrorMessage(err, 'Could not move case identification to Recycle Bin.'));
     } finally {
       setBusy(false);
     }

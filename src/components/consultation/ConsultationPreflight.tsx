@@ -254,7 +254,7 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
           <div className="consult-preflight-card">
             <p className="consult-preflight-card__intro">
               Private consultation with an independent licensed lawyer on Ordinex — not a PAO session.
-              Prior AI analysis on Ordinex is <strong>pre-guidance only</strong> and does not replace this lawyer&apos;s advice.
+              Prior case identification on Ordinex is <strong>pre-guidance only</strong> and does not replace this lawyer&apos;s advice.
             </p>
 
             {!isReviewOnly && (

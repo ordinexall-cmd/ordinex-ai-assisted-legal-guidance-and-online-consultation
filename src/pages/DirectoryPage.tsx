@@ -292,7 +292,7 @@ export const DirectoryPage: React.FC = () => {
             <p className="marketplace-banner__title">Matched to your case</p>
             <p className="marketplace-banner__body">
               Showing lawyers who handle {specialtyDisplayLabel(filters.category)}.
-              {consultationId ? ' Your analysis will be linked when you book.' : ''}
+              {consultationId ? ' Your case identification will be linked when you book.' : ''}
             </p>
             <button
               type="button"

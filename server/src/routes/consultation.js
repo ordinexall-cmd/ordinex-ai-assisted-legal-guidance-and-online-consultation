@@ -1,6 +1,6 @@
 // ============================================================
 // Ordinex — Consultation Routes
-// AI case analysis, follow-up chat, and history.
+// AI case identification, follow-up chat, and history.
 // ============================================================
 import { Router } from 'express';
 import multer from 'multer';
@@ -129,7 +129,7 @@ router.post('/preview', guestPreviewLimiter, async (req, res, next) => {
 // ======================== ANALYZE ========================
 /**
  * POST /api/consultation/analyze
- * Submit a legal case for AI analysis.
+ * Submit a legal case for AI case identification.
  */
 router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async (req, res, next) => {
   try {
@@ -152,7 +152,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       return res.json({
         needsMoreDetail: true,
         missingFacts: facts.missing.map((m) => m.label),
-        message: 'Add more detail for a full analysis. No trial was used.',
+        message: 'Add more detail for a full case identification. No trial was used.',
         consultation: null,
         meta: {
           outcomeType: 'needs_detail',
@@ -200,7 +200,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       return res.json({
         needsMoreDetail: true,
         missingFacts: aiResult?.courtWinOutlook?.missingFacts || [],
-        message: 'Add more detail for a full analysis. No trial was used.',
+        message: 'Add more detail for a full case identification. No trial was used.',
         consultation: null,
         meta: { ...meta, trialsCharged: false },
       });
@@ -234,7 +234,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
         title: 'More detail needed',
         message: outcomeType === 'no_corpus'
           ? 'Add more facts or try again later — no trial was used.'
-          : 'Add more specific facts for a full analysis — no trial was used.',
+          : 'Add more specific facts for a full case identification — no trial was used.',
         type: 'AI_NEEDS_DETAIL',
         linkTo: `/ai-analysis?id=${consultation.id}`,
       }).catch(() => {});
@@ -251,7 +251,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
         ? 'Identification complete.'
         : outcomeType === 'no_corpus'
           ? 'Legal database unavailable. No trial was used — try again later.'
-          : 'Add more detail for a full analysis. No trial was used.';
+          : 'Add more detail for a full case identification. No trial was used.';
 
     res.status(201).json({
       message: responseMessage,
@@ -268,7 +268,7 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
 // ======================== FOLLOW-UP ========================
 /**
  * POST /api/consultation/:id/followup
- * Logged-in citizens: up to 20 follow-ups per analysis.
+ * Logged-in citizens: up to 20 follow-ups per case identification.
  */
 router.post('/:id/followup', requireAuth, async (req, res, next) => {
   try {
@@ -378,7 +378,7 @@ router.get('/history', requireAuth, async (req, res, next) => {
 // ======================== TRASH ========================
 /**
  * GET /api/consultation/trash
- * Soft-deleted analyses still within the retention window.
+ * Soft-deleted case identifications still within the retention window.
  */
 router.get('/trash', requireAuth, async (req, res, next) => {
   try {
@@ -477,7 +477,7 @@ router.post('/:id/restore', requireAuth, async (req, res, next) => {
       where: { id: req.params.id },
       data: { deletedAt: null },
     });
-    res.json({ message: 'Analysis restored.' });
+    res.json({ message: 'Case identification restored.' });
   } catch (error) {
     next(error);
   }
@@ -496,7 +496,7 @@ router.delete('/:id/permanent', requireAuth, async (req, res, next) => {
     }
 
     await prisma.consultation.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Analysis permanently deleted.' });
+    res.json({ message: 'Case identification permanently deleted.' });
   } catch (error) {
     next(error);
   }
@@ -505,7 +505,7 @@ router.delete('/:id/permanent', requireAuth, async (req, res, next) => {
 // ======================== DELETE (soft) ========================
 /**
  * DELETE /api/consultation/:id
- * Move an AI analysis to the Recycle Bin.
+ * Move a case identification to the Recycle Bin.
  */
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
@@ -530,7 +530,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
 /**
  * POST /api/consultation/:id/translate
  * Body: { targetLang, sourceLang? }
- * Translates the key fields of an AI analysis result.
+ * Translates the key fields of a case identification result.
  */
 router.post('/:id/translate', requireAuth, async (req, res, next) => {
   try {
@@ -546,7 +546,7 @@ router.post('/:id/translate', requireAuth, async (req, res, next) => {
     try {
       aiResult = hydrateCitizenGuidance(JSON.parse(consultation.aiResult));
     } catch {
-      return res.status(500).json({ error: 'Could not parse analysis result.' });
+      return res.status(500).json({ error: 'Could not parse case identification result.' });
     }
 
     // Translate key user-facing fields

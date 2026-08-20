@@ -90,7 +90,7 @@ export class ApiError extends Error {
 }
 
 /**
- * Core fetch wrapper with automatic JWT headers.
+ * Core fetch wrapper with automatic JWT headers and 429 retry.
  */
 async function request<T>(
   endpoint: string,
@@ -106,7 +106,6 @@ async function request<T>(
     ...(options.headers as Record<string, string> || {}),
   };
 
-  // Don't set Content-Type for FormData (browser sets it with boundary)
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
@@ -115,64 +114,76 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-    });
-  } catch {
-    throw new ApiError(
-      'API server is not running. Start it with npm run server:dev (or npm run dev:all for frontend and API together).',
-      0,
-    );
-  }
-
-  // Handle non-JSON responses
-  const contentType = response.headers.get('content-type');
-  if (!contentType?.includes('application/json')) {
-    if (!response.ok) {
-      throw new ApiError('Something went wrong. Please try again.', response.status);
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new ApiError(
+        'Server is starting up or unreachable. Please wait a moment and refresh.',
+        0,
+      );
     }
-    return {} as T;
-  }
 
-  const data = await response.json();
+    if (response.status === 429 && attempt < maxAttempts - 1) {
+      const retryAfterHeader = response.headers.get('Retry-After');
+      const retrySec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 2 ** attempt;
+      const waitMs = Math.min(Math.max(retrySec, 1), 30) * 1000;
+      await new Promise((r) => setTimeout(r, waitMs));
+      continue;
+    }
 
-  if (!response.ok) {
-    // Handle 401 — redirect to login
-    if (response.status === 401) {
-      clearToken();
-      // Don't redirect if already on landing page
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      if (!response.ok) {
+        throw new ApiError('Something went wrong. Please try again.', response.status);
       }
+      return {} as T;
     }
-    const fallback =
-      response.status === 401
-        ? 'Invalid email or password.'
-        : response.status === 403
-          ? 'You do not have access to do that.'
-          : response.status === 404
-            ? 'We could not find that.'
-            : 'Something went wrong. Please try again.';
 
-    const rawError =
-      typeof data.error === 'string' && data.error.trim()
-        ? data.error
-        : typeof data.message === 'string' && data.message.trim()
-          ? data.message
-          : fallback;
+    const data = await response.json();
 
-    throw new ApiError(
-      toUserFacingError(rawError, fallback),
-      response.status,
-      data.code,
-      data
-    );
+    if (!response.ok) {
+      if (response.status === 401) {
+        clearToken();
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
+      }
+      const fallback =
+        response.status === 401
+          ? 'Invalid email or password.'
+          : response.status === 403
+            ? 'You do not have access to do that.'
+            : response.status === 404
+              ? 'We could not find that.'
+              : response.status === 429
+                ? 'Too many requests — please wait a moment and try again.'
+                : 'Something went wrong. Please try again.';
+
+      const rawError =
+        typeof data.error === 'string' && data.error.trim()
+          ? data.error
+          : typeof data.message === 'string' && data.message.trim()
+            ? data.message
+            : fallback;
+
+      throw new ApiError(
+        toUserFacingError(rawError, fallback),
+        response.status,
+        data.code,
+        data
+      );
+    }
+
+    return data as T;
   }
 
-  return data as T;
+  throw new ApiError('Too many requests — please wait a moment and try again.', 429);
 }
 
 // ======================== AUTH API ========================
@@ -800,6 +811,25 @@ export interface Booking {
   review: { id: string; rating: number; comment: string | null; createdAt: string } | null;
 }
 
+/** Lightweight row for the floating chat dock conversation list. */
+export interface DockBookingSummary {
+  id: string;
+  status: BookingStatus;
+  chatIsOpen: boolean;
+  viewerRole: 'CITIZEN' | 'LAWYER';
+  peerName: string;
+  lastChatPreview?: { content: string; sentAt: string } | null;
+  updatedAt: string;
+  joinExtendedUntil?: string | null;
+  awaitingJoinActionAt?: string | null;
+}
+
+export interface BookingJoinOptions {
+  canContinueWaiting: boolean;
+  awaitingJoinActionAt: string | null;
+  joinExtendedUntil: string | null;
+}
+
 export const bookingsApi = {
   create: (body: {
     availabilityId: string;
@@ -811,6 +841,12 @@ export const bookingsApi = {
 
   getById: (id: string) =>
     request<{ booking: Booking }>(`/bookings/${id}`),
+
+  getJoinOptions: (id: string) =>
+    request<{ options: BookingJoinOptions }>(`/bookings/${id}/join-options`),
+
+  getDockSummary: () =>
+    request<{ bookings: DockBookingSummary[] }>('/bookings/my/dock-summary'),
 
   getLinkedAnalysis: (id: string) =>
     request<{ analysis: BookingLinkedAnalysis }>(`/bookings/${id}/linked-analysis`),
@@ -1177,6 +1213,15 @@ export interface CheckoutLineItem {
   amount: number;
 }
 
+export interface CheckoutAllowedChannels {
+  ewallet: boolean;
+  bank: boolean;
+  ewalletProvider?: string | null;
+  bankName?: string | null;
+  ready: boolean;
+  label: string;
+}
+
 export interface CheckoutContext {
   merchant: string;
   type: 'booking';
@@ -1188,6 +1233,7 @@ export interface CheckoutContext {
   paymentsMode?: 'simulated' | 'paymongo';
   commissionRate?: number;
   preferredMethod?: string;
+  allowedChannels?: CheckoutAllowedChannels;
   holdNotice?: string;
 }
 

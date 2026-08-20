@@ -34,7 +34,7 @@ export const AnalysisHistoryList: React.FC = () => {
       setTotalPages(res.pagination?.totalPages ?? 1);
     } catch (e) {
       setItems([]);
-      setError(loadErrorMessage(e, 'Could not load analysis history.'));
+      setError(loadErrorMessage(e, 'Could not load case identification history.'));
     } finally {
       setLoading(false);
     }
@@ -51,14 +51,14 @@ export const AnalysisHistoryList: React.FC = () => {
   return (
     <AppShell
       variant="flow"
-      title="Analysis history"
+      title="Case identification history"
       navItems={getCitizenNav(user)}
       stepLabel="History"
       backTo={getAppBackFallback(false)}
     >
       <div className="ox-card list-panel list-panel--history">
         <div className="list-panel__toolbar">
-          <span className="list-panel__label">All analyses</span>
+          <span className="list-panel__label">All case identifications</span>
           <Link to="/ai-analysis" className="list-panel__link">
             New identification
             <span className="material-symbols-outlined dash-icon-xs" aria-hidden>add</span>
@@ -71,7 +71,7 @@ export const AnalysisHistoryList: React.FC = () => {
             placeholder="Search by title or category…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search analyses"
+            aria-label="Search case identifications"
           />
           <button type="submit" className="ox-btn ox-btn-secondary">Search</button>
         </form>

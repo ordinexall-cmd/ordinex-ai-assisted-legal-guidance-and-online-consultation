@@ -30,7 +30,7 @@ export const BookingLinkedAnalysisPanel: React.FC<BookingLinkedAnalysisPanelProp
       setAnalysis(data);
     } catch (err) {
       setAnalysis(null);
-      setError(getErrorMessage(err, 'Could not load linked AI analysis.'));
+      setError(getErrorMessage(err, 'Could not load linked case identification.'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export const BookingLinkedAnalysisPanel: React.FC<BookingLinkedAnalysisPanelProp
       </header>
 
       {loading && (
-        <p className="workbench-panel-helper">Loading analysis…</p>
+        <p className="workbench-panel-helper">Loading case identification…</p>
       )}
 
       {error && !loading && (

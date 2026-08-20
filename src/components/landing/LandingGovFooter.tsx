@@ -36,7 +36,7 @@ export const LandingGovFooter: React.FC = () => {
             <h4>Platform</h4>
             <ul>
               <li>Free preview on the home page</li>
-              <li>Full analysis after you create an account</li>
+              <li>Full case identification after you create an account</li>
               <li>Browse lawyers and pay at booking</li>
               <li>Privacy-minded under RA 10173</li>
             </ul>

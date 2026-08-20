@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { bookingsApi, type BookingChatMessage } from '../../services/api';
 import { connectBookingRoom, disconnectBookingRoom } from '../../services/bookingSocket';
+import { isAppSocketConnected } from '../../services/appSocket';
 import { getErrorMessage } from '../../utils/userFacingError';
+
+const FALLBACK_POLL_MS = 60_000;
 
 const fmtDateTime = (iso: string) =>
   new Date(iso).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' });
@@ -78,9 +81,20 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
       },
     };
     const socket = connectBookingRoom(bookingId, handlers);
-    const poll = setInterval(() => { void load(); }, 12000);
+
+    const maybePoll = () => {
+      if (document.hidden) return;
+      if (socket?.connected || isAppSocketConnected()) return;
+      void load();
+    };
+
+    const poll = setInterval(maybePoll, FALLBACK_POLL_MS);
+    const onVisible = () => { maybePoll(); };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       clearInterval(poll);
+      document.removeEventListener('visibilitychange', onVisible);
       disconnectBookingRoom(socket, bookingId, handlers);
     };
   }, [bookingId, load, onChatClosed, viewerRole]);

@@ -23,7 +23,7 @@ export const AnalysisDetail: React.FC = () => {
     setLoading(true);
     consultationApi.getById(id)
       .then((r) => setItem(r.consultation))
-      .catch((e) => setError(loadErrorMessage(e, 'Could not load this analysis.')))
+      .catch((e) => setError(loadErrorMessage(e, 'Could not load this case identification.')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -32,7 +32,7 @@ export const AnalysisDetail: React.FC = () => {
   return (
     <AppShell
       variant="flow"
-      title="Analysis detail"
+      title="Case identification"
       navItems={getCitizenNav(user)}
       stepLabel="Detail"
       backTo="/analyses"
@@ -42,9 +42,9 @@ export const AnalysisDetail: React.FC = () => {
       {!loading && item && !ar && (
         <div className="analysis-detail-clean">
           <div className="analysis-describe__empty">
-            <h3>Analysis unavailable</h3>
-            <p>This analysis record is missing details or may have been removed.</p>
-            <Link to="/analyses" className="list-panel__link">Back to analyses</Link>
+            <h3>Case identification unavailable</h3>
+            <p>This case identification is missing details or may have been removed.</p>
+            <Link to="/analyses" className="list-panel__link">Back to history</Link>
           </div>
         </div>
       )}
@@ -52,7 +52,7 @@ export const AnalysisDetail: React.FC = () => {
         <div className="analysis-detail-clean">
           <div className="analysis-describe__summary-strip">
             <div style={{ flex: 1, minWidth: 0 }}>
-              <span className="label">Analysis</span>
+              <span className="label">Case identification</span>
               <p style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <strong>{consultationDisplayTitle(item)}</strong>
               </p>

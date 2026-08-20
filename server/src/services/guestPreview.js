@@ -7,7 +7,7 @@
 import { analyzeLegalCase } from './aiOrchestrator.js';
 
 const DISCLAIMER =
-  'This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney.';
+  'This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney.';
 const CASE_MATCH_MIN = 50;
 
 function loginGate({ category }) {

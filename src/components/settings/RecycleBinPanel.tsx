@@ -75,7 +75,7 @@ export const RecycleBinPanel: React.FC<Props> = ({ isLawyer, onBack }) => {
   };
 
   const permanentAnalysis = async (id: string) => {
-    if (!window.confirm('Permanently delete this analysis? This cannot be undone.')) return;
+    if (!window.confirm('Permanently delete this case identification? This cannot be undone.')) return;
     setBusyId(id);
     try {
       await consultationApi.permanentDelete(id);
@@ -125,7 +125,7 @@ export const RecycleBinPanel: React.FC<Props> = ({ isLawyer, onBack }) => {
             className={`history-tabs__btn${tab === t ? ' is-active' : ''}`}
             onClick={() => setTab(t)}
           >
-            {t === 'analyses' ? 'Analyses' : t === 'consultations' ? 'Consultations' : 'Transcripts'}
+            {t === 'analyses' ? 'Case identification' : t === 'consultations' ? 'Consultations' : 'Transcripts'}
           </button>
         ))}
       </div>
@@ -136,7 +136,7 @@ export const RecycleBinPanel: React.FC<Props> = ({ isLawyer, onBack }) => {
             <p className="profile-email">Loading…</p>
           ) : tab === 'analyses' ? (
             analyses.length === 0 ? (
-              <p className="workbench-history-empty">No deleted analyses.</p>
+              <p className="workbench-history-empty">No deleted case identifications.</p>
             ) : (
               analyses.map((a) => (
                 <div key={a.id} className="list-panel__row" style={{ justifyContent: 'space-between' }}>

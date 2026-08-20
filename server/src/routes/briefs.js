@@ -154,7 +154,7 @@ router.put('/mine', requireAuth, requireCitizen, requireCitizenVerified, async (
         select: { id: true },
       });
       if (!owned) {
-        return res.status(400).json({ error: 'Linked case analysis not found.' });
+        return res.status(400).json({ error: 'Linked case identification not found.' });
       }
       consultationId = owned.id;
     }

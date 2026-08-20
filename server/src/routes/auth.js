@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '../config/prisma.js';
 import { generateToken, generateKycToken } from '../utils/jwt.js';
+import { validatePaymentMethodsPayload } from '../utils/paymentMethods.js';
 import { generateOTP } from '../utils/hash.js';
 import { sendOTP, verifyOTP } from '../services/sms.js';
 import {
@@ -996,7 +997,8 @@ router.patch('/me', requireAuth, async (req, res, next) => {
         'citizenIdNumber',
         'emergencyContactName',
         'emergencyContactPhone',
-        'emergencyRelationship'
+        'emergencyRelationship',
+        'paymentMethods',
       );
     }
 
@@ -1047,8 +1049,14 @@ router.patch('/me', requireAuth, async (req, res, next) => {
     if (updates.specializations && typeof updates.specializations !== 'string') {
       updates.specializations = JSON.stringify(updates.specializations);
     }
-    if (updates.paymentMethods && typeof updates.paymentMethods !== 'string') {
-      updates.paymentMethods = JSON.stringify(updates.paymentMethods);
+    if (updates.paymentMethods !== undefined && typeof updates.paymentMethods !== 'string') {
+      const validated = validatePaymentMethodsPayload(updates.paymentMethods);
+      if (!validated.ok) {
+        return res.status(400).json({ error: validated.error });
+      }
+      updates.paymentMethods = JSON.stringify(validated.methods);
+    } else if (updates.paymentMethods && typeof updates.paymentMethods === 'string') {
+      /* already string — leave as-is */
     }
     if (updates.credentials && typeof updates.credentials !== 'string') {
       updates.credentials = JSON.stringify(updates.credentials);

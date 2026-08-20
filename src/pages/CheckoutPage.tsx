@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/shell/AppShell';
 import { paymentsApi, type CheckoutContext } from '../services/api';
 import { getErrorMessage } from '../utils/userFacingError';
 import { useAuth } from '../context/AuthContext';
 import { getCitizenNav } from '../utils/citizenWorkspace';
+import { ewalletComplete, bankComplete, splitPaymentMethodsByCategory } from '../utils/paymentMethod';
 
 const peso = (n: number) => `₱${n.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -25,6 +26,27 @@ export const CheckoutPage: React.FC = () => {
   const [confirming, setConfirming] = useState(false);
   const [success, setSuccess] = useState('');
 
+  const localSplit = useMemo(
+    () => splitPaymentMethodsByCategory(user?.paymentMethods || []),
+    [user?.paymentMethods],
+  );
+
+  const allowEwallet = ctx?.allowedChannels?.ewallet ?? ewalletComplete(localSplit.ewallet);
+  const allowBank = ctx?.allowedChannels?.bank ?? bankComplete(localSplit.bank);
+  const hasSavedPayment = Boolean(ctx?.allowedChannels?.ready ?? (allowEwallet || allowBank));
+  const ewalletLabel = ctx?.allowedChannels?.ewalletProvider
+    || localSplit.ewallet.provider
+    || 'E-wallet';
+  const bankLabel = ctx?.allowedChannels?.bankName
+    || localSplit.bank.bankName
+    || 'Bank transfer';
+  const payLabel = ctx?.allowedChannels?.label
+    || (allowEwallet && allowBank
+      ? `${ewalletLabel} or bank`
+      : allowBank
+        ? bankLabel
+        : ewalletLabel);
+
   useEffect(() => {
     if (!type || type !== 'booking') {
       setError('Invalid checkout type.');
@@ -37,7 +59,6 @@ export const CheckoutPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [type, bookingId]);
 
-  // Return from PayMongo success_url
   useEffect(() => {
     if (!paymongoSession || !bookingId) return;
     let cancelledRun = false;
@@ -61,6 +82,10 @@ export const CheckoutPage: React.FC = () => {
 
   const handleConfirm = async () => {
     if (!ctx || confirming || !bookingId) return;
+    if (!hasSavedPayment) {
+      setError('Save an e-wallet or bank account in Settings → Billing before paying.');
+      return;
+    }
     setConfirming(true);
     setError('');
 
@@ -76,7 +101,7 @@ export const CheckoutPage: React.FC = () => {
         idempotencyKey,
         type: 'BOOKING',
         bookingId,
-        method: 'GCASH',
+        method: ctx.preferredMethod || (allowBank && !allowEwallet ? 'BANK' : 'EWALLET'),
       });
       setSuccess(res.message || 'Payment confirmed!');
       window.setTimeout(() => navigate(`/booking/${bookingId}`), 2000);
@@ -125,8 +150,8 @@ export const CheckoutPage: React.FC = () => {
                 <strong>Demo payment environment</strong>
                 <span>
                   {usePaymongo
-                    ? 'PayMongo test mode — no real funds move. Live keys activate after merchant verification and deploy.'
-                    : 'Simulated checkout for offline demos. Switch to PayMongo test mode for GCash-hosted checkout.'}
+                    ? 'PayMongo — you pay with the e-wallet or bank saved in your account settings.'
+                    : 'Simulated checkout. Live PayMongo uses the e-wallet or bank you saved in settings.'}
                 </span>
               </div>
             </div>
@@ -138,9 +163,9 @@ export const CheckoutPage: React.FC = () => {
               <div>
                 <p className="checkout-merchant__name">{ctx.merchant}</p>
                 <p className="checkout-merchant__sub">
-                  {usePaymongo
-                    ? 'Pay with GCash via PayMongo (test mode)'
-                    : 'Simulated checkout — GCash-first for live later'}
+                  {hasSavedPayment
+                    ? `Pay with ${payLabel} via PayMongo`
+                    : 'Save e-wallet or bank in settings to pay'}
                 </p>
               </div>
             </div>
@@ -148,6 +173,16 @@ export const CheckoutPage: React.FC = () => {
             {cancelled && (
               <div className="callout-error" role="status" style={{ marginBottom: 12 }}>
                 <p className="callout-error__text">Checkout was cancelled. You can try again when ready.</p>
+              </div>
+            )}
+
+            {!hasSavedPayment && (
+              <div className="callout-error" role="alert" style={{ marginBottom: 12 }}>
+                <p className="callout-error__text">
+                  Save an e-wallet or bank account in{' '}
+                  <Link to="/settings?tab=billing" className="link-inline">Settings → Billing</Link>
+                  {' '}first. Checkout only offers the method you set up.
+                </p>
               </div>
             )}
 
@@ -170,22 +205,40 @@ export const CheckoutPage: React.FC = () => {
                 </p>
               ) : (
                 <p className="checkout-method__note" style={{ marginTop: 12 }}>
-                  Pay only through Ordinex. Do not send GCash to the lawyer. Funds are held until the session ends; 15% is the platform fee.
+                  Pay only through Ordinex. Do not send funds to the lawyer directly. Funds are held until the session ends; 15% is the platform fee.
                 </p>
               )}
             </div>
 
             <div className="ox-card ox-card--flat checkout-method">
               <h3 className="checkout-method__title">Payment method</h3>
-              <div className="checkout-method__grid">
-                <button type="button" className="checkout-method__option is-selected" disabled>
-                  <span className="material-symbols-outlined" aria-hidden>account_balance_wallet</span>
-                  GCash
-                </button>
-              </div>
+              {hasSavedPayment ? (
+                <div className="checkout-method__grid">
+                  {allowEwallet && (
+                    <div className="checkout-method__option is-selected">
+                      <span className="material-symbols-outlined" aria-hidden>account_balance_wallet</span>
+                      E-wallet
+                      <span style={{ fontSize: 11, opacity: 0.85 }}>{ewalletLabel}</span>
+                    </div>
+                  )}
+                  {allowBank && (
+                    <div className="checkout-method__option is-selected">
+                      <span className="material-symbols-outlined" aria-hidden>account_balance</span>
+                      Bank transfer
+                      <span style={{ fontSize: 11, opacity: 0.85 }}>{bankLabel}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="checkout-method__note">
+                  No payment method saved yet.
+                </p>
+              )}
               <p className="checkout-method__note">
-                Pay only through Ordinex (PayMongo). Do not send GCash to the lawyer directly.
-                Maya may appear as a secondary option on the PayMongo checkout screen.
+                {hasSavedPayment
+                  ? `This booking will be charged through ${payLabel} — the destination you saved in account settings. Change it in Settings → Billing before paying if needed.`
+                  : 'Add GCash, Maya, or a bank account in Settings → Billing. PayMongo will only show that option.'}
+                {' '}Do not send funds to the lawyer directly.
               </p>
             </div>
 
@@ -204,13 +257,13 @@ export const CheckoutPage: React.FC = () => {
             <button
               type="button"
               className="ox-btn ox-btn-primary ox-btn-full checkout-confirm"
-              disabled={confirming || !!success || !!paymongoSession}
+              disabled={confirming || !!success || !!paymongoSession || !hasSavedPayment}
               onClick={() => { void handleConfirm(); }}
             >
               {confirming || paymongoSession ? (
                 <>
                   <span className="checkout-spinner" aria-hidden />
-                  {paymongoSession ? 'Confirming GCash payment…' : (usePaymongo ? 'Opening GCash…' : 'Processing…')}
+                  {paymongoSession ? 'Confirming payment…' : (usePaymongo ? 'Opening PayMongo…' : 'Processing…')}
                 </>
               ) : success ? (
                 <>
@@ -220,9 +273,11 @@ export const CheckoutPage: React.FC = () => {
               ) : (
                 <>
                   <span className="material-symbols-outlined" aria-hidden>lock</span>
-                  {usePaymongo
-                    ? `Pay with GCash — ${peso(ctx.total)}`
-                    : `Confirm payment — ${peso(ctx.total)}`}
+                  {hasSavedPayment
+                    ? (usePaymongo
+                      ? `Pay with ${payLabel} — ${peso(ctx.total)}`
+                      : `Confirm payment — ${peso(ctx.total)}`)
+                    : 'Save payment details to continue'}
                 </>
               )}
             </button>
@@ -231,7 +286,7 @@ export const CheckoutPage: React.FC = () => {
               By continuing, you agree to the Ordinex{' '}
               <Link to="/terms" className="link-inline">Terms of Service</Link>
               . Fees are quoted by your lawyer after reviewing your case.
-              Pay only in Ordinex. Funds are held until the session ends; 15% is the platform fee and 85% is paid to the lawyer after the consult. Do not send GCash to the lawyer’s personal wallet. If a problem or cancellation occurs, you are refunded.
+              Pay only in Ordinex. Funds are held until the session ends; 15% is the platform fee and 85% is paid to the lawyer after the consult. Do not send funds to the lawyer’s personal account. If a problem or cancellation occurs, you are refunded to your original payment method.
             </p>
           </>
         )}

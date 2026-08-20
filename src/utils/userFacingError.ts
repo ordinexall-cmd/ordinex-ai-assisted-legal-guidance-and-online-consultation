@@ -15,7 +15,7 @@ function isTechnicalMessage(message: string): boolean {
 function toAiUserFacingError(raw: string): string {
   if (/today's limit|8:00 AM PHT|daily limits reset/i.test(raw)) return raw;
   if (
-    /We're helping many people right now|Analysis is temporarily unavailable|We could not finish analyzing your situation|We could not finish the analysis/i.test(raw)
+    /We're helping many people right now|Analysis is temporarily unavailable|Case identification is temporarily unavailable|We could not finish analyzing your situation|We could not finish identifying your situation|We could not finish the analysis|We could not finish case identification/i.test(raw)
     && !TECHNICAL_PATTERN.test(raw)
   ) {
     return raw;
@@ -24,15 +24,15 @@ function toAiUserFacingError(raw: string): string {
     return "We're helping many people right now. Please wait a minute and try again.";
   }
   if (/does not exist|do not have access|decommission|deprecated|model/i.test(raw)) {
-    return 'Analysis is temporarily unavailable while we update the service. Please try again in a few minutes.';
+    return 'Case identification is temporarily unavailable while we update the service. Please try again in a few minutes.';
   }
   if (/not configured|API_KEY|unauthorized|\b401\b|invalid api/i.test(raw)) {
-    return 'Analysis is temporarily unavailable. Please try again later.';
+    return 'Case identification is temporarily unavailable. Please try again later.';
   }
   if (/timeout|ETIMEDOUT|ECONNREFUSED|network|fetch failed|cannot reach/i.test(raw)) {
-    return 'We could not finish the analysis. Please check your connection and try again.';
+    return 'We could not finish case identification. Please check your connection and try again.';
   }
-  return 'We could not finish analyzing your situation right now. Please try again in a few minutes.';
+  return 'We could not finish identifying your situation right now. Please try again in a few minutes.';
 }
 
 export function toUserFacingError(
@@ -66,6 +66,9 @@ export function toUserFacingError(
     }
     if (apiErr.status === 403) return 'You do not have access to do that.';
     if (apiErr.status === 404) return 'We could not find what you were looking for.';
+    if (apiErr.status === 429) {
+      return 'Too many requests — please wait a moment and try again.';
+    }
     if (apiErr.status === 409) {
       if (typeof apiErr.data?.error === 'string' && !isTechnicalMessage(apiErr.data.error)) {
         return apiErr.data.error;

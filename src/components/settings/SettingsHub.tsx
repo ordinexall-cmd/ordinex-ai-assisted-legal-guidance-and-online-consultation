@@ -132,14 +132,14 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({
       {!isLawyer ? (
         <SettingsHubRow
           title="Billing"
-          description="Pay lawyers at booking — no platform subscription."
+          description="E-wallet or bank for checkout — no platform subscription."
           meta={<span className="settings-hub-row__plan-label">Pay per consult</span>}
           onClick={() => onSelect('subscription')}
         />
       ) : null}
       <SettingsHubRow
         title="History"
-        description="View past AI case analyses and consultation records."
+        description="View past case identifications and consultation records."
         onClick={() => onSelect('history')}
       />
       <SettingsHubRow
@@ -149,7 +149,7 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({
       />
       <SettingsHubRow
         title="Recycle Bin"
-        description="Restore deleted analyses and consultations within 7 days."
+        description="Restore deleted case identifications and consultations within 7 days."
         onClick={() => onSelect('recycle')}
       />
     </SettingsGroup>

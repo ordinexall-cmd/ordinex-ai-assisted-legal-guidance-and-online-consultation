@@ -100,7 +100,7 @@ export const LawyerBookingSettings: React.FC<{
       <section className="settings-editor__section">
         <h3 className="settings-section-title">Payout destination</h3>
         <p className="profile-email settings-practice-summary__hint" style={{ marginBottom: 10 }}>
-          Citizens pay each booking through Ordinex checkout (PayMongo — GCash/Maya), not your personal wallet.
+          Citizens pay each booking through Ordinex checkout (PayMongo — e-wallet or bank transfer), not your personal wallet.
           After a consult, 85% is credited to your wallet and 15% is the platform fee. Manage your e-wallet or
           bank withdrawal details and request payouts from the <strong>Earnings</strong> tab.
         </p>

@@ -4,17 +4,17 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useAuth } from './AuthContext';
-import { bookingsApi, type Booking } from '../services/api';
+import { bookingsApi, type Booking, type DockBookingSummary } from '../services/api';
 import { onBookingUpdated } from '../services/appSocket';
-import { isDockableBooking, sortDockableBookings } from '../utils/dockableBooking';
 
 export type BookingDockMode = 'hidden' | 'picker' | 'minimized' | 'open';
 
 interface BookingDockContextValue {
-  dockableBookings: Booking[];
+  dockableBookings: DockBookingSummary[];
   activeBooking: Booking | null;
   activeBookingId: string | null;
   mode: BookingDockMode;
@@ -29,13 +29,21 @@ interface BookingDockContextValue {
 
 const BookingDockContext = createContext<BookingDockContextValue | null>(null);
 
+const DOCKABLE_STATUSES = new Set(['CONFIRMED', 'IN_PROGRESS', 'COMPLETED']);
+
 export function BookingDockProvider({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuth();
-  const [dockableBookings, setDockableBookings] = useState<Booking[]>([]);
+  const [dockableBookings, setDockableBookings] = useState<DockBookingSummary[]>([]);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
   const [mode, setMode] = useState<BookingDockMode>('hidden');
   const [loading, setLoading] = useState(false);
+  const activeBookingIdRef = useRef<string | null>(null);
+  const socketDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    activeBookingIdRef.current = activeBookingId;
+  }, [activeBookingId]);
 
   const refreshList = useCallback(async () => {
     if (!user) {
@@ -43,8 +51,8 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
       return;
     }
     try {
-      const { bookings } = await bookingsApi.getMy({ limit: 50 });
-      const dockable = sortDockableBookings(bookings.filter(isDockableBooking));
+      const { bookings } = await bookingsApi.getDockSummary();
+      const dockable = bookings.filter((b) => DOCKABLE_STATUSES.has(b.status));
       setDockableBookings(dockable);
       setActiveBookingId((prev) => {
         if (prev && dockable.some((b) => b.id === prev)) return prev;
@@ -63,17 +71,8 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
     setLoading(true);
     try {
       const { booking } = await bookingsApi.getById(id);
-      if (isDockableBooking(booking)) {
+      if (DOCKABLE_STATUSES.has(booking.status)) {
         setActiveBooking(booking);
-        setDockableBookings((prev) => {
-          const i = prev.findIndex((b) => b.id === booking.id);
-          if (i >= 0) {
-            const next = [...prev];
-            next[i] = booking;
-            return next;
-          }
-          return [booking, ...prev];
-        });
       } else {
         setActiveBooking(null);
         setActiveBookingId(null);
@@ -88,8 +87,8 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
 
   const refresh = useCallback(async () => {
     await refreshList();
-    if (activeBookingId) await loadActive(activeBookingId);
-  }, [refreshList, loadActive, activeBookingId]);
+    if (activeBookingIdRef.current) await loadActive(activeBookingIdRef.current);
+  }, [refreshList, loadActive]);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -118,22 +117,21 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user) return;
     return onBookingUpdated((payload) => {
-      void (async () => {
-        await refreshList();
-        if (payload.bookingId === activeBookingId) {
-          await loadActive(payload.bookingId);
-        } else {
-          try {
-            const { booking } = await bookingsApi.getById(payload.bookingId);
-            if (isDockableBooking(booking)) {
-              setActiveBookingId(payload.bookingId);
-              setMode((m) => (m === 'hidden' ? 'minimized' : m));
-            }
-          } catch { /* ignore */ }
-        }
-      })();
+      if (socketDebounceRef.current) clearTimeout(socketDebounceRef.current);
+      socketDebounceRef.current = setTimeout(() => {
+        void (async () => {
+          if (payload.bookingId === activeBookingIdRef.current) {
+            await loadActive(payload.bookingId);
+          }
+          await refreshList();
+        })();
+      }, 2000);
     });
-  }, [user, activeBookingId, refreshList, loadActive]);
+  }, [user, loadActive, refreshList]);
+
+  useEffect(() => () => {
+    if (socketDebounceRef.current) clearTimeout(socketDebounceRef.current);
+  }, []);
 
   const openBooking = useCallback(
     (bookingId: string, opts?: { expand?: boolean; fromPicker?: boolean }) => {
@@ -191,5 +189,3 @@ export function useBookingDock(): BookingDockContextValue {
   if (!ctx) throw new Error('useBookingDock must be used within BookingDockProvider');
   return ctx;
 }
-
-/** Safe hook for pages that may render outside the provider (should not happen). */

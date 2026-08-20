@@ -11130,7 +11130,7 @@ textarea.landing-input {
   50% { opacity: 0; }
 }
 
-/* Locked / complex case analysis badge */
+/* Locked / complex case identification badge */
 .ox-badge--locked {
   display: inline-flex;
   align-items: center;

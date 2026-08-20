@@ -6,7 +6,7 @@ import { BookingChatPanel } from './BookingChatPanel';
 import { dockPeerName, isDockableBooking } from '../../utils/dockableBooking';
 import { statusChipLabel } from '../../utils/bookingStatusChip';
 import { useBookingSlotWindow } from '../../hooks/useBookingSlotWindow';
-import type { Booking } from '../../services/api';
+import type { DockBookingSummary } from '../../services/api';
 
 const fmtPreviewTime = (iso: string) =>
   new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -16,11 +16,11 @@ function ConversationRow({
   active,
   onSelect,
 }: {
-  booking: Booking;
+  booking: DockBookingSummary;
   active: boolean;
   onSelect: () => void;
 }) {
-  const name = dockPeerName(booking);
+  const name = booking.peerName;
   const preview = booking.lastChatPreview?.content || statusChipLabel(booking.status);
   const time = booking.lastChatPreview?.sentAt
     ? fmtPreviewTime(booking.lastChatPreview.sentAt)
@@ -84,9 +84,7 @@ export const FloatingBookingDock: React.FC = () => {
 
   const peerName = activeBooking
     ? dockPeerName(activeBooking)
-    : dockableBookings[0]
-      ? dockPeerName(dockableBookings[0])
-      : 'Consultation';
+    : dockableBookings[0]?.peerName ?? 'Consultation';
 
   const slotWindow = useBookingSlotWindow(
     activeBooking?.availability,

@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { notificationsApi, type AppNotification } from '../services/api';
-import { onNotificationNew } from '../services/appSocket';
+import { isAppSocketConnected, onNotificationNew } from '../services/appSocket';
+
+const NOTIFY_POLL_MS = 90_000;
 
 function resolveNotificationHref(n: AppNotification): string | null {
   const raw = (n.linkTo || '').trim();
@@ -81,7 +83,12 @@ export const NotificationBell: React.FC<{ className?: string }> = ({
 
   useEffect(() => {
     refresh();
-    const poll = setInterval(refresh, 45_000);
+    const maybePoll = () => {
+      if (document.hidden) return;
+      if (isAppSocketConnected()) return;
+      void refresh();
+    };
+    const poll = setInterval(maybePoll, NOTIFY_POLL_MS);
     const unsub = onNotificationNew((n) => {
       setItems((prev) => [n, ...prev.filter((x) => x.id !== n.id)].slice(0, 30));
       setUnread((c) => c + (n.isRead ? 0 : 1));

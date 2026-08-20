@@ -10,7 +10,7 @@ console.log(`DB OK — users in DB: ${count}`);
 
 const warnings = [];
 if (!env.GROQ_API_KEY) {
-  warnings.push('GROQ_API_KEY unset — AI case analysis will fail until set');
+  warnings.push('GROQ_API_KEY unset — AI case identification will fail until set');
 }
 for (const w of warnings) {
   console.warn(`WARN: ${w}`);

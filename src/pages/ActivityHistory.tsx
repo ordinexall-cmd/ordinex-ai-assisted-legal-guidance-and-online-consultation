@@ -162,7 +162,7 @@ export const ActivityHistory: React.FC = () => {
                   >
                     <p className="staff-card-row__title">{consultationDisplayTitle(a)}</p>
                     <p className="staff-card-row__meta">
-                      {a.category || 'Analysis'} · {new Date(a.createdAt).toLocaleDateString()}
+                      {a.category || 'Case identification'} · {new Date(a.createdAt).toLocaleDateString()}
                     </p>
                   </button>
                 ))
@@ -190,14 +190,14 @@ export const ActivityHistory: React.FC = () => {
                 <>
                   <p className="staff-card-row__title">{consultationDisplayTitle(selectedAnalysis)}</p>
                   <p className="staff-card-row__meta">
-                    {selectedAnalysis.category || 'Analysis'} · {new Date(selectedAnalysis.createdAt).toLocaleString()}
+                    {selectedAnalysis.category || 'Case identification'} · {new Date(selectedAnalysis.createdAt).toLocaleString()}
                   </p>
                   <p className="staff-empty-hint" style={{ marginTop: 12 }}>
                     {(selectedAnalysis.description || '').slice(0, 280) || 'No description.'}
                   </p>
                   <div className="staff-actions">
                     <button type="button" className="ox-btn ox-btn-primary ox-btn-sm" onClick={() => navigate(`/analyses/${selectedAnalysis.id}`)}>
-                      Open analysis
+                      Open case identification
                     </button>
                   </div>
                 </>

@@ -87,7 +87,7 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
     if (consultationId) {
       linkedConsultation = await prisma.consultation.findUnique({ where: { id: consultationId } });
       if (!linkedConsultation || linkedConsultation.userId !== req.user.id) {
-        return res.status(400).json({ error: 'Linked AI analysis not found.' });
+        return res.status(400).json({ error: 'Linked case identification not found.' });
       }
       if (!resolvedCaseDescription) {
         const summary = parseConsultationAiSummary(linkedConsultation.aiResult);
@@ -221,7 +221,7 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
           const x = (t || '').toLowerCase();
           if (x === 'bank') return 'bank';
           if (x === 'ewallet' || x === 'e-wallet') return 'ewallet';
-          if (['gcash', 'maya', 'grabpay', 'paymaya'].includes(x)) return 'ewallet';
+          if (['gcash', 'maya', 'paymaya'].includes(x)) return 'ewallet';
           return null;
         };
         const want = normType(paymentType);
@@ -254,7 +254,7 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
     const rangeLabel = `${start}–${end}`;
     const message = nextStatus === STATUS.CONFIRMED
       ? `Your booking is confirmed for ${rangeLabel}. Join from the booking page when it is time.`
-      : `Your booking was approved for ${rangeLabel}. Total: ₱${resolvedQuotedFee.toLocaleString()}. Pay with GCash within 24 hours to confirm.`;
+      : `Your booking was approved for ${rangeLabel}. Total: ₱${resolvedQuotedFee.toLocaleString()}. Pay with e-wallet or bank within 24 hours to confirm.`;
     createNotification({
       userId: booking.data.citizenId,
       title,
@@ -774,6 +774,42 @@ router.post('/:id/review', requireAuth, async (req, res, next) => {
 
 // ======================== LIST ========================
 /**
+ * GET /api/bookings/my/dock-summary
+ * Lightweight list for the floating chat dock (no full booking graphs).
+ */
+router.get('/my/dock-summary', requireAuth, async (req, res, next) => {
+  try {
+    const where = req.user.role === 'CITIZEN'
+      ? { citizenId: req.user.id, citizenDeletedAt: null }
+      : { lawyerId: req.user.id, lawyerDeletedAt: null };
+    where.status = { in: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] };
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        citizen: { select: { id: true, name: true } },
+        lawyer: { select: { id: true, name: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+    });
+
+    const summaries = bookings
+      .map((b) => serializeDockSummary(b, req.user.id))
+      .sort((a, b) => {
+        const openA = a.chatIsOpen ? 1 : 0;
+        const openB = b.chatIsOpen ? 1 : 0;
+        if (openA !== openB) return openB - openA;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
+
+    res.json({ bookings: summaries });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/bookings/my?status=&limit=&page=
  * Returns the caller's bookings (citizen sees their own, lawyer sees theirs).
  */
@@ -886,7 +922,7 @@ router.delete('/:id/history', requireAuth, async (req, res, next) => {
 // ======================== LINKED AI ANALYSIS ========================
 /**
  * GET /api/bookings/:id/linked-analysis
- * Citizen or lawyer on this booking may read the linked consultation analysis.
+ * Citizen or lawyer on this booking may read the linked case identification.
  */
 router.get('/:id/linked-analysis', requireAuth, async (req, res, next) => {
   try {
@@ -894,11 +930,11 @@ router.get('/:id/linked-analysis', requireAuth, async (req, res, next) => {
     if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
     const b = booking.data;
     if (!b.consultationId) {
-      return res.status(404).json({ error: 'No linked AI analysis on this booking.' });
+      return res.status(404).json({ error: 'No linked case identification on this booking.' });
     }
     const c = await prisma.consultation.findUnique({ where: { id: b.consultationId } });
     if (!c || c.deletedAt || c.userId !== b.citizenId) {
-      return res.status(404).json({ error: 'Linked AI analysis not found.' });
+      return res.status(404).json({ error: 'Linked case identification not found.' });
     }
     res.json({ analysis: serializeLinkedAnalysisForBooking(c) });
   } catch (error) {
@@ -907,6 +943,24 @@ router.get('/:id/linked-analysis', requireAuth, async (req, res, next) => {
 });
 
 // ======================== SINGLE ========================
+router.get('/:id/join-options', requireAuth, async (req, res, next) => {
+  try {
+    const booking = await loadOwnedBooking(req, 'either');
+    if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
+    const b = booking.data;
+    const canContinueWaiting = await computeCanContinueWaiting(b);
+    res.json({
+      options: {
+        canContinueWaiting,
+        awaitingJoinActionAt: b.awaitingJoinActionAt ?? null,
+        joinExtendedUntil: b.joinExtendedUntil ?? null,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const booking = await loadOwnedBooking(req, 'either');
@@ -919,7 +973,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       });
     }
     res.json({
-      booking: await publishBookingEnriched(b, req.user.id, consultation),
+      booking: serializeBooking(b, req.user.id, consultation),
     });
   } catch (error) {
     next(error);
@@ -1325,6 +1379,26 @@ async function findSessionOverlap(db, { lawyerId, date, start, end, excludeBooki
     const other = sessionInterval(b, b.availability.startTime, b.availability.endTime);
     return intervalsOverlap(start, end, other.start, other.end);
   }) || null;
+}
+
+function serializeDockSummary(b, viewerId) {
+  const viewerRole = viewerId === b.citizenId ? 'CITIZEN' : 'LAWYER';
+  const peerName = viewerRole === 'CITIZEN' ? b.lawyer.name : b.citizen.name;
+  const msgs = b.chatMessages ? safeJsonParse(b.chatMessages, []) : [];
+  const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
+  return {
+    id: b.id,
+    status: b.status,
+    chatIsOpen: isChatOpen(b),
+    viewerRole,
+    peerName,
+    lastChatPreview: lastMsg
+      ? { content: String(lastMsg.content || '').slice(0, 80), sentAt: lastMsg.sentAt }
+      : null,
+    updatedAt: b.updatedAt,
+    joinExtendedUntil: b.joinExtendedUntil ?? null,
+    awaitingJoinActionAt: b.awaitingJoinActionAt ?? null,
+  };
 }
 
 function serializeBooking(b, viewerId, consultationOrPreview = null, extra = {}) {

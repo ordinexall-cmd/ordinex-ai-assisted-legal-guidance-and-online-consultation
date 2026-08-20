@@ -101,7 +101,7 @@ export const CitizenBriefPanel: React.FC = () => {
   const attachedAnalysis = analyses.find((c) => c.id === consultationId);
   const attachedLabel =
     brief?.analysisTitle
-    || (attachedAnalysis ? consultationDisplayTitle(attachedAnalysis) : 'View analysis');
+    || (attachedAnalysis ? consultationDisplayTitle(attachedAnalysis) : 'View case identification');
 
   const attachAnalysis = (id: string) => {
     setConsultationId(id);
@@ -219,7 +219,7 @@ export const CitizenBriefPanel: React.FC = () => {
             )}
             {brief.consultationId && (
               <p className="staff-card-row__meta">
-                Linked analysis:{' '}
+                Linked case identification:{' '}
                 <Link to={`/ai-analysis?id=${brief.consultationId}`} className="link-inline">
                   {brief.analysisTitle || 'View'}
                 </Link>
@@ -288,7 +288,7 @@ export const CitizenBriefPanel: React.FC = () => {
               value={consultationId}
               onChange={(e) => attachAnalysis(e.target.value)}
             >
-              <option value="">No analysis attached</option>
+              <option value="">No case identification attached</option>
               {analyses.map((c) => (
                 <option key={c.id} value={c.id}>
                   {consultationDisplayTitle(c)} · {c.category} · {new Date(c.createdAt).toLocaleDateString()}
@@ -297,7 +297,7 @@ export const CitizenBriefPanel: React.FC = () => {
             </select>
             {analyses.length === 0 && (
               <p className="staff-empty-hint" style={{ marginTop: 6 }}>
-                No saved analyses yet.{' '}
+                No saved case identifications yet.{' '}
                 <Link to="/ai-analysis" className="link-inline">Run case identification</Link>
                 {' '}first, then attach it here.
               </p>

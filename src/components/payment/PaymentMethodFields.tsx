@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PaymentMethod } from '../../services/api';
+import { EWALLET_PROVIDERS } from '../../utils/paymentMethod';
 
 type Props = {
   type: 'ewallet' | 'bank';
@@ -21,17 +22,24 @@ export const PaymentMethodFields: React.FC<Props> = ({
   const pid = `${idPrefix}-${type}`;
 
   if (type === 'ewallet') {
+    const provider = value.provider && EWALLET_PROVIDERS.includes(value.provider as typeof EWALLET_PROVIDERS[number])
+      ? value.provider
+      : 'GCash';
+
     return (
       <div className="payment-method-fields">
         <div className="form-field">
           <label className="ox-label" htmlFor={`${pid}-provider`}>E-wallet provider</label>
-          <input
+          <select
             id={`${pid}-provider`}
             className="ox-input"
-            placeholder="e.g. GCash, Maya, GrabPay"
-            value={value.provider || ''}
+            value={provider}
             onChange={(e) => onChange({ provider: e.target.value })}
-          />
+          >
+            {EWALLET_PROVIDERS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
         </div>
         <div className="form-field">
           <label className="ox-label" htmlFor={`${pid}-name`}>Account name</label>

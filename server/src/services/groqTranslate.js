@@ -55,7 +55,7 @@ export async function translateText(text, targetLang, sourceLang) {
       {
         role: 'system',
         content:
-          `You translate legal analysis text ${sourceHint} into ${targetName}. `
+          `You translate case identification text ${sourceHint} into ${targetName}. `
           + 'Preserve meaning and tone. Output only the translation with no quotes, labels, or commentary.',
       },
       { role: 'user', content: text },

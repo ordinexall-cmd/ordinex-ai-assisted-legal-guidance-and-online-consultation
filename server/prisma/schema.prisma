@@ -422,7 +422,7 @@ model CaseBrief {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category        String
   summary         String
-  consultationId  String?  // Optional linked AI case analysis
+  consultationId  String?  // Optional linked AI case identification
   budgetMin       Float?
   budgetMax       Float?
   city            String?

@@ -5,7 +5,7 @@ const STEPS = [
   'Matching legal categories',
   'Comparing case similarities',
   'Validating sources & freshness',
-  'Generating legal guidance',
+  'Preparing case identification',
 ] as const;
 
 type StepStatus = 'done' | 'active' | 'pending';
@@ -54,7 +54,7 @@ export const AnalysisPipelineSteps: React.FC<AnalysisPipelineStepsProps> = ({
   if (!active && !complete) return null;
 
   return (
-    <ol className="analysis-pipeline" aria-label="Analysis progress">
+    <ol className="analysis-pipeline" aria-label="Case identification progress">
       {STEPS.map((label, i) => {
         const status = statusFor(i, progress, complete);
         return (

@@ -1,6 +1,6 @@
 /**
  * Groq Chat Completions API client.
- * Used for AI case analysis (analyze + follow-up).
+ * Used for AI case identification (identify + follow-up).
  */
 import { env } from '../config/env.js';
 
@@ -73,7 +73,7 @@ export async function groqChat({ messages, jsonMode = false, maxTokens = 4096, t
  * Multimodal vision via Groq chat completions (image_url data URLs).
  * Used for KYC (ID OCR + selfie/ID face compare). Isolated from the analysis
  * quota: 429s here do NOT increment groq429Hits, so a KYC spike cannot shrink
- * the daily case-analysis cap.
+ * the daily case-identification cap.
  *
  * @param {{ prompt: string, images: Array<{ buffer: Buffer, mimeType?: string }>, jsonMode?: boolean, maxTokens?: number, temperature?: number }} opts
  * @returns {Promise<string>}

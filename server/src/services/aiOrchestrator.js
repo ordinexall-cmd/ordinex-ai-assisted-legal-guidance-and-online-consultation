@@ -75,7 +75,7 @@ const OUTPUT_SCHEMA = `{
   "costBallpark": "string",
   "possibleDeadline": "plain-language time limit from sources, or a short note that a lawyer should confirm",
   "cautions": ["what not to do yet"],
-  "systemDisclaimer": "This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney."
+  "systemDisclaimer": "This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney."
 }`;
 
 export async function extractKeywordsGroq({ category, description }) {
@@ -277,7 +277,7 @@ function buildVagueResult(summary, missingFacts = []) {
     penalties: '',
     courtWinOutlook: {
       level: 'Uncertain',
-      summary: 'Add the missing facts below so we can match the right Philippine guidance. We have not used an AI analysis yet.',
+      summary: 'Add the missing facts below so we can match the right Philippine guidance. We have not run case identification yet.',
       factorsFor: [],
       factorsAgainst: [],
       missingFacts: listed,
@@ -292,7 +292,7 @@ function buildVagueResult(summary, missingFacts = []) {
     recommendedAgency: 'Barangay hall or nearest police station for immediate incidents',
     lawyerSpecialty: 'General practice attorney after facts are clear',
     costBallpark: 'Varies; PAO offers free aid if income-qualified',
-    systemDisclaimer: 'This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney.',
+    systemDisclaimer: 'This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney.',
   };
 }
 
@@ -381,7 +381,7 @@ export async function translateAnalysisResultJSON(result, targetLang) {
   const preservedFreshness = (result.possibleLegalCases || []).map((c) => c.freshness);
 
   const targetName = targetLang === 'tl' ? 'Tagalog' : 'Cebuano';
-  const prompt = `You are a translator. Translate this legal analysis JSON object from English to ${targetName}.
+  const prompt = `You are a translator. Translate this case identification JSON object from English to ${targetName}.
 Rules:
 1. Translate all textual values: summaries, explanations, penalties, next steps, disclaimers, agency names, lawyer specialty, cost ballpark, missing facts, factors, possibleDeadline, cautions.
 2. DO NOT translate these fields — keep them EXACTLY as-is:
@@ -446,11 +446,11 @@ export async function followUpWithGroq({ originalResult, history, question }) {
       {
         role: 'system',
         content:
-          'You are Ordinex, a Philippine legal guidance assistant. Answer follow-up questions based on the prior analysis. Be concise, plain-language, and never claim to be a licensed attorney. If unsure, recommend booking a lawyer.',
+          'You are Ordinex, a Philippine legal pre-guidance assistant. Answer follow-up questions based on the prior case identification. Be concise, plain-language, and never claim to be a licensed attorney. If unsure, recommend booking a lawyer.',
       },
       {
         role: 'user',
-        content: `Prior analysis JSON:\n${context}\n\nConversation so far:\n${prior || '(none)'}\n\nFollow-up question: ${question}`,
+        content: `Prior case identification JSON:\n${context}\n\nConversation so far:\n${prior || '(none)'}\n\nFollow-up question: ${question}`,
       },
     ],
   });

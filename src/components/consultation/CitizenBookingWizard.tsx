@@ -149,16 +149,16 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
             First, tell the lawyer about your case. After they review it, they will quote a fee —
-            you pay with GCash to confirm the session
+            you pay with e-wallet or bank transfer to confirm the session
             {openSlots.length > 0 ? ` (${openSlots.length} open days)` : ''}.
           </p>
 
           <div className="staff-form-group">
             <label className="staff-form-label" htmlFor="citizen-consult-link">
-              Past AI analysis (optional)
+              Past case identification (optional)
             </label>
             {history.length === 0 ? (
-              <p className="staff-empty-hint">No past analyses yet — use the description below.</p>
+              <p className="staff-empty-hint">No past case identifications yet — use the description below.</p>
             ) : (
               <select
                 id="citizen-consult-link"

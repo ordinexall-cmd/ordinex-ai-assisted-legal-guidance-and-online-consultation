@@ -1,6 +1,9 @@
-export type PaymentMethodType = 'ewallet' | 'bank' | 'cash';
+export type PaymentMethodType = 'ewallet' | 'bank';
 
-/** Paid bookings: lawyer picks E-wallet or Bank only. */
+/** Supported e-wallet providers (matches PayMongo checkout). */
+export const EWALLET_PROVIDERS = ['GCash', 'Maya'] as const;
+
+/** Paid bookings: lawyer/citizen picks E-wallet or Bank only. */
 export const BOOKING_PAYMENT_CATEGORIES = [
   { value: 'ewallet' as const, label: 'E-wallet' },
   { value: 'bank' as const, label: 'Bank' },
@@ -21,7 +24,7 @@ export function emptyPaymentMethod(type: BookingPaymentCategory, id?: string): {
     id: id || crypto.randomUUID(),
     type,
     accountName: '',
-    provider: type === 'ewallet' ? '' : undefined,
+    provider: type === 'ewallet' ? 'GCash' : undefined,
     bankName: type === 'bank' ? '' : undefined,
     accountNumber: '',
     qrUrl: undefined,
@@ -57,12 +60,12 @@ export function splitPaymentMethodsByCategory(
 const LEGACY_EWALLET: Record<string, string> = {
   gcash: 'GCash',
   maya: 'Maya',
+  paymaya: 'Maya',
 };
 
 export function normalizePaymentMethodType(raw: string | undefined | null): PaymentMethodType {
   const t = (raw || '').toLowerCase().trim();
   if (t === 'bank') return 'bank';
-  if (t === 'cash' || t === 'other') return 'cash';
   if (t === 'ewallet' || t === 'e-wallet') return 'ewallet';
   if (t in LEGACY_EWALLET) return 'ewallet';
   if (t.includes('bank')) return 'bank';
@@ -83,7 +86,11 @@ export function normalizePaymentMethodRecord<T extends {
   if (!provider && type === 'ewallet') {
     if (/gcash/i.test(m.id)) provider = 'GCash';
     else if (/maya/i.test(m.id)) provider = 'Maya';
-    else if (/grab/i.test(m.id)) provider = 'GrabPay';
+    else provider = 'GCash';
+  }
+  if (type === 'ewallet' && provider) {
+    const key = provider.toLowerCase();
+    provider = key === 'maya' ? 'Maya' : 'GCash';
   }
   return {
     ...m,
@@ -95,12 +102,47 @@ export function normalizePaymentMethodRecord<T extends {
 function legacyProviderFromType(raw: string | undefined | null): string | undefined {
   const t = (raw || '').toLowerCase().trim();
   if (LEGACY_EWALLET[t]) return LEGACY_EWALLET[t];
-  if (t === 'gcash' || t === 'maya') return LEGACY_EWALLET[t];
-  const known = ['gcash', 'maya', 'grabpay', 'paymaya'];
-  if (known.includes(t)) return raw?.trim();
-  if (raw && !['bank', 'cash', 'other', 'ewallet', 'e-wallet'].includes(t)) {
-    return raw.trim();
-  }
   return undefined;
 }
 
+export function ewalletComplete(m: {
+  accountName?: string;
+  accountNumber?: string;
+}): boolean {
+  return Boolean(m.accountName?.trim() && m.accountNumber?.trim());
+}
+
+export function bankComplete(m: {
+  accountName?: string;
+  bankName?: string;
+  accountNumber?: string;
+}): boolean {
+  return Boolean(m.accountName?.trim() && m.bankName?.trim() && m.accountNumber?.trim());
+}
+
+export function buildPaymentMethodsPayload(
+  ewallet: { id: string; type: string; provider?: string; accountName: string; bankName?: string; accountNumber?: string; qrUrl?: string },
+  bank: { id: string; type: string; provider?: string; accountName: string; bankName?: string; accountNumber?: string; qrUrl?: string },
+): Array<{ id: string; type: 'ewallet' | 'bank'; provider?: string; accountName: string; bankName?: string; accountNumber: string; qrUrl?: string }> {
+  const out: Array<{ id: string; type: 'ewallet' | 'bank'; provider?: string; accountName: string; bankName?: string; accountNumber: string; qrUrl?: string }> = [];
+  if (ewalletComplete(ewallet)) {
+    out.push({
+      id: ewallet.id,
+      type: 'ewallet',
+      accountName: ewallet.accountName.trim(),
+      accountNumber: ewallet.accountNumber!.trim(),
+      provider: (ewallet.provider?.trim() || 'GCash'),
+      ...(ewallet.qrUrl ? { qrUrl: ewallet.qrUrl } : {}),
+    });
+  }
+  if (bankComplete(bank)) {
+    out.push({
+      id: bank.id,
+      type: 'bank',
+      accountName: bank.accountName.trim(),
+      bankName: bank.bankName!.trim(),
+      accountNumber: bank.accountNumber!.trim(),
+    });
+  }
+  return out;
+}

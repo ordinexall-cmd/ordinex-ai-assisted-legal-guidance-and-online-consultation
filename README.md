@@ -1,6 +1,6 @@
 # Ordinex (OXfinal)
 
-Legal consultation platform for citizens and lawyers in the Philippines — AI case analysis, lawyer booking, video consults, and messaging.
+Legal consultation platform for citizens and lawyers in the Philippines — AI-assisted pre-guidance (case identification), lawyer booking, video consults, and messaging.
 
 ## Repository layout
 
@@ -87,7 +87,7 @@ Then use the printed `https://…` URL in Safari the same way (Share → Add to 
 
 ## External services
 
-- **Groq** — AI case analysis and booking chat translation (`GROQ_API_KEY` in `server/.env`)
+- **Groq** — AI case identification and booking chat translation (`GROQ_API_KEY` in `server/.env`)
 - Copy `server/.env.example` → `server/.env` for local API config
 
 ## Deploy (free) — Render + Neon

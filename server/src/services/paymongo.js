@@ -1,11 +1,15 @@
 // ============================================================
 // PayMongo Checkout Sessions (test / live via secret key prefix)
+// E-wallets (GCash/Maya) + Direct Online Banking (dob/brankas). No cards.
 // Docs: https://developers.paymongo.com/docs/checkout
 // ============================================================
 import crypto from 'crypto';
 import { env } from '../config/env.js';
 
 const PAYMONGO_API = 'https://api.paymongo.com/v1';
+
+/** Checkout: e-wallets + direct online banking only (no cards). */
+export const PAYMONGO_CHECKOUT_METHOD_TYPES = ['gcash', 'paymaya', 'dob', 'brankas'];
 
 function authHeader() {
   const key = env.PAYMONGO_SECRET_KEY;
@@ -51,7 +55,7 @@ async function paymongoFetch(path, { method = 'GET', body } = {}) {
 }
 
 /**
- * Create a Checkout Session. GCash-first; Maya as secondary.
+ * Create a Checkout Session. E-wallets (GCash/Maya) + bank transfer (DOB/Brankas).
  * amountPhp — citizen total in pesos.
  */
 export async function createCheckoutSession({
@@ -61,10 +65,18 @@ export async function createCheckoutSession({
   successUrl,
   cancelUrl,
   metadata = {},
+  paymentMethodTypes,
 }) {
   const amount = toCentavos(amountPhp);
   if (amount < 2000) {
     throw new Error('Amount must be at least ₱20.00 for PayMongo checkout.');
+  }
+
+  const types = Array.isArray(paymentMethodTypes) && paymentMethodTypes.length
+    ? paymentMethodTypes.filter((t) => PAYMONGO_CHECKOUT_METHOD_TYPES.includes(t))
+    : PAYMONGO_CHECKOUT_METHOD_TYPES;
+  if (!types.length) {
+    throw new Error('No e-wallet or bank payment method is enabled for this checkout.');
   }
 
   const payload = {
@@ -83,7 +95,7 @@ export async function createCheckoutSession({
             quantity: 1,
           },
         ],
-        payment_method_types: ['gcash', 'paymaya'],
+        payment_method_types: types,
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata,

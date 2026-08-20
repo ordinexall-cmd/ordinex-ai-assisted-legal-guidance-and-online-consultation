@@ -12,7 +12,7 @@ function ok(label, pass, detail = '') {
 }
 
 // --- AI providers (Groq primary, Gemini fallback) ---
-ok('GROQ_API_KEY', !!process.env.GROQ_API_KEY, process.env.GROQ_API_KEY ? 'set' : 'required for AI analysis');
+ok('GROQ_API_KEY', !!process.env.GROQ_API_KEY, process.env.GROQ_API_KEY ? 'set' : 'required for case identification');
 ok('GEMINI_API_KEY', !!process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY ? 'fallback configured' : 'optional fallback');
 
 if (process.env.GROQ_API_KEY) {

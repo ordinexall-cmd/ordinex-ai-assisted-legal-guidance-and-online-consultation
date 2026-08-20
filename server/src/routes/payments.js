@@ -1,6 +1,6 @@
 // ============================================================
 // Ordinex — Platform Payment Routes
-// Simulated confirm + PayMongo Checkout (GCash-first).
+// Simulated confirm + PayMongo Checkout (e-wallet + bank only).
 // ============================================================
 import { Router } from 'express';
 import crypto from 'crypto';
@@ -17,19 +17,16 @@ import {
 } from '../services/paymongo.js';
 
 import { isDemoEmail } from '../../prisma/demoAccounts.js';
+import { checkoutChannelsFromSavedMethods } from '../utils/paymentMethods.js';
 
 const router = Router();
-
-function commissionPctLabel() {
-  return `${Math.round(env.PLATFORM_COMMISSION_RATE * 100)}%`;
-}
 
 function methodFromPaymongo(type) {
   const t = String(type || '').toLowerCase();
   if (t.includes('gcash')) return 'GCASH';
   if (t.includes('maya') || t.includes('paymaya')) return 'MAYA';
-  if (t.includes('card')) return 'CARD';
-  return 'GCASH';
+  if (t.includes('dob') || t.includes('brankas') || t.includes('bank')) return 'BANK';
+  return 'EWALLET';
 }
 
 /**
@@ -88,7 +85,7 @@ async function finalizeBookingPayment({
         type: 'BOOKING',
         amount: total,
         platformFee,
-        method: method || 'GCASH',
+        method: method || 'EWALLET',
         status: 'COMPLETED',
         userId: citizenId,
         bookingId,
@@ -173,10 +170,14 @@ router.get('/checkout-context', requireAuth, async (req, res, next) => {
       const platformFee = Math.round(quotedFee * env.PLATFORM_COMMISSION_RATE * 100) / 100;
       const lawyerShare = quotedFee - platformFee;
       const total = quotedFee;
-      const pct = commissionPctLabel();
 
       const isDemoUser = isDemoEmail(req.user.email);
       const paymentsMode = isDemoUser ? 'simulated' : (isPaymongoMode() ? 'paymongo' : 'simulated');
+      const channels = checkoutChannelsFromSavedMethods(req.user.paymentMethods);
+
+      const payHint = channels.ready
+        ? `Pay with the ${channels.label} saved in your account settings.`
+        : 'Save an e-wallet or bank account in Settings → Billing before you pay.';
 
       return res.json({
         merchant: env.PLATFORM_MERCHANT_NAME,
@@ -185,9 +186,17 @@ router.get('/checkout-context', requireAuth, async (req, res, next) => {
         lawyerName: booking.lawyer.name,
         paymentsMode,
         commissionRate: env.PLATFORM_COMMISSION_RATE,
-        preferredMethod: 'GCASH',
+        preferredMethod: channels.preferredMethod,
+        allowedChannels: {
+          ewallet: channels.hasEwallet,
+          bank: channels.hasBank,
+          ewalletProvider: channels.ewalletProvider,
+          bankName: channels.bankName,
+          ready: channels.ready,
+          label: channels.label,
+        },
         holdNotice:
-          'Your payment is safely held by Ordinex and will only be credited to the lawyer after your consultation is completed (verifying no reports or issues). In case a problem or cancellation occurs, your payment will be immediately refunded to you.',
+          `Your payment is safely held by Ordinex and will only be credited to the lawyer after your consultation is completed (verifying no reports or issues). ${payHint} If a problem or cancellation occurs, your payment will be refunded to your original payment method.`,
         lineItems: [
           { label: `Consultation fee (${booking.lawyer.name})`, amount: quotedFee },
         ],
@@ -237,6 +246,14 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
       return res.status(409).json({ error: 'No quoted fee on this booking.' });
     }
 
+    const channels = checkoutChannelsFromSavedMethods(req.user.paymentMethods);
+    if (!channels.ready || !channels.paymongoTypes.length) {
+      return res.status(400).json({
+        error: 'Save an e-wallet or bank account in Settings → Billing before paying.',
+        code: 'PAYMENT_DESTINATION_REQUIRED',
+      });
+    }
+
     const frontend = (env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
     const successUrl =
       `${frontend}/checkout?type=booking&bookingId=${encodeURIComponent(bookingId)}` +
@@ -250,6 +267,7 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
       lineItemName: `Legal consultation — ${booking.lawyer.name}`,
       successUrl,
       cancelUrl,
+      paymentMethodTypes: channels.paymongoTypes,
       metadata: {
         bookingId,
         userId: req.user.id,
@@ -263,7 +281,7 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
     res.json({
       sessionId: session.id,
       checkoutUrl: session.checkoutUrl,
-      preferredMethod: 'GCASH',
+      preferredMethod: channels.preferredMethod,
     });
   } catch (error) {
     if (error.status) {
@@ -294,7 +312,7 @@ router.post('/complete-session', requireAuth, async (req, res, next) => {
     const session = await retrieveCheckoutSession(sessionId);
     if (!session.paid) {
       return res.status(409).json({
-        error: 'Payment is not completed yet. Finish GCash checkout, then return here.',
+        error: 'Payment is not completed yet. Finish checkout on PayMongo, then return here.',
         code: 'PAYMENT_PENDING',
         status: session.status,
       });
@@ -372,12 +390,19 @@ router.post('/webhook/paymongo', async (req, res, next) => {
       const bookingId = metadata.bookingId;
       const userId = metadata.userId;
       if (sessionId && bookingId && userId) {
+        let method = 'EWALLET';
+        try {
+          const session = await retrieveCheckoutSession(sessionId);
+          method = methodFromPaymongo(session.paymentMethodUsed);
+        } catch {
+          /* use default */
+        }
         await finalizeBookingPayment({
           bookingId,
           citizenId: userId,
           citizenName: 'Citizen',
           idempotencyKey: `paymongo:${sessionId}`,
-          method: 'GCASH',
+          method,
         }).catch(() => {});
       }
     }
@@ -408,7 +433,7 @@ router.post('/confirm', requireAuth, async (req, res, next) => {
     const isDemoUser = isDemoEmail(req.user.email);
     if (isPaymongoMode() && !isDemoUser) {
       return res.status(400).json({
-        error: 'Use PayMongo checkout (GCash) for this environment.',
+        error: 'Use PayMongo checkout (e-wallet or bank) for this environment.',
         code: 'USE_PAYMONGO_CHECKOUT',
       });
     }
@@ -416,12 +441,20 @@ router.post('/confirm', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'bookingId is required for booking payments.' });
     }
 
+    const channels = checkoutChannelsFromSavedMethods(req.user.paymentMethods);
+    if (!channels.ready) {
+      return res.status(400).json({
+        error: 'Save an e-wallet or bank account in Settings → Billing before paying.',
+        code: 'PAYMENT_DESTINATION_REQUIRED',
+      });
+    }
+
     const result = await finalizeBookingPayment({
       bookingId,
       citizenId: req.user.id,
       citizenName: req.user.name,
       idempotencyKey,
-      method: method || 'SIMULATED',
+      method: method || channels.ledgerMethod,
     });
 
     res.json({

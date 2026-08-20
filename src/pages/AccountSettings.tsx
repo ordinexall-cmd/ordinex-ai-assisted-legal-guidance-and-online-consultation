@@ -13,6 +13,7 @@ import { PhilippineAddressSelector, type PhilippineAddressData } from '../compon
 import { LawyerVerificationWizard } from '../components/settings/LawyerVerificationWizard';
 import { LawyerBookingSettings } from '../components/settings/LawyerBookingSettings';
 import { LawyerEarningsTab } from '../components/settings/LawyerEarningsTab';
+import { PaymentDestinationForm } from '../components/payment/PaymentDestinationForm';
 import { RecycleBinPanel } from '../components/settings/RecycleBinPanel';
 import { LawyerSpecializationsEditor } from '../components/settings/LawyerSpecializationsEditor';
 import { CitizenVerificationPanel } from '../components/settings/CitizenVerificationPanel';
@@ -1150,7 +1151,7 @@ export const AccountSettings: React.FC = () => {
             <p style={{ margin: '0 0 1.25rem', fontSize: '0.85rem', color: '#64748b' }}>
               Ordinex charges per scheduled consultation session. No hidden monthly subscriptions.
             </p>
-            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
               <strong style={{ color: '#0f172a', display: 'block', marginBottom: '4px' }}>
                 Consultation Payment Model
               </strong>
@@ -1163,6 +1164,14 @@ export const AccountSettings: React.FC = () => {
                 </button>
               </Link>
             </div>
+
+            <PaymentDestinationForm
+              onFeedback={setFeedback}
+              heading="Your e-wallet or bank"
+              description="Checkout uses only what you save here: e-wallet (GCash or Maya) and/or bank. PayMongo will offer those same options when you pay a booking. Refunds return to the method you paid with."
+              idPrefix="citizen-billing"
+              saveLabel="Save payment details"
+            />
           </div>
         )}
 

@@ -1,5 +1,5 @@
 /**
- * Zod schema + citation whitelist for AI legal analysis output.
+ * Zod schema + citation whitelist for AI case identification output.
  */
 import { z } from 'zod';
 import { resolveCanonicalSpecialty } from '../utils/legalSpecialties.js';
@@ -39,7 +39,7 @@ export const legalAnalysisSchema = z.object({
   systemDisclaimer: z.string().min(1),
 });
 
-const DISCLAIMER = 'This AI-assisted system provides legal guidance and case recommendations only. It does not replace consultation with a licensed attorney.';
+const DISCLAIMER = 'This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney.';
 
 const LOCALIZED_FALLBACKS = {
   en: {
@@ -55,7 +55,7 @@ const LOCALIZED_FALLBACKS = {
       'Gather any documents, messages, or receipts related to your situation.',
       'Visit your nearest barangay hall or Public Attorney\'s Office (PAO) for free legal aid.',
     ],
-    staleReferences: 'The most relevant legal references in our database have been amended or repealed. We recommend confirming with a licensed lawyer before relying on this analysis.',
+    staleReferences: 'The most relevant legal references in our database have been amended or repealed. We recommend confirming with a licensed lawyer before relying on this case identification.',
     consultLawyer: 'Consult a licensed attorney for next steps.',
     docPrep: 'Prepare supporting documents: valid ID, contracts or receipts, screenshots/messages, and any barangay or police records.'
   },
@@ -390,7 +390,7 @@ export function normalizeLegacyAiResult(raw) {
     penalties,
     courtWinOutlook: {
       level: levelMap[risk] || 'Uncertain',
-      summary: raw.summary || 'Legacy analysis — run a new analysis for updated format.',
+      summary: raw.summary || 'Legacy case identification — run a new identification for updated format.',
       factorsFor: [],
       factorsAgainst: [],
       missingFacts: [],

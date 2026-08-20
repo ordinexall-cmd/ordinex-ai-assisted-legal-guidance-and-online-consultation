@@ -3,17 +3,36 @@
 // Prevents brute-force and abuse using express-rate-limit.
 // ============================================================
 import rateLimit from 'express-rate-limit';
+import { verifyToken } from '../utils/jwt.js';
 
 const isProd = process.env.NODE_ENV === 'production';
 
+function bearerUserId(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    const decoded = verifyToken(authHeader.split(' ')[1]);
+    return decoded?.userId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Global rate limiter: 200 requests per 15 minutes per IP in production.
- * Disabled in development — Vite HMR, polling, and retries exhaust 200 quickly
- * and block login with "Too many requests".
+ * Global rate limiter — per authenticated user when JWT present, else per IP.
+ * Production: 500 req / 15 min per user, 100 / 15 min per IP for guests.
  */
 export const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProd ? 200 : 10_000,
+  windowMs: 15 * 60 * 1000,
+  max: (req) => {
+    if (!isProd) return 10_000;
+    return bearerUserId(req) ? 500 : 100;
+  },
+  keyGenerator: (req) => {
+    const userId = bearerUserId(req);
+    if (userId) return `user:${userId}`;
+    return `ip:${req.ip}`;
+  },
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -22,8 +41,6 @@ export const globalLimiter = rateLimit({
 
 /**
  * Auth rate limiter: 10 attempts per 15 minutes per IP in production.
- * Used on login, register, OTP endpoints to prevent brute-force.
- * Higher ceiling in development so local testing is not blocked.
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -34,9 +51,7 @@ export const authLimiter = rateLimit({
 });
 
 /**
- * AI rate limiter: 20 analyses per 10 minutes per IP.
- * The product cap is 3 lifetime trials (free) or unlimited (premium);
- * this exists only to throttle abuse / runaway clients.
+ * AI rate limiter: 20 case identifications per 10 minutes per IP.
  */
 export const aiLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -48,7 +63,6 @@ export const aiLimiter = rateLimit({
 
 /**
  * Guest preview rate limiter: anonymous landing teaser.
- * Production: 5/hour per IP; development: 30/hour per IP.
  */
 export const guestPreviewLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -59,14 +73,13 @@ export const guestPreviewLimiter = rateLimit({
 });
 
 /**
- * Daily AI Quota Limiter: 5 case analyses per 24-hour window per IP/user.
- * Friendly limit alert message when hit.
+ * Daily AI Quota Limiter: 5 case identifications per 24-hour window per IP/user.
  */
 export const dailyAiQuotaLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  windowMs: 24 * 60 * 60 * 1000,
   max: 5,
   message: {
-    error: 'You have reached your daily free case analysis limit (5/5). Your limit resets tomorrow! Register or log in to view your saved history and book a consultation with a lawyer.',
+    error: 'You have reached your daily free case identification limit (5/5). Your limit resets tomorrow! Register or log in to view your saved history and book a consultation with a lawyer.',
     quotaExceeded: true,
   },
   standardHeaders: true,

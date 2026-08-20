@@ -37,7 +37,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
       bullets: [
         'Account basics — name, email, phone, password (stored securely), and whether you are a citizen or lawyer',
         'Profile details you choose to add — bio, photo, address, occupation; for lawyers, credentials and fees',
-        'Case text and files you upload for AI analysis, plus the results and follow-up chat',
+        'Case text and files you upload for case identification, plus the results and follow-up chat',
         'Booking details — schedule, notes shared with your lawyer, and status updates',
         'Payment amounts and references from checkout (we do not store full card numbers)',
         'Messages, and video session details if you use consultation video (recordings only if you agree)',
@@ -62,7 +62,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
         'We only share data with partners when a feature needs them. They must follow their own privacy rules too:',
       ],
       bullets: [
-        'AI providers (Groq and Google Gemini) — to generate analysis and translations from the text you submit',
+        'AI providers (Groq and Google Gemini) — to generate case identification, pre-guidance, and translations from the text you submit',
         'PayMongo — to process GCash / checkout payments',
         'Supabase — cloud database and file storage when the project is configured for production hosting',
         'Google — sign-in, fonts/icons, and helping video calls connect',
@@ -73,7 +73,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
     {
       heading: 'About the AI',
       paragraphs: [
-        'AI answers are pre-guidance only — helpful starting points, not formal legal advice, and not a lawyer–client relationship with Ordinex. Text you submit for analysis may be sent to the AI providers above to produce a result.',
+        'AI answers are pre-guidance only — helpful starting points, not formal legal advice, and not a lawyer–client relationship with Ordinex. Text you submit for case identification may be sent to the AI providers above to produce a result.',
       ],
     },
     {
@@ -196,7 +196,7 @@ export const LICENSES_DOCUMENT: LegalDocument = {
       ],
       bullets: [
         'PayMongo — GCash and checkout payments',
-        'Groq and Google Gemini — AI analysis, translation, and identity-document checks',
+        'Groq and Google Gemini — case identification, translation, and identity-document checks',
         'Supabase — hosted database and files when configured',
         'Google — sign-in, fonts, and helping video calls connect',
         'SMS / email providers — one-time codes and notices when enabled',

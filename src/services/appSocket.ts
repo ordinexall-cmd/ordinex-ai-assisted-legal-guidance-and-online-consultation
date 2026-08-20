@@ -54,6 +54,11 @@ export function releaseAppSocket(): void {
   }
 }
 
+/** Whether the shared app socket is connected (live updates available). */
+export function isAppSocketConnected(): boolean {
+  return Boolean(shared?.connected);
+}
+
 export function onNotificationNew(handler: (n: AppNotification) => void): () => void {
   const s = retainAppSocket();
   if (!s) return () => {};

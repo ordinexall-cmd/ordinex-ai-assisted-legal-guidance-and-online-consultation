@@ -28,7 +28,7 @@ export function toAiUserFacingError(err) {
     return message;
   }
   if (
-    /We're helping many people right now|Analysis is temporarily unavailable|We could not finish analyzing your situation|We could not finish the analysis/i.test(message)
+    /We're helping many people right now|Analysis is temporarily unavailable|Case identification is temporarily unavailable|We could not finish analyzing your situation|We could not finish identifying your situation|We could not finish the analysis|We could not finish case identification/i.test(message)
     && !TECHNICAL_PATTERN.test(message)
   ) {
     return message;
@@ -37,15 +37,15 @@ export function toAiUserFacingError(err) {
     return "We're helping many people right now. Please wait a minute and try again.";
   }
   if (/does not exist|do not have access|decommission|deprecated|model/i.test(message)) {
-    return 'Analysis is temporarily unavailable while we update the service. Please try again in a few minutes.';
+    return 'Case identification is temporarily unavailable while we update the service. Please try again in a few minutes.';
   }
   if (/not configured|API_KEY|unauthorized|\b401\b|invalid api/i.test(message)) {
-    return 'Analysis is temporarily unavailable. Please try again later.';
+    return 'Case identification is temporarily unavailable. Please try again later.';
   }
   if (/timeout|ETIMEDOUT|ECONNREFUSED|network|fetch failed|cannot reach/i.test(message)) {
-    return 'We could not finish the analysis. Please check your connection and try again.';
+    return 'We could not finish case identification. Please check your connection and try again.';
   }
-  return 'We could not finish analyzing your situation right now. Please try again in a few minutes.';
+  return 'We could not finish identifying your situation right now. Please try again in a few minutes.';
 }
 
 /**

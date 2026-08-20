@@ -1,4 +1,4 @@
-/** Canonical legal areas — shared by AI case analysis, lawyer profiles, and directory matching. */
+/** Canonical legal areas — shared by AI case identification, lawyer profiles, and directory matching. */
 
 export const CASE_ANALYSIS_CATEGORIES = [
   { value: 'Family', label: 'Family Law' },
@@ -50,7 +50,7 @@ export function specialtyDisplayLabel(specialty: string): string {
 }
 
 /**
- * Resolve directory filter specialty from analysis inputs.
+ * Resolve directory filter specialty from case identification inputs.
  * Primary: citizen-selected category; fallback: AI lawyerSpecialty text.
  */
 export function resolveMatchSpecialty(input: {

@@ -1,6 +1,6 @@
 // ============================================================
 // Ordinex — Document Parser Service
-// Extracts text from PDF and DOCX files for AI analysis.
+// Extracts text from PDF and DOCX files for case identification.
 // ============================================================
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';

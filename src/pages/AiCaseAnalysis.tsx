@@ -65,7 +65,7 @@ export const AiCaseAnalysis: React.FC = () => {
       .then(({ consultations }) => setHistory(consultations))
       .catch((e) => {
         setHistory([]);
-        setHistoryLoadError(loadErrorMessage(e, 'Could not load analysis history.'));
+        setHistoryLoadError(loadErrorMessage(e, 'Could not load case identification history.'));
       })
       .finally(() => setHistoryLoading(false));
   };
@@ -124,7 +124,7 @@ export const AiCaseAnalysis: React.FC = () => {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError(getErrorMessage(err, 'Analysis failed. Please try again.'));
+        setError(getErrorMessage(err, 'Case identification failed. Please try again.'));
       }
     } finally {
       analyzeInFlight.current = false;
@@ -161,7 +161,7 @@ export const AiCaseAnalysis: React.FC = () => {
           if (consultation.category) setCategory(consultation.category);
         })
         .catch((e) => {
-          setError(loadErrorMessage(e, 'Could not load the selected analysis.'));
+          setError(loadErrorMessage(e, 'Could not load the selected case identification.'));
           window.history.replaceState(null, '', '/ai-analysis');
         });
     }
@@ -218,7 +218,7 @@ export const AiCaseAnalysis: React.FC = () => {
           <div className="analysis-describe__col analysis-describe__col--form">
             <div className="analysis-describe__prompt">
               <h2>Describe your situation</h2>
-              <p>A few clear facts help us match the right legal guidance.</p>
+              <p>A few clear facts help us identify the likely legal issue.</p>
             </div>
 
             {isNeedsDetail && (
@@ -243,10 +243,10 @@ export const AiCaseAnalysis: React.FC = () => {
                     More detail needed for case matches
                   </strong>
                   <p style={{ margin: '0 0 8px', fontSize: '0.875rem', color: '#1e3a8a', lineHeight: 1.4 }}>
-                    Add the missing facts below, then analyze again. We have not used an AI request yet.
+                    Add the missing facts below, then identify again. We have not used an AI request yet.
                   </p>
                   <p style={{ margin: '0 0 6px', fontSize: '0.82rem', fontWeight: 600, color: '#1e40af' }}>
-                    To get an accurate legal analysis, please include:
+                    To get an accurate case identification, please include:
                   </p>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: '#1e3a8a', lineHeight: 1.6 }}>
                     {detailGaps.map((item) => (
@@ -271,7 +271,7 @@ export const AiCaseAnalysis: React.FC = () => {
                 className={`analysis-describe__hint${descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ' analysis-describe__hint--warn' : ''}`}
               >
                 {descLen}/{MAX_DESCRIPTION_CHARS} characters
-                {descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ` — at least ${MIN_DESCRIPTION_CHARS} characters for a full analysis` : ''}
+                {descLen > 0 && descLen < MIN_DESCRIPTION_CHARS ? ` — at least ${MIN_DESCRIPTION_CHARS} characters for a full case identification` : ''}
               </p>
 
               <label className="analysis-describe__category">
@@ -426,7 +426,7 @@ export const AiCaseAnalysis: React.FC = () => {
                   {historyLoading ? (
                     <DashHistorySkeleton />
                   ) : history.length === 0 ? (
-                    <p className="analysis-describe__hint">No saved analyses yet.</p>
+                    <p className="analysis-describe__hint">No saved case identifications yet.</p>
                   ) : (
                     history.slice(0, 5).map((c) => (
                       <button
@@ -474,7 +474,7 @@ export const AiCaseAnalysis: React.FC = () => {
                     <span className="callout-success__text">
                       {lastOutcomeType === 'no_corpus'
                         ? 'Legal database unavailable — no trial was used. Try again later or add more detail.'
-                        : 'More detail needed for case matches — no trial was used. Expand your description and analyze again.'}
+                        : 'More detail needed for case matches — no trial was used. Expand your description and identify again.'}
                     </span>
                   </div>
                 )}
@@ -535,7 +535,7 @@ export const AiCaseAnalysis: React.FC = () => {
             {!showPipeline && !showResults && (
               <div className="analysis-describe__empty-result">
                 <span className="material-symbols-outlined" aria-hidden>auto_awesome</span>
-                <p>Results will appear here after you analyze.</p>
+                <p>Results will appear here after you identify.</p>
               </div>
             )}
           </div>

@@ -66,9 +66,7 @@ export const PreGuidanceResult: React.FC<PreGuidanceResultProps> = ({
     <div className={`analysis-result-card${variant === 'landing' ? ' analysis-result-card--embedded' : ''}`}>
       <header className="analysis-result-card__head">
         <div className="analysis-result-card__head-text">
-          <span className="analysis-result-card__badge">
-            {variant === 'landing' ? 'Case identification' : 'Case identification'}
-          </span>
+          <span className="analysis-result-card__badge">Case identification</span>
           <h2 className="analysis-result-card__title">What we found</h2>
         </div>
       </header>

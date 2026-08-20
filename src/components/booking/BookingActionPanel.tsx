@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookingsApi, type Booking } from '../../services/api';
+import { bookingsApi, type Booking, type BookingJoinOptions } from '../../services/api';
 import { useBookingSlotWindow } from '../../hooks/useBookingSlotWindow';
 import { BookingPaymentStepper } from './BookingPaymentStepper';
 import { JoinVideoButton } from './JoinVideoButton';
@@ -31,6 +31,8 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [showReschedule, setShowReschedule] = useState(false);
+  const [joinOptions, setJoinOptions] = useState<BookingJoinOptions | null>(null);
+
   const dutyStart = booking.dutyWindow?.startTime || booking.availability.startTime;
   const dutyEnd = booking.dutyWindow?.endTime || booking.availability.endTime;
   const [sessionStart, setSessionStart] = useState(
@@ -62,9 +64,33 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
   );
 
   const showJoinActions = Boolean(
-    booking.awaitingJoinActionAt
+    joinOptions?.awaitingJoinActionAt
+    || booking.awaitingJoinActionAt
     || (booking.status === 'CONFIRMED' && slotWindow.phase === 'after' && !slotWindow.canJoinVideo),
   );
+
+  useEffect(() => {
+    if (booking.status !== 'CONFIRMED' && booking.status !== 'IN_PROGRESS') {
+      setJoinOptions(null);
+      return;
+    }
+    const needsOptions =
+      booking.status === 'CONFIRMED'
+      && (slotWindow.phase === 'after' || booking.awaitingJoinActionAt);
+    if (!needsOptions) {
+      setJoinOptions(null);
+      return;
+    }
+    let cancelled = false;
+    void bookingsApi.getJoinOptions(booking.id).then(({ options }) => {
+      if (!cancelled) setJoinOptions(options);
+    }).catch(() => {
+      if (!cancelled) setJoinOptions(null);
+    });
+    return () => { cancelled = true; };
+  }, [booking.id, booking.status, booking.awaitingJoinActionAt, slotWindow.phase]);
+
+  const canContinueWaiting = joinOptions?.canContinueWaiting ?? booking.canContinueWaiting ?? false;
 
   const card = (children: React.ReactNode, accent = false) => (
     <div className={`ox-card booking-action-card booking-action-card--mock${accent ? ' ox-card-accent' : ''}`}>
@@ -223,7 +249,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
           {actionText(<>
             Session: <strong>{booking.availability.startTime}–{booking.availability.endTime}</strong>.
             Quoted fee: <strong>{peso(booking.quotedFee)}</strong>.
-            The citizen has 24 hours to pay in Ordinex (PayMongo/GCash). Do not collect GCash on a personal wallet.
+            The citizen has 24 hours to pay in Ordinex (PayMongo — e-wallet or bank). Do not collect payment on a personal wallet.
             {booking.approvedAt && (
               <> Expires {new Date(new Date(booking.approvedAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString()}.</>
             )}
@@ -245,10 +271,10 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             </div>
           </div>
           <p style={{ margin: '4px 0', fontSize: 11, color: 'var(--color-ox-brand)', fontWeight: 500 }}>
-            Pay only through Ordinex. Do not send GCash to the lawyer directly. Funds are held until the session ends; 15% is the platform fee.
+            Pay only through Ordinex. Do not send funds to the lawyer directly. Funds are held until the session ends; 15% is the platform fee.
           </p>
           <p style={{ margin: '4px 0', fontSize: 10, color: 'var(--color-ox-text-muted)' }}>
-            Complete PayMongo/GCash checkout within 24 hours or the slot will be released.
+            Complete PayMongo checkout (e-wallet or bank) within 24 hours or the slot will be released.
           </p>
         </div>
         <button
@@ -257,7 +283,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
           style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6 }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>lock</span>
-          Pay with GCash — {peso(booking.quotedFee)}
+          Pay with e-wallet or bank — {peso(booking.quotedFee)}
         </button>
       </>, true);
 
@@ -287,7 +313,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
               </a>
             )}
             <p style={{ fontSize: 10, color: 'var(--color-ox-text-muted)', marginTop: 4 }}>
-              Cross-check the reference and screenshot with your GCash/Maya or bank inbox before confirming.
+              Cross-check the reference and screenshot with your e-wallet or bank inbox before confirming.
             </p>
             <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
               <button disabled={loading} onClick={() => onAction(() => bookingsApi.confirmPayment(booking.id))}
@@ -321,8 +347,8 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
               <button
                 type="button"
                 className="ox-btn ox-btn-secondary booking-join-actions__btn"
-                disabled={loading || !booking.canContinueWaiting}
-                title={booking.canContinueWaiting ? undefined : 'The lawyer has another session scheduled soon.'}
+                disabled={loading || !canContinueWaiting}
+                title={canContinueWaiting ? undefined : 'The lawyer has another session scheduled soon.'}
                 onClick={() => onAction(() => bookingsApi.continueWaiting(booking.id))}
               >
                 Continue waiting
