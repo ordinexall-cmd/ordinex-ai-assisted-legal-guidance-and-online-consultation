@@ -36,17 +36,25 @@ export function isBookingSlotActive(slot: BookingSlotInfo, now = new Date()): bo
   return getBookingSlotPhase(slot, now) === 'active';
 }
 
-/** Video join: during the booked slot, or reconnect while session is in progress. */
+function isJoinExtended(joinExtendedUntil: string | Date | null | undefined, now: Date): boolean {
+  if (!joinExtendedUntil) return false;
+  return now < new Date(joinExtendedUntil);
+}
+
+/** Video join: during the booked slot, extended wait, or reconnect while session is in progress. */
 export function canJoinBookingVideo(
   slot: BookingSlotInfo,
   status: string,
   now = new Date(),
   demoBypass = false,
+  joinExtendedUntil?: string | Date | null,
 ): boolean {
   if (status === 'IN_PROGRESS') return true;
   if (status !== 'CONFIRMED') return false;
   if (demoBypass) return true;
-  return isBookingSlotActive(slot, now);
+  if (isBookingSlotActive(slot, now)) return true;
+  if (isJoinExtended(joinExtendedUntil, now)) return true;
+  return false;
 }
 
 export function bookingSlotJoinHintForDemo(): string {
@@ -62,14 +70,23 @@ export function formatBookingSlotRange(slot: BookingSlotInfo): string {
   return `${day}, ${slot.startTime}–${slot.endTime}`;
 }
 
-export function bookingSlotJoinHint(slot: BookingSlotInfo, now = new Date()): string {
+export function bookingSlotJoinHint(
+  slot: BookingSlotInfo,
+  now = new Date(),
+  joinExtendedUntil?: string | Date | null,
+): string {
+  if (isJoinExtended(joinExtendedUntil, now)) {
+    const until = new Date(joinExtendedUntil!);
+    return `Waiting extended — you can join until ${until.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}.`;
+  }
   const phase = getBookingSlotPhase(slot, now);
   const range = formatBookingSlotRange(slot);
   if (phase === 'before') {
-    return `Video opens during your scheduled time: ${range}.`;
+    const { start } = getBookingSlotBounds(slot);
+    return `Video opens at ${start.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })} (${range}).`;
   }
   if (phase === 'after') {
-    return `The scheduled time for this consultation has ended (${range}).`;
+    return `The scheduled time for this consultation has ended (${range}). Use Continue waiting, Reschedule, or Cancel & refund below.`;
   }
   return 'You can join the video call now.';
 }

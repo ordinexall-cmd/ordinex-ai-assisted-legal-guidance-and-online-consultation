@@ -9,7 +9,7 @@ import React, {
 import { useAuth } from './AuthContext';
 import { bookingsApi, type Booking } from '../services/api';
 import { onBookingUpdated } from '../services/appSocket';
-import { isDockableBooking } from '../utils/dockableBooking';
+import { isDockableBooking, sortDockableBookings } from '../utils/dockableBooking';
 
 export type BookingDockMode = 'hidden' | 'picker' | 'minimized' | 'open';
 
@@ -43,8 +43,8 @@ export function BookingDockProvider({ children }: { children: React.ReactNode })
       return;
     }
     try {
-      const { bookings } = await bookingsApi.getMy({ limit: 30 });
-      const dockable = bookings.filter(isDockableBooking);
+      const { bookings } = await bookingsApi.getMy({ limit: 50 });
+      const dockable = sortDockableBookings(bookings.filter(isDockableBooking));
       setDockableBookings(dockable);
       setActiveBookingId((prev) => {
         if (prev && dockable.some((b) => b.id === prev)) return prev;

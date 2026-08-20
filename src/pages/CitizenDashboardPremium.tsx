@@ -226,7 +226,13 @@ export const CitizenDashboard: React.FC = () => {
                     </p>
                   ) : (
                     active.slice(0, 5).map((b) => {
-                      const joinOk = canJoinBookingVideo(b.availability, b.status, new Date());
+                      const joinOk = canJoinBookingVideo(
+                        b.availability,
+                        b.status,
+                        new Date(),
+                        false,
+                        b.joinExtendedUntil,
+                      );
                       return (
                         <article key={b.id} className="acct-row">
                           <div className="acct-row__main">

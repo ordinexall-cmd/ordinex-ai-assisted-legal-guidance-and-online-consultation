@@ -275,6 +275,8 @@ model Booking {
   recordingUrl      String? // Uploaded consultation recording (internal path)
   consultConsentAt  DateTime? // Server-audited preflight consent timestamp
   reminder15MinSent Boolean  @default(false)
+  awaitingJoinActionAt DateTime?
+  joinExtendedUntil DateTime?
   chatMessages      String? // JSON array of messages
   chatClosedAt      DateTime?
   noShowParty       String? // "CITIZEN" | "LAWYER"

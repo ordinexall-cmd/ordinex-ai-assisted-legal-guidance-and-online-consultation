@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBookingDock } from '../../context/BookingDockContext';
@@ -6,6 +6,44 @@ import { BookingChatPanel } from './BookingChatPanel';
 import { dockPeerName, isDockableBooking } from '../../utils/dockableBooking';
 import { statusChipLabel } from '../../utils/bookingStatusChip';
 import { useBookingSlotWindow } from '../../hooks/useBookingSlotWindow';
+import type { Booking } from '../../services/api';
+
+const fmtPreviewTime = (iso: string) =>
+  new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+function ConversationRow({
+  booking,
+  active,
+  onSelect,
+}: {
+  booking: Booking;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const name = dockPeerName(booking);
+  const preview = booking.lastChatPreview?.content || statusChipLabel(booking.status);
+  const time = booking.lastChatPreview?.sentAt
+    ? fmtPreviewTime(booking.lastChatPreview.sentAt)
+    : '';
+
+  return (
+    <li>
+      <button
+        type="button"
+        className={`booking-dock__conv-item${active ? ' booking-dock__conv-item--active' : ''}`}
+        onClick={onSelect}
+        aria-current={active ? 'true' : undefined}
+      >
+        <span className="booking-dock__header-avatar" aria-hidden>{name.charAt(0).toUpperCase()}</span>
+        <span className="booking-dock__conv-text">
+          <span className="booking-dock__conv-name">{name}</span>
+          <span className="booking-dock__conv-preview">{preview}</span>
+        </span>
+        {time && <span className="booking-dock__conv-time">{time}</span>}
+      </button>
+    </li>
+  );
+}
 
 export const FloatingBookingDock: React.FC = () => {
   const { user } = useAuth();
@@ -22,9 +60,27 @@ export const FloatingBookingDock: React.FC = () => {
     dismiss,
   } = useBookingDock();
 
+  const [mobileShowList, setMobileShowList] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 600px)');
+    const onChange = () => setIsNarrow(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   const minimized = mode === 'minimized';
   const open = mode === 'open';
   const hidden = mode === 'hidden';
+
+  useEffect(() => {
+    if (open && isNarrow && dockableBookings.length > 1) {
+      setMobileShowList(true);
+    }
+  }, [open, isNarrow, dockableBookings.length]);
 
   const peerName = activeBooking
     ? dockPeerName(activeBooking)
@@ -35,20 +91,45 @@ export const FloatingBookingDock: React.FC = () => {
   const slotWindow = useBookingSlotWindow(
     activeBooking?.availability,
     activeBooking?.status,
+    false,
+    activeBooking?.joinExtendedUntil,
   );
 
   if (!user || dockableBookings.length === 0) return null;
 
   const bubbleLabel = user?.role === 'CITIZEN' ? 'Atty.' : peerName.split(' ')[0];
+  const chatOpen = activeBooking?.chatIsOpen ?? false;
 
   const handleBubbleClick = () => {
     if (dockableBookings.length > 1) {
+      setMobileShowList(true);
       openPicker();
       return;
     }
     const id = activeBookingId ?? dockableBookings[0]?.id;
-    if (id) openBooking(id, { expand: true });
+    if (id) {
+      setMobileShowList(false);
+      openBooking(id, { expand: true });
+    }
   };
+
+  const selectConversation = (id: string) => {
+    setMobileShowList(false);
+    openBooking(id, { expand: true });
+  };
+
+  const conversationList = (
+    <ul className="booking-dock__conv-list">
+      {dockableBookings.map((b) => (
+        <ConversationRow
+          key={b.id}
+          booking={b}
+          active={b.id === activeBookingId}
+          onSelect={() => selectConversation(b.id)}
+        />
+      ))}
+    </ul>
+  );
 
   if (hidden) {
     return (
@@ -71,36 +152,18 @@ export const FloatingBookingDock: React.FC = () => {
       <div className="booking-dock booking-dock--picker">
         <div className="booking-dock__picker-window">
           <header className="booking-dock__header">
-            <p className="booking-dock__header-name">Conversations</p>
+            <p className="booking-dock__header-name">Messages</p>
             <button type="button" className="booking-dock__header-btn" onClick={dismiss} aria-label="Close">
               <span className="material-symbols-outlined">close</span>
             </button>
           </header>
-          <ul className="booking-dock__conv-list">
-            {dockableBookings.map((b) => {
-              const name = dockPeerName(b);
-              return (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    className="booking-dock__conv-item"
-                    onClick={() => openBooking(b.id, { expand: true })}
-                  >
-                    <span className="booking-dock__header-avatar" aria-hidden>{name.charAt(0).toUpperCase()}</span>
-                    <span className="booking-dock__conv-text">
-                      <span className="booking-dock__conv-name">{name}</span>
-                      <span className="booking-dock__conv-status">{statusChipLabel(b.status)}</span>
-                    </span>
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          {conversationList}
         </div>
       </div>
     );
   }
+
+  const showMobileList = isNarrow && mobileShowList;
 
   return (
     <div
@@ -114,6 +177,7 @@ export const FloatingBookingDock: React.FC = () => {
           className="booking-dock__bar"
           onClick={() => {
             if (dockableBookings.length > 1) {
+              setMobileShowList(true);
               openPicker();
               return;
             }
@@ -131,79 +195,92 @@ export const FloatingBookingDock: React.FC = () => {
       )}
 
       {open && (
-        <div className="booking-dock__window">
+        <div className="booking-dock__window booking-dock__window--inbox">
           {activeBooking && isDockableBooking(activeBooking) ? (
-            <>
-              <header className="booking-dock__header">
-                <div className="booking-dock__header-main">
-                  <span className="booking-dock__header-avatar" aria-hidden>
-                    {peerName.charAt(0).toUpperCase()}
-                  </span>
-                  <div className="booking-dock__header-text">
-                    <p className="booking-dock__header-name">{peerName}</p>
-                    <p className="booking-dock__header-status">{statusChipLabel(activeBooking.status)}</p>
-                  </div>
-                </div>
-                <div className="booking-dock__header-actions">
-                  {slotWindow.canJoinVideo ? (
-                    <Link
-                      to={`/consultation/${activeBooking.id}/preflight`}
-                      className="booking-dock__header-btn"
-                      title="Join video"
-                      aria-label="Join video call"
-                    >
-                      <span className="material-symbols-outlined">videocam</span>
-                    </Link>
-                  ) : (
-                    <span
-                      className="booking-dock__header-btn booking-dock__header-btn--disabled"
-                      title={slotWindow.hint}
-                      aria-label={slotWindow.hint}
-                    >
-                      <span className="material-symbols-outlined">videocam_off</span>
+            <div className={`booking-dock__inbox${showMobileList ? ' booking-dock__inbox--list' : ''}`}>
+              <aside
+                className={`booking-dock__sidebar${showMobileList ? '' : ' booking-dock__sidebar--hidden-mobile'}`}
+                aria-label="Conversations"
+              >
+                <p className="booking-dock__sidebar-title">Messages</p>
+                {conversationList}
+              </aside>
+
+              <div className={`booking-dock__thread${showMobileList ? ' booking-dock__thread--hidden-mobile' : ''}`}>
+                <header className="booking-dock__header">
+                  <div className="booking-dock__header-main">
+                    {isNarrow && dockableBookings.length > 1 && (
+                      <button
+                        type="button"
+                        className="booking-dock__header-btn booking-dock__back-btn"
+                        onClick={() => setMobileShowList(true)}
+                        aria-label="Back to conversations"
+                      >
+                        <span className="material-symbols-outlined">arrow_back</span>
+                      </button>
+                    )}
+                    <span className="booking-dock__header-avatar" aria-hidden>
+                      {peerName.charAt(0).toUpperCase()}
                     </span>
-                  )}
-                  <Link
-                    to={`/booking/${activeBooking.id}`}
-                    className="booking-dock__header-btn"
-                    title="Open booking"
-                    aria-label="Open booking details"
-                  >
-                    <span className="material-symbols-outlined">open_in_new</span>
-                  </Link>
-                  <button
-                    type="button"
-                    className="booking-dock__header-btn"
-                    onClick={() => setMode('minimized')}
-                    aria-label="Minimize"
-                  >
-                    <span className="material-symbols-outlined">remove</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="booking-dock__header-btn"
-                    onClick={dismiss}
-                    aria-label="Close"
-                  >
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </header>
+                    <div className="booking-dock__header-text">
+                      <p className="booking-dock__header-name">{peerName}</p>
+                      <p className="booking-dock__header-status">
+                        {statusChipLabel(activeBooking.status)}
+                        {' · '}
+                        <span className={`chat-live${chatOpen ? ' chat-live--open' : ' chat-live--closed'}`}>
+                          <span className="chat-live__dot" aria-hidden />
+                          {chatOpen ? 'Chat open' : 'Chat closed'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="booking-dock__header-actions">
+                    {slotWindow.canJoinVideo ? (
+                      <Link
+                        to={`/consultation/${activeBooking.id}/preflight`}
+                        className="booking-dock__header-btn"
+                        title="Join video"
+                        aria-label="Join video call"
+                      >
+                        <span className="material-symbols-outlined">videocam</span>
+                      </Link>
+                    ) : (
+                      <span
+                        className="booking-dock__header-btn booking-dock__header-btn--disabled"
+                        title={slotWindow.hint}
+                        aria-label={slotWindow.hint}
+                      >
+                        <span className="material-symbols-outlined">videocam_off</span>
+                      </span>
+                    )}
+                    <Link
+                      to={`/booking/${activeBooking.id}`}
+                      className="booking-dock__header-btn"
+                      title="Open booking"
+                      aria-label="Open booking details"
+                    >
+                      <span className="material-symbols-outlined">open_in_new</span>
+                    </Link>
+                    <button
+                      type="button"
+                      className="booking-dock__header-btn"
+                      onClick={() => setMode('minimized')}
+                      aria-label="Minimize"
+                    >
+                      <span className="material-symbols-outlined">remove</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="booking-dock__header-btn"
+                      onClick={dismiss}
+                      aria-label="Close"
+                    >
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                </header>
 
-              {dockableBookings.length > 1 && (
-                <div className="booking-dock__switch-row">
-                  <button
-                    type="button"
-                    className="booking-dock__switch-btn"
-                    onClick={openPicker}
-                  >
-                    <span className="material-symbols-outlined" aria-hidden>forum</span>
-                    Switch conversation
-                  </button>
-                </div>
-              )}
-
-              <div className="booking-dock__body">
+                <div className="booking-dock__body">
                   {loading ? (
                     <p className="booking-dock__loading">Loading chat…</p>
                   ) : (
@@ -213,11 +290,13 @@ export const FloatingBookingDock: React.FC = () => {
                       viewerId={user.id}
                       viewerRole={activeBooking.viewerRole}
                       compact
+                      hideHeader
                       onChatClosed={() => { void refresh(); }}
                     />
                   )}
+                </div>
               </div>
-            </>
+            </div>
           ) : (
             <p className="booking-dock__loading">Loading consultation…</p>
           )}

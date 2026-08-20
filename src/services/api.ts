@@ -745,6 +745,7 @@ export interface BookingLinkedAnalysis {
 
 export interface Booking {
   id: string;
+  availabilityId?: string;
   status: BookingStatus;
   feeAtBooking: number;
   quotedFee: number | null;
@@ -757,6 +758,10 @@ export interface Booking {
   paymentVerifiedAt: string | null;
   roomId: string | null;
   chatClosedAt: string | null;
+  awaitingJoinActionAt?: string | null;
+  joinExtendedUntil?: string | null;
+  canContinueWaiting?: boolean;
+  lastChatPreview?: { content: string; sentAt: string } | null;
   consultationId: string | null;
   caseDescription: string | null;
   recordingUrl: string | null;
@@ -866,6 +871,13 @@ export const bookingsApi = {
     }),
   startSession: (id: string) =>
     request<{ booking: Booking }>(`/bookings/${id}/start-session`, { method: 'PATCH' }),
+  continueWaiting: (id: string) =>
+    request<{ booking: Booking }>(`/bookings/${id}/continue-waiting`, { method: 'PATCH' }),
+  reschedule: (id: string, availabilityId: string) =>
+    request<{ booking: Booking }>(`/bookings/${id}/reschedule`, {
+      method: 'PATCH',
+      body: JSON.stringify({ availabilityId }),
+    }),
   noShow: (id: string) =>
     request<{ booking: Booking }>(`/bookings/${id}/no-show`, { method: 'PATCH' }),
   getTranscript: (id: string) =>

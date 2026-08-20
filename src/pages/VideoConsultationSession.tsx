@@ -69,12 +69,23 @@ export const VideoConsultationSession: React.FC = () => {
     bookingDock.openBooking(bookingId, { expand: false });
   }, [bookingId, booking?.id, bookingDock, postCall]);
 
-  const slotWindow = useBookingSlotWindow(booking?.availability, booking?.status);
+  const slotWindow = useBookingSlotWindow(
+    booking?.availability,
+    booking?.status,
+    false,
+    booking?.joinExtendedUntil,
+  );
 
   useEffect(() => {
     if (!bookingId || !booking || postCall) return;
     if (booking.status !== 'CONFIRMED') return;
-    if (!canJoinBookingVideo(booking.availability, booking.status, new Date())) return;
+    if (!canJoinBookingVideo(
+      booking.availability,
+      booking.status,
+      new Date(),
+      false,
+      booking.joinExtendedUntil,
+    )) return;
     let cancelled = false;
     (async () => {
       try {

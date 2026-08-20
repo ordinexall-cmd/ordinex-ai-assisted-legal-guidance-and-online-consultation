@@ -12,6 +12,7 @@ export interface BookingChatPanelProps {
   viewerId: string;
   viewerRole: 'CITIZEN' | 'LAWYER';
   compact?: boolean;
+  hideHeader?: boolean;
   onChatClosed?: () => void;
 }
 
@@ -21,13 +22,13 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
   viewerId,
   viewerRole,
   compact = false,
+  hideHeader = false,
   onChatClosed,
 }) => {
   const [msgs, setMsgs] = useState<BookingChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [open, setOpen] = useState(chatIsOpenProp);
-  const [closeLoading, setCloseLoading] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -104,44 +105,21 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
     }
   };
 
-  const closeChat = async () => {
-    if (!window.confirm('Close chat for this consultation? The client will not be able to send new messages.')) {
-      return;
-    }
-    setCloseLoading(true);
-    try {
-      await bookingsApi.closeChat(bookingId);
-      setOpen(false);
-      setBanner('You closed chat for this consultation.');
-      onChatClosed?.();
-    } catch (e: unknown) {
-      alert(getErrorMessage(e, 'Could not close chat.'));
-    } finally {
-      setCloseLoading(false);
-    }
-  };
+  const showHeader = !hideHeader && !compact;
 
   return (
     <div className={`ox-card chat-card${compact ? ' chat-card--compact' : ''}`}>
-      <div className="chat-card__head">
-        <h3 className="chat-card__title">Chat</h3>
-        <div className="chat-card__head-actions">
-          <span className={`chat-live${open ? ' chat-live--open' : ' chat-live--closed'}`}>
-            <span className="chat-live__dot" aria-hidden />
-            {open ? 'Open' : 'Closed'}
-          </span>
-          {viewerRole === 'LAWYER' && open && (
-            <button
-              type="button"
-              className="ox-btn ox-btn-ghost ox-btn-sm chat-close-btn"
-              disabled={closeLoading}
-              onClick={() => { void closeChat(); }}
-            >
-              Close chat
-            </button>
-          )}
+      {showHeader && (
+        <div className="chat-card__head">
+          <h3 className="chat-card__title">Chat</h3>
+          <div className="chat-card__head-actions">
+            <span className={`chat-live${open ? ' chat-live--open' : ' chat-live--closed'}`}>
+              <span className="chat-live__dot" aria-hidden />
+              {open ? 'Open' : 'Closed'}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {banner && !open && (
         <p className="chat-closed-banner" role="status">{banner}</p>
@@ -159,9 +137,7 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
               <div key={m.id} className={`chat-row${mine ? ' chat-row--mine' : ''}`}>
                 <div className={mine ? 'chat-bubble-msg chat-bubble-msg--mine' : 'chat-bubble-msg chat-bubble-msg--them'}>
                   <p>{m.content}</p>
-                  <div className="chat-bubble-footer">
-                    <p className="chat-meta">{fmtDateTime(m.sentAt)}</p>
-                  </div>
+                  <p className="chat-meta">{fmtDateTime(m.sentAt)}</p>
                 </div>
               </div>
             );
@@ -172,7 +148,7 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
       {open && (
         <div className="chat-compose">
           <input
-            className="ox-input"
+            className="ox-input chat-compose__input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -182,15 +158,16 @@ export const BookingChatPanel: React.FC<BookingChatPanelProps> = ({
               }
             }}
             placeholder="Type a message…"
+            aria-label="Message"
           />
           <button
             type="button"
             onClick={() => { void send(); }}
             disabled={sending || draft.trim().length < 1}
             className="ox-btn ox-btn-primary chat-compose__send"
-            aria-label="Send"
+            aria-label="Send message"
           >
-            <span className="material-symbols-outlined">send</span>
+            <span className="material-symbols-outlined" aria-hidden>send</span>
           </button>
         </div>
       )}

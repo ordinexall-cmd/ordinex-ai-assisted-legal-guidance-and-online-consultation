@@ -97,7 +97,13 @@ const VideoConsultation: React.FC = () => {
                 const when = new Date(b.availability.date).toLocaleDateString('en-PH', {
                   weekday: 'short', month: 'short', day: 'numeric',
                 });
-                const joinOk = canJoinBookingVideo(b.availability, b.status, new Date());
+                const joinOk = canJoinBookingVideo(
+                  b.availability,
+                  b.status,
+                  new Date(),
+                  false,
+                  b.joinExtendedUntil,
+                );
                 void lobbyClock;
                 return (
                   <div key={b.id} className="marketplace-session-row">

@@ -213,28 +213,27 @@ export async function send15MinConsultationReminders() {
     const diffMs = slotStart.getTime() - now.getTime();
     const diffMins = diffMs / (60 * 1000);
 
-    if (diffMins >= -5 && diffMins <= 20) {
+    if (diffMins >= 12 && diffMins <= 18) {
       await prisma.booking.update({
         where: { id: b.id },
         data: { reminder15MinSent: true },
       });
 
-      // Send citizen in-app notification
+      const preflightLink = `/consultation/${b.id}/preflight`;
       createNotification({
         userId: b.citizenId,
-        title: 'Consultation starting soon',
-        message: `Your video consultation with Atty. ${b.lawyer.name} starts in ~15 minutes (${b.availability.startTime}). Preflight check is now open.`,
+        title: 'Consultation starting in 15 minutes',
+        message: `Your video consultation with Atty. ${b.lawyer.name} starts soon (${b.availability.startTime}). Complete device check and review policies before joining.`,
         type: 'CONSULTATION_REMINDER',
-        linkTo: `/booking/${b.id}`,
+        linkTo: preflightLink,
       }).catch(() => {});
 
-      // Send lawyer in-app notification
       createNotification({
         userId: b.lawyerId,
-        title: 'Consultation starting soon',
-        message: `Your consultation with ${b.citizen.name} starts in ~15 minutes (${b.availability.startTime}). Please prepare your session.`,
+        title: 'Consultation starting in 15 minutes',
+        message: `Your consultation with ${b.citizen.name} starts soon (${b.availability.startTime}). Prepare your session and review preflight policies.`,
         type: 'CONSULTATION_REMINDER',
-        linkTo: `/booking/${b.id}`,
+        linkTo: preflightLink,
       }).catch(() => {});
 
       count++;
@@ -245,6 +244,59 @@ export async function send15MinConsultationReminders() {
     console.log(`[scheduler] Sent 15-min reminders for ${count} consultation(s).`);
   }
   return { reminded: count };
+}
+
+/**
+ * Flag CONFIRMED consultations where slot start was 15+ min ago and nobody joined.
+ */
+export async function flagStaleConsultations() {
+  const now = new Date();
+  const bookings = await prisma.booking.findMany({
+    where: {
+      status: 'CONFIRMED',
+      awaitingJoinActionAt: null,
+    },
+    include: {
+      availability: true,
+      citizen: { select: { id: true, name: true } },
+      lawyer: { select: { id: true, name: true } },
+    },
+  });
+
+  let count = 0;
+  for (const b of bookings) {
+    const slotStart = getSlotStartDateTime(b.availability.date, b.sessionStartTime || b.availability.startTime);
+    const diffMs = now.getTime() - slotStart.getTime();
+    if (diffMs < 15 * 60 * 1000) continue;
+
+    await prisma.booking.update({
+      where: { id: b.id },
+      data: { awaitingJoinActionAt: now },
+    });
+
+    const link = `/booking/${b.id}`;
+    const msg = 'Nobody joined the scheduled consultation. Continue waiting, reschedule, or cancel for a refund.';
+    createNotification({
+      userId: b.citizenId,
+      title: 'Consultation needs action',
+      message: msg,
+      type: 'BOOKING_UPDATE',
+      linkTo: link,
+    }).catch(() => {});
+    createNotification({
+      userId: b.lawyerId,
+      title: 'Consultation needs action',
+      message: msg,
+      type: 'BOOKING_UPDATE',
+      linkTo: link,
+    }).catch(() => {});
+    count++;
+  }
+
+  if (count > 0) {
+    console.log(`[scheduler] Flagged ${count} stale consultation(s) for join action.`);
+  }
+  return { flagged: count };
 }
 
 /**
@@ -292,6 +344,9 @@ export function startScheduler() {
   cron.schedule('*/5 * * * *', () => {
     send15MinConsultationReminders().catch((err) =>
       console.error('[scheduler] send15MinConsultationReminders failed:', err.message)
+    );
+    flagStaleConsultations().catch((err) =>
+      console.error('[scheduler] flagStaleConsultations failed:', err.message)
     );
   });
 

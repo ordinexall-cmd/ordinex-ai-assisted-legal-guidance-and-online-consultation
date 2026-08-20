@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { bookingsApi, type Booking } from '../../services/api';
 import { useBookingSlotWindow } from '../../hooks/useBookingSlotWindow';
 import { BookingPaymentStepper } from './BookingPaymentStepper';
+import { JoinVideoButton } from './JoinVideoButton';
+import { BookingRescheduleModal } from './BookingRescheduleModal';
 
 const peso = (n: number | null | undefined) =>
   (n == null ? 'Ask' : n === 0 ? 'Free' : `₱${n.toLocaleString()}`);
@@ -28,6 +30,7 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
   const [quotedFeeInput, setQuotedFeeInput] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [showReschedule, setShowReschedule] = useState(false);
   const dutyStart = booking.dutyWindow?.startTime || booking.availability.startTime;
   const dutyEnd = booking.dutyWindow?.endTime || booking.availability.endTime;
   const [sessionStart, setSessionStart] = useState(
@@ -51,7 +54,17 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
     ? parsedQuotedFee >= lawyerFeeMin && parsedQuotedFee <= lawyerFeeMax
     : true;
 
-  const slotWindow = useBookingSlotWindow(booking.availability, booking.status);
+  const slotWindow = useBookingSlotWindow(
+    booking.availability,
+    booking.status,
+    false,
+    booking.joinExtendedUntil,
+  );
+
+  const showJoinActions = Boolean(
+    booking.awaitingJoinActionAt
+    || (booking.status === 'CONFIRMED' && slotWindow.phase === 'after' && !slotWindow.canJoinVideo),
+  );
 
   const card = (children: React.ReactNode, accent = false) => (
     <div className={`ox-card booking-action-card booking-action-card--mock${accent ? ' ox-card-accent' : ''}`}>
@@ -293,46 +306,83 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
     case 'CONFIRMED':
     case 'IN_PROGRESS':
       return card(<>
-        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-ox-emerald)' }}>Ready to consult</h3>
-        <p style={{ fontSize: 11, color: 'var(--color-ox-text-muted)', margin: '4px 0 12px' }}>
-          {slotWindow.canJoinVideo
-            ? 'You will confirm device access and the recording/transcript policy before entering the private video room.'
-            : slotWindow.hint}
-        </p>
-        <button
-          type="button"
-          disabled={!slotWindow.canJoinVideo}
-          onClick={() => {
-            if (slotWindow.canJoinVideo) navigate(`/consultation/${booking.id}/preflight`);
-          }}
-          className="ox-btn ox-btn-primary"
-          style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6 }}
-          title={slotWindow.canJoinVideo ? undefined : slotWindow.hint}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>videocam</span>
-          Join Video Call
-        </button>
-        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-          {isLawyer && (
-            <button disabled={loading} onClick={() => onAction(() => bookingsApi.complete(booking.id))}
-              className="ox-btn" style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid var(--color-ox-emerald)', color: 'var(--color-ox-emerald)' }}>
-              Close case & release payment
-            </button>
-          )}
-          {!isLawyer && (
-            <p style={{ fontSize: 11, color: 'var(--color-ox-text-muted)', margin: 0, width: '100%' }}>
-              Your payment stays held until the lawyer closes the case after the consultation.
+        {actionTitle('Ready to consult')}
+        <JoinVideoButton
+          bookingId={booking.id}
+          canJoin={slotWindow.canJoinVideo}
+          hint={slotWindow.hint}
+        />
+        {showJoinActions && (
+          <div className="booking-join-actions" role="region" aria-label="Consultation options">
+            <p className="booking-join-actions__text" role="status">
+              Nobody joined on time. Continue waiting if the lawyer is free, reschedule, or cancel for a refund.
             </p>
-          )}
-          <button disabled={loading} onClick={() => onAction(() => bookingsApi.cancelRefund(booking.id))}
-            className="ox-btn" style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid var(--color-ox-border)', color: 'var(--color-ox-text)' }}>
-            Cancel & refund
-          </button>
-          <button disabled={loading} onClick={() => onAction(() => bookingsApi.noShow(booking.id))}
-            className="ox-btn" style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid #BA1A1A', color: '#BA1A1A' }}>
-            Report No-Show
-          </button>
-        </div>
+            <div className="booking-join-actions__buttons">
+              <button
+                type="button"
+                className="ox-btn ox-btn-secondary booking-join-actions__btn"
+                disabled={loading || !booking.canContinueWaiting}
+                title={booking.canContinueWaiting ? undefined : 'The lawyer has another session scheduled soon.'}
+                onClick={() => onAction(() => bookingsApi.continueWaiting(booking.id))}
+              >
+                Continue waiting
+              </button>
+              <button
+                type="button"
+                className="ox-btn ox-btn-secondary booking-join-actions__btn"
+                disabled={loading}
+                onClick={() => setShowReschedule(true)}
+              >
+                Reschedule
+              </button>
+              <button
+                type="button"
+                className="ox-btn booking-join-actions__btn"
+                disabled={loading}
+                onClick={() => onAction(() => bookingsApi.cancelRefund(booking.id))}
+              >
+                Cancel &amp; refund
+              </button>
+            </div>
+          </div>
+        )}
+        {!showJoinActions && (
+          <div className="booking-action-card__footer booking-action-card__footer--inline">
+            {isLawyer && (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => onAction(() => bookingsApi.complete(booking.id))}
+                className="ox-btn ox-btn-secondary booking-action-card__btn"
+              >
+                Close case & release payment
+              </button>
+            )}
+            {!isLawyer && (
+              <p className="booking-action-card__note">
+                Your payment stays held until the lawyer closes the case after the consultation.
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => onAction(() => bookingsApi.cancelRefund(booking.id))}
+              className="ox-btn booking-action-card__btn"
+            >
+              Cancel & refund
+            </button>
+          </div>
+        )}
+        {showReschedule && (
+          <BookingRescheduleModal
+            booking={booking}
+            onClose={() => setShowReschedule(false)}
+            onRescheduled={(updated) => {
+              setShowReschedule(false);
+              onAction(async () => ({ booking: updated }));
+            }}
+          />
+        )}
       </>, true);
 
     case 'COMPLETED':

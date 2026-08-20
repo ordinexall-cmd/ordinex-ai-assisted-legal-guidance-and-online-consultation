@@ -81,9 +81,9 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
         setBooking(null);
       } else if (
         ['CONFIRMED', 'IN_PROGRESS'].includes(b.status) &&
-        !canJoinBookingVideo(b.availability, b.status, new Date())
+        !canJoinBookingVideo(b.availability, b.status, new Date(), false, b.joinExtendedUntil)
       ) {
-        setError('Video consultation unlocks at the scheduled slot time.');
+        setError('Video consultation is not open yet. Check the scheduled time on your booking page.');
         setBooking(b);
       } else {
         setBooking(b);
@@ -157,7 +157,13 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
   const canEnterLive =
     booking &&
     ['CONFIRMED', 'IN_PROGRESS'].includes(booking.status) &&
-    canJoinBookingVideo(booking.availability, booking.status, new Date());
+    canJoinBookingVideo(
+      booking.availability,
+      booking.status,
+      new Date(),
+      false,
+      booking.joinExtendedUntil,
+    );
 
   const isReviewOnly =
     booking && ['COMPLETED', 'RATED'].includes(booking.status);
@@ -252,9 +258,9 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
             </p>
 
             {!isReviewOnly && (
-              <ChecklistItem icon="videocam" title="Device check" badge={deviceBadge}>
+              <ChecklistItem icon="videocam" title="Camera &amp; microphone" badge={deviceBadge}>
                 {deviceOk === null && 'Checking camera and microphone…'}
-                {deviceOk === true && 'Camera and microphone are available.'}
+                {deviceOk === true && 'Camera and microphone are available. Keep them on during the consultation unless you mute temporarily.'}
                 {deviceOk === false && 'Allow camera and microphone in your browser settings, then refresh.'}
               </ChecklistItem>
             )}
@@ -266,6 +272,14 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
                 {networkOk === false && 'Network looks slow or offline. Switch Wi‑Fi / mobile data, then retry.'}
               </ChecklistItem>
             )}
+
+            <ChecklistItem icon="shield" title="Security">
+              <ul>
+                <li>This call uses an encrypted connection between you and Ordinex.</li>
+                <li>Do not share your login, OTP, or screen with third parties during the session.</li>
+                <li>Report suspicious behaviour using Report issue in the header.</li>
+              </ul>
+            </ChecklistItem>
 
             <ChecklistItem icon="lock" title="Confidentiality">
               <p>
@@ -307,11 +321,11 @@ export const ConsultationPreflight: React.FC<ConsultationPreflightProps> = ({
                       onChange={(e) => setAgreed(e.target.checked)}
                     />
                     <span>
-                      I understand the confidentiality, recording, and transcript policy, and I agree to the{' '}
+                      I agree to the{' '}
                       <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
                       {' '}and{' '}
                       <a href="/terms" target="_blank" rel="noreferrer">Terms</a>
-                      {' '}for this private video consultation.
+                      ; I consent to recording and transcript processing; and I will keep camera and microphone available for this consultation.
                     </span>
                   </label>
                   <button

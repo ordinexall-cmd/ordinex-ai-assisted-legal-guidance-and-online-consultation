@@ -10,15 +10,46 @@ function parseBookingSlotDateTime(dateStr, timeStr) {
   return new Date(y, mo - 1, d, h, mi || 0, 0, 0);
 }
 
-export function isBookingSlotActive(availability, now = new Date()) {
-  const start = parseBookingSlotDateTime(availability.date, availability.startTime);
-  const end = parseBookingSlotDateTime(availability.date, availability.endTime);
+export { parseBookingSlotDateTime };
+
+export function getBookingSlotBounds(availability, sessionStartTime, sessionEndTime) {
+  const startTime = sessionStartTime || availability.startTime;
+  const endTime = sessionEndTime || availability.endTime;
+  return {
+    start: parseBookingSlotDateTime(availability.date, startTime),
+    end: parseBookingSlotDateTime(availability.date, endTime),
+  };
+}
+
+export function isBookingSlotActive(availability, now = new Date(), sessionStartTime, sessionEndTime) {
+  const { start, end } = getBookingSlotBounds(availability, sessionStartTime, sessionEndTime);
   return now >= start && now < end;
 }
 
-export function canJoinBookingVideo(availability, status, now = new Date(), demoBypass = false) {
+function isJoinExtended(joinExtendedUntil, now) {
+  if (!joinExtendedUntil) return false;
+  return now < new Date(joinExtendedUntil);
+}
+
+export function canJoinBookingVideo(
+  availability,
+  status,
+  now = new Date(),
+  demoBypass = false,
+  joinExtendedUntil = null,
+  sessionStartTime,
+  sessionEndTime,
+) {
   if (status === 'IN_PROGRESS') return true;
   if (status !== 'CONFIRMED') return false;
   if (demoBypass) return true;
-  return isBookingSlotActive(availability, now);
+  if (isBookingSlotActive(availability, now, sessionStartTime, sessionEndTime)) return true;
+  if (isJoinExtended(joinExtendedUntil, now)) return true;
+  return false;
+}
+
+/** Lawyer has another live booking starting within buffer minutes after slot end. */
+export function slotEndsAt(availability, sessionEndTime) {
+  const endTime = sessionEndTime || availability.endTime;
+  return parseBookingSlotDateTime(availability.date, endTime);
 }

@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { isDemoEmail } from '../../prisma/demoAccounts.js';
-import { canJoinBookingVideo } from '../utils/bookingSlotWindow.js';
+import { canJoinBookingVideo, getBookingSlotBounds } from '../utils/bookingSlotWindow.js';
 import { prisma } from '../config/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireCitizen, requireCitizenVerified, requireLawyerVerified } from '../middleware/premium.js';
@@ -393,7 +393,15 @@ router.patch('/:id/start-session', requireAuth, async (req, res, next) => {
       startTime: booking.data.sessionStartTime || av.startTime,
       endTime: booking.data.sessionEndTime || av.endTime,
     };
-    if (!canJoinBookingVideo(slotWindow, booking.data.status, new Date(), demoBypass)) {
+    if (!canJoinBookingVideo(
+      slotWindow,
+      booking.data.status,
+      new Date(),
+      demoBypass,
+      booking.data.joinExtendedUntil,
+      booking.data.sessionStartTime,
+      booking.data.sessionEndTime,
+    )) {
       return res.status(403).json({
         error: 'Video consultation is only available during your scheduled booking time.',
         code: 'OUTSIDE_BOOKING_SLOT',
@@ -412,6 +420,138 @@ router.patch('/:id/start-session', requireAuth, async (req, res, next) => {
       include: bookingInclude(),
     });
     res.json({ booking: publishBooking(updated, req.user.id) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ======================== EITHER: CONTINUE WAITING ========================
+/**
+ * PATCH /api/bookings/:id/continue-waiting
+ * Extends join window when nobody joined and lawyer has no next booking in line.
+ */
+router.patch('/:id/continue-waiting', requireAuth, async (req, res, next) => {
+  try {
+    const booking = await loadOwnedBooking(req, 'either');
+    if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
+    const b = booking.data;
+    if (b.status !== STATUS.CONFIRMED) {
+      return res.status(409).json({ error: 'Continue waiting is only available before the session starts.' });
+    }
+    const canContinue = await computeCanContinueWaiting(b);
+    if (!canContinue) {
+      return res.status(409).json({
+        error: 'The lawyer has another consultation scheduled soon. Please reschedule or cancel for a refund.',
+        code: 'LAWYER_SCHEDULE_CONFLICT',
+      });
+    }
+    const extendMs = 30 * 60 * 1000;
+    const joinExtendedUntil = new Date(Date.now() + extendMs);
+    const updated = await prisma.booking.update({
+      where: { id: b.id },
+      data: {
+        joinExtendedUntil,
+        awaitingJoinActionAt: null,
+      },
+      include: bookingInclude(),
+    });
+    const msg = 'Waiting extended — you can still join the video consultation.';
+    createNotification({
+      userId: b.citizenId,
+      title: 'Consultation window extended',
+      message: msg,
+      type: 'CONSULTATION_REMINDER',
+      linkTo: `/booking/${b.id}`,
+    }).catch(() => {});
+    createNotification({
+      userId: b.lawyerId,
+      title: 'Consultation window extended',
+      message: msg,
+      type: 'CONSULTATION_REMINDER',
+      linkTo: `/booking/${b.id}`,
+    }).catch(() => {});
+    res.json({ booking: await publishBookingEnriched(updated, req.user.id) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ======================== EITHER: RESCHEDULE ========================
+/**
+ * PATCH /api/bookings/:id/reschedule
+ * Move a CONFIRMED booking to a new open availability slot (same lawyer).
+ */
+router.patch('/:id/reschedule', requireAuth, async (req, res, next) => {
+  try {
+    const booking = await loadOwnedBooking(req, 'either');
+    if (!booking.ok) return res.status(booking.status).json({ error: booking.error });
+    const b = booking.data;
+    if (b.status !== STATUS.CONFIRMED) {
+      return res.status(409).json({ error: 'Only confirmed bookings can be rescheduled.' });
+    }
+    const { availabilityId } = req.body || {};
+    if (!availabilityId || typeof availabilityId !== 'string') {
+      return res.status(400).json({ error: 'availabilityId is required.' });
+    }
+    const newSlot = await prisma.availability.findUnique({ where: { id: availabilityId } });
+    if (!newSlot || newSlot.lawyerId !== b.lawyerId) {
+      return res.status(404).json({ error: 'Availability slot not found for this lawyer.' });
+    }
+    const liveOnSlot = await prisma.booking.findFirst({
+      where: {
+        availabilityId: newSlot.id,
+        id: { not: b.id },
+        status: { in: LIVE_SESSION_STATUSES },
+      },
+    });
+    if (liveOnSlot) {
+      return res.status(409).json({ error: 'That slot is no longer available.' });
+    }
+    const oldAvailabilityId = b.availabilityId;
+    const updated = await prisma.$transaction(async (tx) => {
+      if (oldAvailabilityId !== newSlot.id) {
+        await tx.availability.update({
+          where: { id: oldAvailabilityId },
+          data: { isBooked: false },
+        });
+        await tx.availability.update({
+          where: { id: newSlot.id },
+          data: { isBooked: true },
+        });
+      }
+      return tx.booking.update({
+        where: { id: b.id },
+        data: {
+          availabilityId: newSlot.id,
+          sessionStartTime: null,
+          sessionEndTime: null,
+          consultConsentAt: null,
+          reminder15MinSent: false,
+          awaitingJoinActionAt: null,
+          joinExtendedUntil: null,
+        },
+        include: bookingInclude(),
+      });
+    });
+    emitAvailabilityChanged(b.lawyerId);
+    const range = `${newSlot.startTime}–${newSlot.endTime}`;
+    const dateStr = new Date(newSlot.date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' });
+    const msg = `Consultation rescheduled to ${dateStr}, ${range}.`;
+    createNotification({
+      userId: b.citizenId,
+      title: 'Consultation rescheduled',
+      message: msg,
+      type: 'BOOKING_UPDATE',
+      linkTo: `/booking/${b.id}`,
+    }).catch(() => {});
+    createNotification({
+      userId: b.lawyerId,
+      title: 'Consultation rescheduled',
+      message: msg,
+      type: 'BOOKING_UPDATE',
+      linkTo: `/booking/${b.id}`,
+    }).catch(() => {});
+    res.json({ booking: await publishBookingEnriched(updated, req.user.id) });
   } catch (error) {
     next(error);
   }
@@ -779,7 +919,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       });
     }
     res.json({
-      booking: serializeBooking(b, req.user.id, consultation),
+      booking: await publishBookingEnriched(b, req.user.id, consultation),
     });
   } catch (error) {
     next(error);
@@ -1187,14 +1327,17 @@ async function findSessionOverlap(db, { lawyerId, date, start, end, excludeBooki
   }) || null;
 }
 
-function serializeBooking(b, viewerId, consultationOrPreview = null) {
+function serializeBooking(b, viewerId, consultationOrPreview = null, extra = {}) {
   const linkedAnalysisPreview = consultationOrPreview
     ? linkedAnalysisPreviewFromConsultation(consultationOrPreview)
     : null;
+  const msgs = b.chatMessages ? safeJsonParse(b.chatMessages, []) : [];
+  const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
 
   return {
     id: b.id,
     status: b.status,
+    availabilityId: b.availabilityId,
     feeAtBooking: b.feeAtBooking,
     quotedFee: b.quotedFee ?? null,
     platformFee: b.platformFee ?? null,
@@ -1213,6 +1356,15 @@ function serializeBooking(b, viewerId, consultationOrPreview = null) {
       : null,
     linkedAnalysisPreview,
     noShowParty: b.noShowParty,
+    awaitingJoinActionAt: b.awaitingJoinActionAt ?? null,
+    joinExtendedUntil: b.joinExtendedUntil ?? null,
+    lastChatPreview: lastMsg
+      ? {
+          content: String(lastMsg.content || '').slice(0, 80),
+          sentAt: lastMsg.sentAt,
+        }
+      : null,
+    canContinueWaiting: extra.canContinueWaiting ?? false,
     createdAt: b.createdAt,
     updatedAt: b.updatedAt,
     chatIsOpen: isChatOpen(b),
@@ -1240,6 +1392,42 @@ function publishBooking(booking, viewerId, consultationMap = new Map()) {
     ? consultationMap.get(booking.consultationId) ?? null
     : null;
   const serialized = serializeBooking(booking, viewerId, consultation);
+  emitBookingChanged(booking.id, booking.citizenId, booking.lawyerId);
+  return serialized;
+}
+
+async function computeCanContinueWaiting(booking) {
+  if (booking.status !== STATUS.CONFIRMED) return false;
+  const av = booking.availability;
+  if (!av) return false;
+  const { end } = getBookingSlotBounds(av, booking.sessionStartTime, booking.sessionEndTime);
+  const bufferEnd = new Date(end.getTime() + 15 * 60 * 1000);
+  const others = await prisma.booking.findMany({
+    where: {
+      lawyerId: booking.lawyerId,
+      id: { not: booking.id },
+      status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+    },
+    include: { availability: true },
+  });
+  for (const other of others) {
+    const oav = other.availability;
+    if (!oav) continue;
+    const { start: otherStart, end: otherEnd } = getBookingSlotBounds(
+      oav,
+      other.sessionStartTime,
+      other.sessionEndTime,
+    );
+    if (other.status === 'IN_PROGRESS') return false;
+    if (otherStart < bufferEnd && otherEnd > end) return false;
+    if (otherStart >= end && otherStart <= bufferEnd) return false;
+  }
+  return true;
+}
+
+async function publishBookingEnriched(booking, viewerId, consultation = null) {
+  const canContinueWaiting = await computeCanContinueWaiting(booking);
+  const serialized = serializeBooking(booking, viewerId, consultation, { canContinueWaiting });
   emitBookingChanged(booking.id, booking.citizenId, booking.lawyerId);
   return serialized;
 }

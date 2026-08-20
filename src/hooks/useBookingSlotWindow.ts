@@ -13,6 +13,7 @@ export function useBookingSlotWindow(
   slot: BookingSlotInfo | undefined,
   status: string | undefined,
   demoBypass = false,
+  joinExtendedUntil?: string | null,
 ) {
   const [now, setNow] = useState(() => new Date());
 
@@ -30,11 +31,11 @@ export function useBookingSlotWindow(
       };
     }
     const phase = getBookingSlotPhase(slot, now);
-    const canJoinVideo = canJoinBookingVideo(slot, status, now, demoBypass);
+    const canJoinVideo = canJoinBookingVideo(slot, status, now, demoBypass, joinExtendedUntil);
     const hint =
       demoBypass && status === 'CONFIRMED'
         ? bookingSlotJoinHintForDemo()
-        : bookingSlotJoinHint(slot, now);
+        : bookingSlotJoinHint(slot, now, joinExtendedUntil);
     return { phase, canJoinVideo, hint };
-  }, [slot, status, now, demoBypass]);
+  }, [slot, status, now, demoBypass, joinExtendedUntil]);
 }

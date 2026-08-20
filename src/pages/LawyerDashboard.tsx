@@ -257,7 +257,13 @@ export const LawyerDashboard: React.FC = () => {
                     <p className="acct-empty">No sessions scheduled for today.</p>
                   ) : (
                     todaySessions.map((b) => {
-                      const joinOk = canJoinBookingVideo(b.availability, b.status, new Date());
+                      const joinOk = canJoinBookingVideo(
+                        b.availability,
+                        b.status,
+                        new Date(),
+                        false,
+                        b.joinExtendedUntil,
+                      );
                       return (
                         <article key={b.id} className="acct-row">
                           <div className="acct-row__main">
