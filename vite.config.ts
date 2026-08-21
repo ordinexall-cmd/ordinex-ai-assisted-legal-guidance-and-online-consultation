@@ -42,8 +42,11 @@ export default defineConfig({
       // Use public/manifest.webmanifest; plugin still injects SW.
       strategies: 'generateSW',
       workbox: {
-        cacheId: 'ordinex-v4',
+        cacheId: 'ordinex-v5',
         navigateFallback: '/index.html',
+        // Browser navigations to API/socket/uploads must hit the network, not index.html
+        // (otherwise /api/health shows the React 404 page via the PWA service worker).
+        navigateFallbackDenylist: [/^\/api/, /^\/uploads/, /^\/socket\.io/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
         runtimeCaching: [
           {

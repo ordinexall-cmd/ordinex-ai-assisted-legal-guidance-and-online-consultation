@@ -1,7 +1,7 @@
 // ============================================================
 // Ordinex — Prisma Schema
 // Full 10-model schema matching the implementation plan.
-// PostgreSQL (local Docker / Neon). CI and production use the same provider.
+// PostgreSQL (local Docker / Supabase). CI and production use the same provider.
 // ============================================================
 
 generator client {

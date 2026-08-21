@@ -77,15 +77,16 @@ Private 1:1 video uses **PeerJS** WebRTC (no paid video SaaS).
 - Optional PeerServer override: `VITE_PEERJS_HOST`, `VITE_PEERJS_PATH`, `VITE_PEERJS_SECURE=true`
 - In-call: manual **Record**, **Share screen**, tap the PiP tile to **swap** views, side **Chat**, transcript strip below (Gemini when listening).
 
-## Deploy (free) — Render + Neon
+## Deploy (free) — Render + Supabase
 
 Ordinex deploys as **one** Render Web Service that serves the built SPA, the API,
-Socket.IO, and auth-gated uploads on a single origin. Postgres is hosted on Neon
-(the Render free database expires after 30 days, so do not use it).
+Socket.IO, and auth-gated uploads on a single origin. Postgres is hosted on
+Supabase (the Render free database expires after 30 days, so do not use it).
 
-1. **Database (Neon, free):** create a project at [neon.tech](https://neon.tech).
-   Copy the **pooled** connection string into `DATABASE_URL` and the **direct**
-   string into `DIRECT_URL`.
+1. **Database (Supabase, free):** create a project at [supabase.com](https://supabase.com)
+   in **Southeast Asia (Singapore)**. Open **Connect → ORMs → Prisma**. Copy the
+   **transaction pooler** URI into `DATABASE_URL` and the **session pooler** /
+   direct URI into `DIRECT_URL`.
 2. **Web service (Render, free):** New → Blueprint, point it at this repo
    (or New → Web Service, instance type **Free**). The included
    [`render.yaml`](render.yaml) sets:
@@ -96,24 +97,24 @@ Socket.IO, and auth-gated uploads on a single origin. Postgres is hosted on Neon
      because Free instances do not support pre-deploy commands)
    - Health check: `/api/health`
    - Instance type: **Free** (do not pick Starter — that is paid compute)
+   - Region: **Singapore** (match the Supabase region)
 3. **Environment variables** (Render dashboard → Environment):
    - `JWT_SECRET` — generated automatically (or set a 32+ char random value)
-   - `DATABASE_URL`, `DIRECT_URL` — from Neon (if you only have one URL, paste
-     it into both)
+   - `DATABASE_URL`, `DIRECT_URL` — from Supabase Prisma connect strings
    - `GROQ_API_KEY` (and optional `GEMINI_API_KEY`)
    - `FRONTEND_URL` and `API_PUBLIC_URL` — optional; they default to the Render
      URL. Set both to `https://<your-app>.onrender.com` once you know it.
    - `NODE_ENV=production`, `TRUST_PROXY=1`, `PAYMENTS_MODE=simulated`
    - `SMTP_*`, `GOOGLE_CLIENT_ID/SECRET`, `ADMIN_EMAILS`
 4. **First deploy:** Render builds, then on start pushes the Prisma schema to
-   Neon. Verify `https://<your-app>.onrender.com/api/health` returns
+   Supabase. Verify `https://<your-app>.onrender.com/api/health` returns
    `{"status":"ok"}`, then optionally seed demo data from a local machine
    (`npm run server:seed`) pointed at the same `DATABASE_URL`.
 
 Free-tier notes: the service sleeps after ~15 min idle (first request ~1 min cold
-start); the local `uploads/` disk is ephemeral (wiped on redeploy/restart); Neon
-scales to zero when idle. Set `PAYMENTS_MODE=paymongo` only with valid
-`PAYMONGO_SECRET_KEY`, `PAYMONGO_PUBLIC_KEY`, and `PAYMONGO_WEBHOOK_SECRET`.
+start); the local `uploads/` disk is ephemeral (wiped on redeploy/restart). Set
+`PAYMENTS_MODE=paymongo` only with valid `PAYMONGO_SECRET_KEY`,
+`PAYMONGO_PUBLIC_KEY`, and `PAYMONGO_WEBHOOK_SECRET`.
 
 ## License & compliance
 

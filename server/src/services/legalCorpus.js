@@ -1,5 +1,5 @@
 /**
- * Legal knowledge retrieval — Prisma (Neon PostgreSQL) primary, local JSON fallback.
+ * Legal knowledge retrieval — Prisma (PostgreSQL) primary, local JSON fallback.
  */
 import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
 import { prisma } from '../config/prisma.js';
@@ -181,7 +181,7 @@ async function retrieveFromLocalJson({ category, description, limit = 8 }) {
 }
 
 /**
- * Retrieve legal context — Prisma (Neon PostgreSQL) primary, local JSON fallback.
+ * Retrieve legal context — Prisma (PostgreSQL) primary, local JSON fallback.
  * @returns {Promise<{ chunks: object[], source: 'prisma'|'local' }>}
  */
 export async function retrieveLegalContext({ category, description, limit = 8 }) {

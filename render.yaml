@@ -1,6 +1,6 @@
 # Render Blueprint — Ordinex all-in-one (SPA + API + Socket.IO)
 # One free Web Service serves the built frontend and the Node API on one origin.
-# Database is external (Neon free Postgres). Do NOT add a Render Postgres here —
+# Database is external (Supabase free Postgres). Do NOT add a Render Postgres here —
 # the free Render DB expires after 30 days.
 #
 # Secrets (JWT_SECRET, DATABASE_URL, DIRECT_URL, GROQ_API_KEY, ...) are set in the

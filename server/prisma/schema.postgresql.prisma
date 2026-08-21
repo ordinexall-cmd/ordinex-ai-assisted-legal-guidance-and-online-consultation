@@ -1,4 +1,4 @@
-// Production schema — PostgreSQL (Neon / Supabase). Dev uses schema.prisma (SQLite).
+// Production schema — PostgreSQL (Supabase). Dev uses schema.prisma (SQLite).
 // Apply: npm run db:push:prod  (with DATABASE_URL + DIRECT_URL in .env)
 
 generator client {

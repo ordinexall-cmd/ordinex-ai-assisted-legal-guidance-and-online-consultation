@@ -226,6 +226,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
                 disabled={demoState === 'analyzing'}
                 onChange={(e) => {
                   setDescription(e.target.value);
+                  setMissingFacts([]);
                   if (demoState === 'error') setDemoState('describe');
                 }}
                 aria-describedby="landing-demo-char-count"

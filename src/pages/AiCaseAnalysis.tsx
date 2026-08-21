@@ -261,7 +261,10 @@ export const AiCaseAnalysis: React.FC = () => {
               <textarea
                 placeholder={SITUATION_PLACEHOLDER}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  setDetailGaps([]);
+                }}
                 disabled={showPipeline}
                 maxLength={MAX_DESCRIPTION_CHARS}
                 aria-describedby="desc-char-hint"

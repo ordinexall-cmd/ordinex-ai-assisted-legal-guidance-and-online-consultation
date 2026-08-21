@@ -267,9 +267,6 @@ ${OUTPUT_SCHEMA}`;
 
 function buildVagueResult(summary, missingFacts = []) {
   const gaps = (missingFacts || []).map((m) => m.label || m).filter(Boolean);
-  const listed = gaps.length
-    ? gaps
-    : ['When it happened (date and time)', 'Where it happened', 'What happened', 'Who was involved'];
   return {
     userConcernSummary: summary,
     extractedKeywords: ['needs-detail'],
@@ -277,10 +274,12 @@ function buildVagueResult(summary, missingFacts = []) {
     penalties: '',
     courtWinOutlook: {
       level: 'Uncertain',
-      summary: 'Add the missing facts below so we can match the right Philippine guidance. We have not run case identification yet.',
+      summary: gaps.length
+        ? 'Add the missing facts below so we can match the right Philippine guidance. We have not run case identification yet.'
+        : 'Please add a clearer timeline of what each person did so we can match the right Philippine guidance. We have not run case identification yet.',
       factorsFor: [],
       factorsAgainst: [],
-      missingFacts: listed,
+      missingFacts: gaps,
     },
     possibleDeadline: '',
     cautions: [],

@@ -89,7 +89,7 @@ export const env = {
   SMTP_PASS: process.env.SMTP_PASS || '',
   EMAIL_FROM: process.env.EMAIL_FROM || 'Ordinex <ordinex.all@gmail.com>',
 
-  // Groq — one text model for analysis, one vision model for KYC, Whisper for transcripts
+  // Groq — text analysis / translate + vision for KYC (live STT is Gemini-only)
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
   GROQ_API_KEYS: (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
   GROQ_MODEL: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
@@ -97,10 +97,8 @@ export const env = {
   GROQ_LIGHT_MODEL: process.env.GROQ_LIGHT_MODEL || 'openai/gpt-oss-20b',
   // Multimodal vision model for ID OCR + selfie match (chat completions with image_url).
   GROQ_VISION_MODEL: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.6-27b',
-  // Speech-to-text model for live consultation transcripts.
-  GROQ_WHISPER_MODEL: process.env.GROQ_WHISPER_MODEL || 'whisper-large-v3-turbo',
 
-  // Google Gemini — single fallback for chat, vision, and speech-to-text when Groq fails
+  // Google Gemini — live consult captions + vision fallback
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   GEMINI_API_KEYS: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean),
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
