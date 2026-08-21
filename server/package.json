@@ -11,6 +11,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "node prisma/seed.js",
     "db:sync-demo": "node scripts/sync-demo-accounts.js",
+    "db:upsert-verified": "node scripts/upsert-verified-accounts.js",
     "db:reset-demo": "node scripts/reset-demo-state.js",
     "db:clear-users": "node scripts/clearAllUsers.js",
     "db:defense-reset": "node scripts/defense-full-reset.js",
