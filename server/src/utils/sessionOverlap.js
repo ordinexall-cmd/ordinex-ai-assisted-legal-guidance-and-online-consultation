@@ -37,8 +37,10 @@ export function intervalsOverlap(aStart, aEnd, bStart, bEnd) {
   return timeToMinutes(aStart) < timeToMinutes(bEnd) && timeToMinutes(bStart) < timeToMinutes(aEnd);
 }
 
-export function holdEnd(start, windowEnd) {
-  const endMins = Math.min(timeToMinutes(start) + HOLD_MINUTES, timeToMinutes(windowEnd));
+export function holdEnd(start, windowEnd, durationMinutes = HOLD_MINUTES) {
+  const dur = Number(durationMinutes);
+  const needed = Number.isFinite(dur) && dur > 0 ? dur : HOLD_MINUTES;
+  const endMins = Math.min(timeToMinutes(start) + needed, timeToMinutes(windowEnd));
   return minutesToTime(endMins);
 }
 
@@ -48,12 +50,15 @@ export function sessionInterval(booking, windowStart, windowEnd) {
   return { start, end };
 }
 
-export function preferredStartsInWindow(windowStart, windowEnd, taken) {
+export function preferredStartsInWindow(windowStart, windowEnd, taken, durationMinutes) {
   const winEnd = timeToMinutes(windowEnd);
+  const requireFull = Number.isFinite(Number(durationMinutes)) && Number(durationMinutes) > 0;
+  const needed = requireFull ? Number(durationMinutes) : HOLD_MINUTES;
   const starts = [];
   for (let t = timeToMinutes(windowStart); t + MIN_SESSION_MINUTES <= winEnd; t += GRID_MINUTES) {
+    if (requireFull && t + needed > winEnd) continue;
     const start = minutesToTime(t);
-    const end = holdEnd(start, windowEnd);
+    const end = requireFull ? minutesToTime(t + needed) : holdEnd(start, windowEnd);
     if (timeToMinutes(end) - timeToMinutes(start) < MIN_SESSION_MINUTES) continue;
     if ((taken || []).some((x) => intervalsOverlap(start, end, x.start, x.end))) continue;
     starts.push(start);

@@ -65,7 +65,7 @@ export async function autoCancelStaleBookings() {
     await prisma.$transaction([
       prisma.booking.update({
         where: { id: b.id },
-        data: { status: 'AUTO_CANCELLED' },
+        data: { status: 'AUTO_CANCELLED', briefInquiryId: null },
       }),
       prisma.availability.update({
         where: { id: b.availabilityId },
@@ -95,7 +95,7 @@ export async function expireStaleRequestedBookings() {
     await prisma.$transaction([
       prisma.booking.update({
         where: { id: b.id },
-        data: { status: 'AUTO_CANCELLED' },
+        data: { status: 'AUTO_CANCELLED', briefInquiryId: null },
       }),
       prisma.availability.update({
         where: { id: b.availabilityId },
@@ -137,7 +137,7 @@ export async function expireUnpaidApprovedBookings() {
     await prisma.$transaction([
       prisma.booking.update({
         where: { id: b.id },
-        data: { status: 'AUTO_CANCELLED' },
+        data: { status: 'AUTO_CANCELLED', briefInquiryId: null },
       }),
       prisma.availability.update({
         where: { id: b.availabilityId },

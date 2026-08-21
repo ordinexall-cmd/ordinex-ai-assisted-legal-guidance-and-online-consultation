@@ -282,6 +282,10 @@ model Booking {
   noShowParty       String? // "CITIZEN" | "LAWYER"
   citizenDeletedAt  DateTime?
   lawyerDeletedAt   DateTime?
+  briefInquiryId    String?  @unique
+  briefInquiry      BriefInquiry? @relation(fields: [briefInquiryId], references: [id], onDelete: SetNull)
+  offerDescription  String?
+  agreedDurationMinutes Int?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   review            Review?
@@ -453,15 +457,18 @@ model BriefView {
 }
 
 model BriefInquiry {
-  id        String    @id @default(uuid())
-  briefId   String
-  brief     CaseBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
-  lawyerId  String
-  lawyer    User      @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
-  message   String?
-  status    String    @default("PENDING")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  briefId         String
+  brief           CaseBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  lawyerId        String
+  lawyer          User      @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  message         String?
+  durationMinutes Int?
+  quotedFee       Float?
+  status          String    @default("PENDING")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  booking         Booking?
 
   @@unique([briefId, lawyerId])
   @@index([lawyerId])

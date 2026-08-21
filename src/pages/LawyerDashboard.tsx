@@ -16,6 +16,7 @@ import { DashWelcome } from '../components/dashboard/DashWelcome';
 import { DashHistorySkeleton } from '../components/dashboard/DashHistorySkeleton';
 import { OxStatusCallout } from '../components/ui/OxStatusCallout';
 import { localDateKey } from '../components/schedule/ScheduleMonthGrid';
+import { consultDurationLabel } from '../utils/consultOffer';
 
 const fmtSlot = (b: Booking) => {
   const dateStr = new Date(b.availability.date).toLocaleDateString('en-PH', {
@@ -193,7 +194,11 @@ export const LawyerDashboard: React.FC = () => {
                       <div className="acct-row__main">
                         <p className="acct-row__title">{o.brief.displayName}</p>
                         <p className="acct-row__meta">
-                          {o.status.replace(/_/g, ' ')} · {o.brief.summary.slice(0, 90)}
+                          {o.status.replace(/_/g, ' ')}
+                          {o.durationMinutes ? ` · ${consultDurationLabel(o.durationMinutes)}` : ''}
+                          {o.quotedFee != null ? ` · ${o.quotedFee === 0 ? 'Free' : `₱${o.quotedFee.toLocaleString()}`}` : ''}
+                          {' · '}
+                          {o.brief.summary.slice(0, 90)}
                           {o.brief.summary.length > 90 ? '…' : ''}
                         </p>
                       </div>

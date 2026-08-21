@@ -118,6 +118,7 @@ export const AccountSettings: React.FC = () => {
   const [newPhoneLocal, setNewPhoneLocal] = useState('');
   const [phoneChangeOtp, setPhoneChangeOtp] = useState('');
   const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [profileConfirmPassword, setProfileConfirmPassword] = useState('');
 
   // Sync state with user
   useEffect(() => {
@@ -230,6 +231,16 @@ export const AccountSettings: React.FC = () => {
     try {
       const computedName = [firstName.trim(), middleName.trim(), lastName.trim(), suffix.trim()].filter(Boolean).join(' ') || name.trim();
 
+      const identityChanged =
+        (firstName.trim() || '') !== (user?.firstName || '')
+        || (middleName.trim() || '') !== (user?.middleName || '')
+        || (lastName.trim() || '') !== (user?.lastName || '')
+        || (isCitizen && (
+          (dob || '') !== (user?.dob || '')
+          || (citizenIdType || '') !== (user?.citizenIdType || '')
+          || (citizenIdNumber.trim() || '') !== (user?.citizenIdNumber || '')
+        ));
+
       const updates: Record<string, unknown> = {
         name: computedName,
         firstName: firstName.trim() || null,
@@ -275,8 +286,13 @@ export const AccountSettings: React.FC = () => {
         updates.lawFirmName = lawFirmName.trim() || null;
       }
 
+      if (identityChanged && profileConfirmPassword.trim()) {
+        updates.currentPassword = profileConfirmPassword.trim();
+      }
+
       await authApi.updateProfile(updates as any);
       await refreshUser();
+      setProfileConfirmPassword('');
       setFeedback('Account details and profile saved successfully.', true);
     } catch (err) {
       setFeedback(getErrorMessage(err, 'Failed to save changes. Please try again.'), false);
@@ -756,7 +772,26 @@ export const AccountSettings: React.FC = () => {
               )}
 
               {/* Submit Button */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                {((firstName.trim() || '') !== (user?.firstName || '')
+                  || (middleName.trim() || '') !== (user?.middleName || '')
+                  || (lastName.trim() || '') !== (user?.lastName || '')
+                  || (isCitizen && (
+                    (dob || '') !== (user?.dob || '')
+                    || (citizenIdNumber.trim() || '') !== (user?.citizenIdNumber || '')
+                  ))) && (
+                  <div className="form-field" style={{ minWidth: 220, flex: 1 }}>
+                    <label className="ox-label" htmlFor="acc-profile-password">Current password to change legal name</label>
+                    <input
+                      id="acc-profile-password"
+                      className="ox-input"
+                      type="password"
+                      autoComplete="current-password"
+                      value={profileConfirmPassword}
+                      onChange={(e) => setProfileConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                )}
                 <button
                   type="submit"
                   className="ox-btn ox-btn-primary"

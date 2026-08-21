@@ -8,10 +8,12 @@ import {
   lawyersApi,
   bookingsApi,
   consultationApi,
+  briefsApi,
   type LawyerProfile,
   type AvailabilitySlot,
   type ConsultationResult,
   type Booking,
+  type BriefInquiry,
 } from '../services/api';
 import { onAvailabilityChanged, onBookingUpdated } from '../services/appSocket';
 import { useAuth } from '../context/AuthContext';
@@ -25,6 +27,7 @@ export const LawyerBookConsultation: React.FC = () => {
   const { id: lawyerId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const consultationIdFromUrl = searchParams.get('consultationId') ?? '';
+  const inquiryIdFromUrl = searchParams.get('inquiryId') ?? '';
   const navigate = useNavigate();
   const { user } = useAuth();
   const navItems = getCitizenNav(user);
@@ -39,31 +42,37 @@ export const LawyerBookConsultation: React.FC = () => {
   const [success, setSuccess] = useState<{ date: string; time: string } | null>(null);
   const [preferredDate, setPreferredDate] = useState<string | null>(null);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
+  const [inquiry, setInquiry] = useState<BriefInquiry | null>(null);
 
   const load = useCallback(async () => {
     if (!lawyerId) return;
     setLoading(true);
     setError('');
     try {
-      const [{ lawyer: lw }, { slots: sl }, { consultations }, { bookings }] = await Promise.all([
+      const [{ lawyer: lw }, { slots: sl }, { consultations }, { bookings }, inquiryRes] = await Promise.all([
         lawyersApi.getById(lawyerId),
         lawyersApi.getAvailability(lawyerId),
         consultationApi.getHistory(),
         bookingsApi.getMy({ limit: 50 }),
+        inquiryIdFromUrl
+          ? briefsApi.getInquiry(inquiryIdFromUrl).catch(() => null)
+          : Promise.resolve(null),
       ]);
       setLawyer(lw);
-      setSlots(sl.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || []).length > 0));
+      const hold = inquiryRes?.inquiry.durationMinutes || undefined;
+      setSlots(sl.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || [], hold).length > 0));
       setHistory(consultations);
       setMyBookings(
         bookings.filter((b) => b.lawyer.id === lawyerId && b.viewerRole === 'CITIZEN'),
       );
+      setInquiry(inquiryRes?.inquiry ?? null);
     } catch (e: unknown) {
       setError(getErrorMessage(e, 'Could not load booking form.'));
       setLawyer(null);
     } finally {
       setLoading(false);
     }
-  }, [lawyerId]);
+  }, [lawyerId, inquiryIdFromUrl]);
 
   useEffect(() => {
     void load();
@@ -80,7 +89,12 @@ export const LawyerBookConsultation: React.FC = () => {
 
   const calEvents: ScheduleCalendarEvent[] = useMemo(() => {
     const open: ScheduleCalendarEvent[] = slots.map((s) => {
-      const starts = preferredStartsInWindow(s.startTime, s.endTime, s.taken || []);
+      const starts = preferredStartsInWindow(
+        s.startTime,
+        s.endTime,
+        s.taken || [],
+        inquiry?.durationMinutes || undefined,
+      );
       return {
         id: `open-${s.id}`,
         date: s.date,
@@ -101,7 +115,7 @@ export const LawyerBookConsultation: React.FC = () => {
       };
     });
     return [...open, ...mine];
-  }, [slots, myBookings, navigate]);
+  }, [slots, myBookings, navigate, inquiry?.durationMinutes]);
 
   const handleSubmit = async (payload: {
     availabilityId: string;
@@ -114,7 +128,10 @@ export const LawyerBookConsultation: React.FC = () => {
     setSuccess(null);
     try {
       const slot = slots.find((s) => s.id === payload.availabilityId);
-      const { booking } = await bookingsApi.create(payload);
+      const { booking } = await bookingsApi.create({
+        ...payload,
+        inquiryId: inquiryIdFromUrl || undefined,
+      });
       const hold = booking.availability
         ? `${booking.availability.startTime}–${booking.availability.endTime}`
         : payload.preferredStartTime;
@@ -175,7 +192,16 @@ export const LawyerBookConsultation: React.FC = () => {
                 lawyer={lawyer}
                 slots={slots}
                 history={history}
-                initialConsultationId={consultationIdFromUrl}
+                initialConsultationId={consultationIdFromUrl || inquiry?.brief?.consultationId || ''}
+                initialCaseDescription={inquiry?.brief?.summary || ''}
+                holdMinutes={inquiry?.durationMinutes || undefined}
+                offerSummary={inquiry?.durationMinutes
+                  ? {
+                    durationMinutes: inquiry.durationMinutes,
+                    quotedFee: inquiry.quotedFee,
+                    message: inquiry.message,
+                  }
+                  : null}
                 loading={submitting}
                 error={error}
                 preferredDate={preferredDate}

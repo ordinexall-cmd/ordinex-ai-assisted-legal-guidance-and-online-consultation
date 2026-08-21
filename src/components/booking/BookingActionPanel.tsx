@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingsApi, type Booking, type BookingJoinOptions } from '../../services/api';
 import { useBookingSlotWindow } from '../../hooks/useBookingSlotWindow';
+import { holdEnd } from '../../utils/sessionOverlap';
+import { consultDurationLabel } from '../../utils/consultOffer';
 import { BookingPaymentStepper } from './BookingPaymentStepper';
 import { JoinVideoButton } from './JoinVideoButton';
 import { BookingRescheduleModal } from './BookingRescheduleModal';
@@ -42,11 +44,19 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
     booking.sessionEndTime || booking.availability.endTime,
   );
 
+  useEffect(() => {
+    if (!booking.agreedDurationMinutes) return;
+    const duty = booking.dutyWindow?.endTime || booking.availability.endTime;
+    setSessionEnd(holdEnd(sessionStart, duty, booking.agreedDurationMinutes));
+  }, [sessionStart, booking.agreedDurationMinutes, booking.dutyWindow?.endTime, booking.availability.endTime]);
+
   const feeMin = booking.lawyer.consultationFee ?? 0;
   // Use lawyer profile fee range if available
   const lawyerFeeMin = (booking.lawyer as any).consultationFeeMin ?? feeMin;
   const lawyerFeeMax = (booking.lawyer as any).consultationFeeMax ?? lawyerFeeMin;
   const isPaidLawyer = lawyerFeeMax > 0;
+  const offerLocked = Boolean(booking.briefInquiryId || booking.agreedDurationMinutes);
+  const agreedDuration = booking.agreedDurationMinutes || 60;
 
   const parsedQuotedFee = parseFloat(quotedFeeInput) || 0;
   const platformFee = Math.round(parsedQuotedFee * COMMISSION_RATE * 100) / 100;
@@ -129,10 +139,17 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
           <>
             {actionTitle('New booking request')}
             {actionText(
-              <>
-                Preferred start: <strong>{booking.preferredStartTime || booking.availability.startTime}</strong>
-                {' '}inside {dutyStart}–{dutyEnd}. Set the exact session range and fee.
-              </>,
+              offerLocked ? (
+                <>
+                  Preferred start: <strong>{booking.preferredStartTime || booking.availability.startTime}</strong>
+                  {' '}inside {dutyStart}–{dutyEnd}. Confirm the start; duration and fee were agreed on the offer.
+                </>
+              ) : (
+                <>
+                  Preferred start: <strong>{booking.preferredStartTime || booking.availability.startTime}</strong>
+                  {' '}inside {dutyStart}–{dutyEnd}. Set the exact session range and fee.
+                </>
+              ),
             )}
             {onViewClientProfile && (
               <button
@@ -145,35 +162,66 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
               </button>
             )}
 
+            {booking.offerDescription && (
+              <p className="quote-input-section__hint" style={{ marginBottom: 10 }}>
+                Your offer: {booking.offerDescription}
+              </p>
+            )}
+
             <div className="quote-input-section">
               <p className="quote-input-section__title">Session time</p>
-              <div className="quote-input-row" style={{ gap: 8 }}>
-                <input
-                  className="ox-input"
-                  type="time"
-                  min={dutyStart}
-                  max={dutyEnd}
-                  value={sessionStart}
-                  onChange={(e) => setSessionStart(e.target.value)}
-                  aria-label="Session start"
-                />
-                <input
-                  className="ox-input"
-                  type="time"
-                  min={dutyStart}
-                  max={dutyEnd}
-                  value={sessionEnd}
-                  onChange={(e) => setSessionEnd(e.target.value)}
-                  aria-label="Session end"
-                />
-              </div>
-              <p className="quote-input-section__hint">
-                Must stay inside {dutyStart}–{dutyEnd} and not overlap another booking.
-              </p>
+              {offerLocked ? (
+                <>
+                  <input
+                    className="ox-input"
+                    type="time"
+                    min={dutyStart}
+                    max={dutyEnd}
+                    value={sessionStart}
+                    onChange={(e) => setSessionStart(e.target.value)}
+                    aria-label="Session start"
+                  />
+                  <p className="quote-input-section__hint">
+                    {consultDurationLabel(agreedDuration)} · ends {sessionEnd}. Must stay inside {dutyStart}–{dutyEnd}.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="quote-input-row" style={{ gap: 8 }}>
+                    <input
+                      className="ox-input"
+                      type="time"
+                      min={dutyStart}
+                      max={dutyEnd}
+                      value={sessionStart}
+                      onChange={(e) => setSessionStart(e.target.value)}
+                      aria-label="Session start"
+                    />
+                    <input
+                      className="ox-input"
+                      type="time"
+                      min={dutyStart}
+                      max={dutyEnd}
+                      value={sessionEnd}
+                      onChange={(e) => setSessionEnd(e.target.value)}
+                      aria-label="Session end"
+                    />
+                  </div>
+                  <p className="quote-input-section__hint">
+                    Must stay inside {dutyStart}–{dutyEnd} and not overlap another booking.
+                  </p>
+                </>
+              )}
             </div>
 
-            {/* Quote input for paid lawyers */}
-            {isPaidLawyer && (
+            {offerLocked ? (
+              <div className="quote-input-section">
+                <p className="quote-input-section__title">Agreed consultation fee</p>
+                <p className="quote-input-section__hint">
+                  {peso(booking.quotedFee ?? booking.feeAtBooking)} · {consultDurationLabel(agreedDuration)}
+                </p>
+              </div>
+            ) : isPaidLawyer && (
               <div className="quote-input-section">
                 <p className="quote-input-section__title">Set consultation fee</p>
                 <div className="quote-input-row">
@@ -220,18 +268,23 @@ export const BookingActionPanel: React.FC<BookingActionPanelProps> = ({
             <div className="booking-action-card__footer">
               <button
                 type="button"
-                disabled={loading || !sessionStart || !sessionEnd || (isPaidLawyer && (!isQuoteValid || parsedQuotedFee <= 0))}
+                disabled={loading || !sessionStart || !sessionEnd || (!offerLocked && isPaidLawyer && (!isQuoteValid || parsedQuotedFee <= 0))}
                 onClick={() => {
+                  const fee = offerLocked
+                    ? (booking.quotedFee ?? booking.feeAtBooking ?? undefined)
+                    : (isPaidLawyer ? parsedQuotedFee : undefined);
                   onAction(() => bookingsApi.approve(
                     booking.id,
-                    isPaidLawyer ? parsedQuotedFee : undefined,
+                    isPaidLawyer ? fee : undefined,
                     undefined,
                     { sessionStartTime: sessionStart, sessionEndTime: sessionEnd },
                   ));
                 }}
                 className="ox-btn ox-btn-primary ox-btn-full"
               >
-                {isPaidLawyer ? `Approve · ${peso(parsedQuotedFee)}` : 'Approve'}
+                {isPaidLawyer
+                  ? `Approve · ${peso(offerLocked ? (booking.quotedFee ?? booking.feeAtBooking) : parsedQuotedFee)}`
+                  : 'Approve'}
               </button>
               <button type="button" disabled={loading} onClick={() => onAction(() => bookingsApi.decline(booking.id))}
                 className="ox-btn booking-btn-decline ox-btn-full">

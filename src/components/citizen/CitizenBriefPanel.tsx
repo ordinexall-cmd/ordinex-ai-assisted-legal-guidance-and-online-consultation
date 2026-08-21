@@ -17,6 +17,7 @@ import {
 import { isCitizenBookingUnlocked } from '../../utils/trustScore';
 import { useAuth } from '../../context/AuthContext';
 import { onNotificationNew } from '../../services/appSocket';
+import { consultDurationLabel } from '../../utils/consultOffer';
 
 const blankForm = () => ({
   category: 'unsure',
@@ -352,14 +353,23 @@ export const CitizenBriefPanel: React.FC = () => {
             {inquiries.map((i) => (
               <div key={i.id} className="staff-card-row" style={{ marginTop: 8 }}>
                 <p className="staff-card-row__title">{i.lawyer.name}</p>
+                <p className="staff-card-row__meta">
+                  {i.durationMinutes ? consultDurationLabel(i.durationMinutes) : 'Duration not set'}
+                  {' · '}
+                  {i.quotedFee != null && i.quotedFee > 0
+                    ? `₱${i.quotedFee.toLocaleString()}`
+                    : i.quotedFee === 0
+                      ? 'Free'
+                      : (i.lawyer.fee != null ? `From ₱${i.lawyer.fee.toLocaleString()}` : 'Fee on booking')}
+                </p>
                 <p className="staff-card-row__meta">{i.message || 'Offered a consultation.'}</p>
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <button
                     type="button"
                     className="ox-btn ox-btn-primary ox-btn-sm"
                     onClick={() => {
-                      void briefsApi.acceptInquiry(i.id).then(({ lawyerId }) => {
-                        navigate(buildLawyerBookPath(lawyerId, brief?.consultationId));
+                      void briefsApi.acceptInquiry(i.id).then(({ lawyerId, inquiryId }) => {
+                        navigate(buildLawyerBookPath(lawyerId, brief?.consultationId, inquiryId));
                       });
                     }}
                   >

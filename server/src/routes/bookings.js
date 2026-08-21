@@ -37,6 +37,7 @@ import {
   intervalsOverlap,
   validateSessionRange,
   normalizeHm,
+  timeToMinutes,
 } from '../utils/sessionOverlap.js';
 import { recordingUpload, audioChunkUpload, persistUploadedFile } from '../services/uploads.js';
 import { transcribeLiveAudio, isUselessTranscriptText } from '../services/liveTranscribe.js';
@@ -49,20 +50,18 @@ const CASE_DESCRIPTION_FROM_ANALYSIS_MAX = 500;
 // ======================== CREATE ========================
 /**
  * POST /api/bookings
- * Body: { availabilityId, preferredStartTime, consultationId?, caseDescription? }
+ * Body: { availabilityId, preferredStartTime, consultationId?, caseDescription?, inquiryId? }
  *
- * Logged-in citizens only. Holds 60 minutes from the preferred start inside the duty window.
+ * Logged-in citizens only. Holds 60 minutes from the preferred start inside the duty window
+ * (or the accepted offer duration when inquiryId is set).
  */
 router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
   try {
-    const { availabilityId, consultationId, caseDescription, preferredStartTime } = req.body;
+    const { availabilityId, consultationId, caseDescription, preferredStartTime, inquiryId } = req.body;
 
     if (!availabilityId) return res.status(400).json({ error: 'availabilityId is required.' });
     if (!preferredStartTime) {
       return res.status(400).json({ error: 'Pick a start time inside the lawyer\'s open hours.' });
-    }
-    if (!hasBookingCaseContext({ consultationId, caseDescription })) {
-      return res.status(400).json({ error: bookingCaseContextError() });
     }
 
     const slot = await prisma.availability.findUnique({
@@ -75,16 +74,54 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
       return res.status(403).json({ error: 'This lawyer is not accepting new bookings right now.' });
     }
 
+    let inquiry = null;
+    if (inquiryId) {
+      inquiry = await prisma.briefInquiry.findUnique({
+        where: { id: String(inquiryId) },
+        include: { brief: true },
+      });
+      if (!inquiry || inquiry.brief.userId !== req.user.id) {
+        return res.status(404).json({ error: 'Offer not found.' });
+      }
+      if (inquiry.status !== 'ACCEPTED') {
+        return res.status(400).json({ error: 'Accept this offer before booking a slot.' });
+      }
+      if (inquiry.lawyerId !== slot.lawyerId) {
+        return res.status(400).json({ error: 'This offer is for a different lawyer.' });
+      }
+      const existingOfferBooking = await prisma.booking.findUnique({
+        where: { briefInquiryId: inquiry.id },
+        select: { id: true, status: true },
+      });
+      if (existingOfferBooking) {
+        return res.status(409).json({ error: 'You already booked this offer.' });
+      }
+    }
+
+    const resolvedConsultationId = consultationId || inquiry?.brief.consultationId || null;
+    const incomingDescription = caseDescription?.trim() || inquiry?.brief.summary || null;
+    if (!hasBookingCaseContext({ consultationId: resolvedConsultationId, caseDescription: incomingDescription })) {
+      return res.status(400).json({ error: bookingCaseContextError() });
+    }
+
     const sessionStartTime = normalizeHm(preferredStartTime);
-    const sessionEndTime = holdEnd(sessionStartTime, slot.endTime);
+    const holdMinutes = inquiry?.durationMinutes || undefined;
+    const sessionEndTime = holdEnd(sessionStartTime, slot.endTime, holdMinutes);
+    if (inquiry?.durationMinutes) {
+      if (timeToMinutes(sessionEndTime) - timeToMinutes(sessionStartTime) < inquiry.durationMinutes) {
+        return res.status(400).json({
+          error: `This offer needs ${inquiry.durationMinutes} minutes inside the lawyer's open hours.`,
+        });
+      }
+    }
     const rangeErr = validateSessionRange(sessionStartTime, sessionEndTime, slot.startTime, slot.endTime);
     if (rangeErr) return res.status(400).json({ error: rangeErr });
 
     let linkedConsultation = null;
-    let resolvedCaseDescription = caseDescription?.trim() || null;
+    let resolvedCaseDescription = incomingDescription;
 
-    if (consultationId) {
-      linkedConsultation = await prisma.consultation.findUnique({ where: { id: consultationId } });
+    if (resolvedConsultationId) {
+      linkedConsultation = await prisma.consultation.findUnique({ where: { id: resolvedConsultationId } });
       if (!linkedConsultation || linkedConsultation.userId !== req.user.id) {
         return res.status(400).json({ error: 'Linked case identification not found.' });
       }
@@ -119,9 +156,13 @@ router.post('/', requireAuth, requireCitizen, requireCitizenVerified, async (req
             preferredStartTime: sessionStartTime,
             sessionStartTime,
             sessionEndTime,
-            feeAtBooking: lawyerFeeMin(slot.lawyer),
-            consultationId: consultationId || null,
+            feeAtBooking: inquiry?.quotedFee != null ? inquiry.quotedFee : lawyerFeeMin(slot.lawyer),
+            quotedFee: inquiry?.quotedFee ?? null,
+            consultationId: resolvedConsultationId,
             caseDescription: resolvedCaseDescription,
+            offerDescription: inquiry?.message || null,
+            agreedDurationMinutes: inquiry?.durationMinutes || null,
+            briefInquiryId: inquiry?.id || null,
             status: STATUS.REQUESTED,
           },
           include: bookingInclude(),
@@ -165,10 +206,26 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
     const { quotedFee, paymentType, sessionStartTime, sessionEndTime } = req.body || {};
 
     const duty = booking.data.availability;
+    const agreedDuration = booking.data.agreedDurationMinutes;
+    const isOfferBacked = Boolean(booking.data.briefInquiryId || agreedDuration);
     const start = normalizeHm(sessionStartTime || booking.data.sessionStartTime || booking.data.preferredStartTime || duty.startTime);
-    const end = normalizeHm(sessionEndTime || booking.data.sessionEndTime || '');
-    if (!sessionStartTime || !sessionEndTime) {
-      return res.status(400).json({ error: 'Set the exact session start and end times.' });
+    let end;
+    if (isOfferBacked) {
+      if (!sessionStartTime && !booking.data.sessionStartTime && !booking.data.preferredStartTime) {
+        return res.status(400).json({ error: 'Set the session start time.' });
+      }
+      const duration = agreedDuration || 60;
+      end = holdEnd(start, duty.endTime, duration);
+      if (timeToMinutes(end) - timeToMinutes(start) < duration) {
+        return res.status(400).json({
+          error: `This session needs ${duration} minutes inside ${duty.startTime}–${duty.endTime}.`,
+        });
+      }
+    } else {
+      end = normalizeHm(sessionEndTime || booking.data.sessionEndTime || '');
+      if (!sessionStartTime || !sessionEndTime) {
+        return res.status(400).json({ error: 'Set the exact session start and end times.' });
+      }
     }
     const rangeErr = validateSessionRange(start, end, duty.startTime, duty.endTime);
     if (rangeErr) return res.status(400).json({ error: rangeErr });
@@ -191,20 +248,32 @@ router.patch('/:id/approve', requireAuth, requireLawyerVerified, async (req, res
 
     let resolvedQuotedFee = 0;
     if (!isFreeBooking) {
-      // quotedFee is required for paid bookings
-      if (quotedFee == null || isNaN(Number(quotedFee)) || Number(quotedFee) <= 0) {
-        return res.status(400).json({
-          error: 'quotedFee is required for paid bookings.',
-          code: 'QUOTED_FEE_REQUIRED',
-        });
-      }
-      resolvedQuotedFee = Number(quotedFee);
-      // Validate within min/max range
-      if (resolvedQuotedFee < lawyerMin || resolvedQuotedFee > lawyerMax) {
-        return res.status(400).json({
-          error: `Quoted fee must be between ₱${lawyerMin.toLocaleString()} and ₱${lawyerMax.toLocaleString()}.`,
-          code: 'QUOTED_FEE_OUT_OF_RANGE',
-        });
+      if (isOfferBacked) {
+        const agreedFee = booking.data.quotedFee ?? booking.data.feeAtBooking;
+        if (quotedFee != null && Number(quotedFee) !== Number(agreedFee)) {
+          return res.status(400).json({ error: 'The consultation fee was already agreed on this offer.' });
+        }
+        if (agreedFee == null || Number(agreedFee) <= 0) {
+          return res.status(400).json({
+            error: 'quotedFee is required for paid bookings.',
+            code: 'QUOTED_FEE_REQUIRED',
+          });
+        }
+        resolvedQuotedFee = Number(agreedFee);
+      } else {
+        if (quotedFee == null || isNaN(Number(quotedFee)) || Number(quotedFee) <= 0) {
+          return res.status(400).json({
+            error: 'quotedFee is required for paid bookings.',
+            code: 'QUOTED_FEE_REQUIRED',
+          });
+        }
+        resolvedQuotedFee = Number(quotedFee);
+        if (resolvedQuotedFee < lawyerMin || resolvedQuotedFee > lawyerMax) {
+          return res.status(400).json({
+            error: `Quoted fee must be between ₱${lawyerMin.toLocaleString()} and ₱${lawyerMax.toLocaleString()}.`,
+            code: 'QUOTED_FEE_OUT_OF_RANGE',
+          });
+        }
       }
     }
 
@@ -280,7 +349,7 @@ router.patch('/:id/decline', requireAuth, requireLawyerVerified, async (req, res
     const [updated] = await prisma.$transaction([
       prisma.booking.update({
         where: { id: booking.data.id },
-        data: { status: STATUS.DECLINED },
+        data: { status: STATUS.DECLINED, briefInquiryId: null },
         include: bookingInclude(),
       }),
       // Free the availability slot so other citizens can grab it.
@@ -1279,7 +1348,8 @@ function bookingInclude() {
       select: {
         id: true, name: true, avatarUrl: true,
         specializations: true, practiceType: true, paymentMethods: true,
-        consultationFee: true, rating: true, ratingCount: true,
+        consultationFee: true, consultationFeeMin: true, consultationFeeMax: true,
+        rating: true, ratingCount: true,
       },
     },
     availability: { select: { date: true, startTime: true, endTime: true } },
@@ -1458,6 +1528,9 @@ function serializeBooking(b, viewerId, consultationOrPreview = null, extra = {})
     dutyWindow: b.availability
       ? { startTime: b.availability.startTime, endTime: b.availability.endTime }
       : null,
+    briefInquiryId: b.briefInquiryId || null,
+    offerDescription: b.offerDescription || null,
+    agreedDurationMinutes: b.agreedDurationMinutes || null,
     review: b.review || null,
   };
 }

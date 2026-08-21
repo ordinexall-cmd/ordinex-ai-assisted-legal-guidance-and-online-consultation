@@ -22,6 +22,7 @@ import {
   lawyerMatchesSpecialty,
   specialtyDisplayLabel,
 } from '../constants/legalCategories';
+import { ConsultOfferForm } from '../components/briefs/ConsultOfferForm';
 import {
   DirectoryFiltersPanel,
   type DirectoryFilters,
@@ -167,7 +168,6 @@ export const DirectoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [offerId, setOfferId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
 
   const citizenLocked = !isLawyer && !isCitizenBookingUnlocked(user);
@@ -242,13 +242,12 @@ export const DirectoryPage: React.FC = () => {
     return sortBriefs(next, filters);
   }, [briefs, filters]);
 
-  const sendOffer = async () => {
+  const sendOffer = async (payload: { message: string; durationMinutes: number; quotedFee?: number }) => {
     if (!offerId) return;
     setBusy(true);
     try {
-      await briefsApi.offer(offerId, note.trim());
+      await briefsApi.offer(offerId, payload);
       setOfferId(null);
-      setNote('');
       setBriefs((prev) => prev.map((b) => (b.id === offerId ? { ...b, myOfferStatus: 'PENDING' } : b)));
     } catch (e) {
       setError(getErrorMessage(e, 'Could not send offer.'));
@@ -397,7 +396,6 @@ export const DirectoryPage: React.FC = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setOfferId(b.id);
-                            setNote('');
                           }}
                         >
                           Offer consult
@@ -411,29 +409,17 @@ export const DirectoryPage: React.FC = () => {
                 <div className="acct-section" style={{ marginTop: '1rem' }}>
                   <div className="acct-section__head">
                     <h2 className="acct-section__title">Offer consult</h2>
-                    <button type="button" className="list-panel__link" onClick={() => setOfferId(null)}>Cancel</button>
+                    <button type="button" className="list-panel__link" onClick={() => { setOfferId(null); setError(''); }}>Cancel</button>
                   </div>
                   <div className="acct-section__body" style={{ padding: '0.85rem 1rem' }}>
-                    <label className="ox-label" htmlFor="offer-note">Optional note</label>
-                    <textarea
-                      id="offer-note"
-                      className="ox-input"
-                      rows={3}
-                      maxLength={200}
-                      placeholder="e.g. I handle labor cases in Davao."
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
+                    <ConsultOfferForm
+                      feeMin={user?.consultationFeeMin ?? user?.consultationFee ?? 0}
+                      feeMax={user?.consultationFeeMax ?? user?.consultationFeeMin ?? user?.consultationFee ?? 0}
+                      busy={busy}
+                      error={error}
+                      onCancel={() => { setOfferId(null); setError(''); }}
+                      onSubmit={(payload) => { void sendOffer(payload); }}
                     />
-                    <p className="staff-empty-hint">This is a request, not a chat. Chat opens after they book and pay.</p>
-                    <button
-                      type="button"
-                      className="ox-btn ox-btn-primary"
-                      style={{ marginTop: 8 }}
-                      disabled={busy}
-                      onClick={() => { void sendOffer(); }}
-                    >
-                      {busy ? 'Sending…' : 'Send offer'}
-                    </button>
                   </div>
                 </div>
               )}

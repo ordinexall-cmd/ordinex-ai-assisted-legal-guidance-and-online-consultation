@@ -111,6 +111,15 @@ export function appendConsultationIdToPath(
   return `${base}?${params.toString()}`;
 }
 
-export function buildLawyerBookPath(lawyerId: string, consultationId?: string | null): string {
-  return appendConsultationIdToPath(`/lawyers/${lawyerId}/book`, consultationId);
+export function buildLawyerBookPath(
+  lawyerId: string,
+  consultationId?: string | null,
+  inquiryId?: string | null,
+): string {
+  const path = appendConsultationIdToPath(`/lawyers/${lawyerId}/book`, consultationId);
+  if (!inquiryId) return path;
+  const [base, existingQs] = path.split('?');
+  const params = new URLSearchParams(existingQs || '');
+  params.set('inquiryId', inquiryId);
+  return `${base}?${params.toString()}`;
 }

@@ -64,15 +64,15 @@ export const BookingDetailHero: React.FC<BookingDetailHeroProps> = ({
         <span className="material-symbols-outlined stat-tile__icon" aria-hidden>schedule</span>
         <p className="stat-tile__label">Time</p>
         <p className="stat-tile__value">
-          {booking.availability.startTime}
-          {' – '}
-          {booking.availability.endTime}
+          {booking.sessionStartTime && booking.sessionEndTime
+            ? `${booking.sessionStartTime} – ${booking.sessionEndTime}`
+            : `${booking.availability.startTime} – ${booking.availability.endTime}`}
         </p>
       </div>
       <div className="stat-tile stat-tile--mock">
         <span className="material-symbols-outlined stat-tile__icon" aria-hidden>sell</span>
         <p className="stat-tile__label">Fee</p>
-        <p className="stat-tile__value">{peso(booking.feeAtBooking)}</p>
+        <p className="stat-tile__value">{peso(booking.quotedFee ?? booking.feeAtBooking)}</p>
       </div>
     </div>
 
@@ -81,6 +81,12 @@ export const BookingDetailHero: React.FC<BookingDetailHeroProps> = ({
       <p className="booking-detail-hero__case-text">
         {booking.caseDescription?.trim() || 'No description provided.'}
       </p>
+      {booking.offerDescription?.trim() && (
+        <>
+          <p className="booking-detail-hero__case-label" style={{ marginTop: 12 }}>Lawyer offer</p>
+          <p className="booking-detail-hero__case-text">{booking.offerDescription.trim()}</p>
+        </>
+      )}
     </div>
 
     {booking.consultationId ? (

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { AvailabilitySlot, ConsultationResult, LawyerProfile } from '../../services/api';
 import { hasBookingCaseContext, bookingCaseContextError } from '../../utils/bookingCaseContext';
 import { holdEnd, preferredStartsInWindow } from '../../utils/sessionOverlap';
+import { consultDurationLabel } from '../../utils/consultOffer';
 import { UserAvatar } from '../UserAvatar';
 import '../../styles/consult-booking.css';
 
@@ -14,6 +15,9 @@ export interface CitizenBookingWizardProps {
   readonly slots: AvailabilitySlot[];
   readonly history: ConsultationResult[];
   readonly initialConsultationId?: string;
+  readonly initialCaseDescription?: string;
+  readonly holdMinutes?: number;
+  readonly offerSummary?: { durationMinutes: number; quotedFee: number | null; message: string | null } | null;
   readonly loading?: boolean;
   readonly error?: string;
   /** When parent calendar picks a day, jump to slot step (if case context is ready). */
@@ -33,6 +37,9 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
   slots,
   history,
   initialConsultationId = '',
+  initialCaseDescription = '',
+  holdMinutes,
+  offerSummary = null,
   loading = false,
   error = '',
   preferredDate = null,
@@ -42,15 +49,22 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
 }) => {
   const [step, setStep] = useState(0);
   const [linkedConsultationId, setLinkedConsultationId] = useState(initialConsultationId);
-  const [caseDescription, setCaseDescription] = useState('');
+  const [caseDescription, setCaseDescription] = useState(initialCaseDescription);
+
+  useEffect(() => {
+    if (initialConsultationId) setLinkedConsultationId(initialConsultationId);
+  }, [initialConsultationId]);
+  useEffect(() => {
+    if (initialCaseDescription && !caseDescription) setCaseDescription(initialCaseDescription);
+  }, [initialCaseDescription, caseDescription]);
   const [caseContextAttempted, setCaseContextAttempted] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [preferredStart, setPreferredStart] = useState<string | null>(null);
 
   const openSlots = useMemo(
-    () => slots.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || []).length > 0),
-    [slots],
+    () => slots.filter((s) => preferredStartsInWindow(s.startTime, s.endTime, s.taken || [], holdMinutes).length > 0),
+    [slots, holdMinutes],
   );
 
   const datesWithSlots = useMemo(() => {
@@ -67,12 +81,12 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
   const startsForDate = useMemo(() => {
     const rows: { slotId: string; start: string; holdUntil: string }[] = [];
     for (const s of slotsForDate) {
-      for (const t of preferredStartsInWindow(s.startTime, s.endTime, s.taken || [])) {
-        rows.push({ slotId: s.id, start: t, holdUntil: holdEnd(t, s.endTime) });
+      for (const t of preferredStartsInWindow(s.startTime, s.endTime, s.taken || [], holdMinutes)) {
+        rows.push({ slotId: s.id, start: t, holdUntil: holdEnd(t, s.endTime, holdMinutes) });
       }
     }
     return rows;
-  }, [slotsForDate]);
+  }, [slotsForDate, holdMinutes]);
 
   const hasCaseContext = hasBookingCaseContext({ consultationId: linkedConsultationId, caseDescription });
 
@@ -145,6 +159,16 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
 
       {error && <div className="staff-alert staff-alert--error">{error}</div>}
 
+      {offerSummary && (
+        <div className="staff-alert staff-alert--success" role="status">
+          Agreed offer: {consultDurationLabel(offerSummary.durationMinutes)}
+          {offerSummary.quotedFee != null
+            ? ` · ${offerSummary.quotedFee === 0 ? 'Free' : `₱${offerSummary.quotedFee.toLocaleString()}`}`
+            : ''}
+          {offerSummary.message ? ` — ${offerSummary.message}` : ''}
+        </div>
+      )}
+
       {step === 0 && (
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
@@ -206,7 +230,10 @@ export const CitizenBookingWizard: React.FC<CitizenBookingWizardProps> = ({
       {step === 1 && (
         <>
           <p className="staff-empty-hint" style={{ marginBottom: '0.75rem' }}>
-            Pick a date and time from this lawyer&apos;s open hours. Each request holds 60 minutes; leftover time stays open.
+            Pick a date and time from this lawyer&apos;s open hours.
+            {holdMinutes
+              ? ` This offer holds ${consultDurationLabel(holdMinutes)}.`
+              : ' Each request holds 60 minutes; leftover time stays open.'}
           </p>
 
           <div className="staff-form-group">

@@ -13,6 +13,7 @@ import {
   type LegalAnalysisResult,
 } from '../services/api';
 import { specialtyDisplayLabel } from '../constants/legalCategories';
+import { ConsultOfferForm } from '../components/briefs/ConsultOfferForm';
 import { LawyerProfileSkeleton } from '../components/dashboard/LawyerProfileSkeleton';
 
 function placeLabel(b: CitizenBrief): string {
@@ -40,7 +41,6 @@ export const BriefRequestDetail: React.FC = () => {
   const [analysis, setAnalysis] = useState<BookingLinkedAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [offerDone, setOfferDone] = useState(false);
 
@@ -62,12 +62,12 @@ export const BriefRequestDetail: React.FC = () => {
 
   if (!briefId) return <Navigate to="/directory" replace />;
 
-  const sendOffer = async () => {
+  const sendOffer = async (payload: { message: string; durationMinutes: number; quotedFee?: number }) => {
     if (!brief) return;
     setBusy(true);
     setError('');
     try {
-      await briefsApi.offer(brief.id, note.trim());
+      await briefsApi.offer(brief.id, payload);
       setOfferDone(true);
       setBrief({ ...brief, myOfferStatus: 'PENDING' });
     } catch (err) {
@@ -170,29 +170,13 @@ export const BriefRequestDetail: React.FC = () => {
                 {offerDone || brief.myOfferStatus ? (
                   <p className="staff-empty-hint">Offer sent. Chat opens after they book and pay.</p>
                 ) : (
-                  <>
-                    <label className="ox-label" htmlFor="brief-offer-note">Optional note</label>
-                    <textarea
-                      id="brief-offer-note"
-                      className="ox-input"
-                      rows={3}
-                      maxLength={200}
-                      placeholder="e.g. I handle labor cases in Davao."
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                    />
-                    <p className="staff-empty-hint">This is a request, not a chat. Chat opens after they book and pay.</p>
-                    {error && <p className="landing-form-error">{error}</p>}
-                    <button
-                      type="button"
-                      className="ox-btn ox-btn-primary"
-                      style={{ marginTop: 8 }}
-                      disabled={busy}
-                      onClick={() => { void sendOffer(); }}
-                    >
-                      {busy ? 'Sending…' : 'Send offer'}
-                    </button>
-                  </>
+                  <ConsultOfferForm
+                    feeMin={user?.consultationFeeMin ?? user?.consultationFee ?? 0}
+                    feeMax={user?.consultationFeeMax ?? user?.consultationFeeMin ?? user?.consultationFee ?? 0}
+                    busy={busy}
+                    error={error}
+                    onSubmit={(payload) => { void sendOffer(payload); }}
+                  />
                 )}
               </div>
             </section>

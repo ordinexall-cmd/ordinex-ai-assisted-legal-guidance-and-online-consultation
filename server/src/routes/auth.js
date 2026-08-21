@@ -1037,12 +1037,17 @@ router.patch('/me', requireAuth, async (req, res, next) => {
     }
 
     const sensitiveProfileFields = ['firstName', 'lastName', 'middleName', 'dob', 'citizenIdNumber', 'citizenIdType'];
-    const touchesSensitive = sensitiveProfileFields.some((f) => updates[f] !== undefined);
-    if (touchesSensitive) {
+    const identityChanged = sensitiveProfileFields.some((f) => {
+      if (updates[f] === undefined) return false;
+      const next = updates[f] == null ? '' : String(updates[f]).trim();
+      const prev = req.user[f] == null ? '' : String(req.user[f]).trim();
+      return next !== prev;
+    });
+    if (identityChanged) {
       const currentPassword = (req.body.currentPassword || '').trim();
       const passwordOk = await verifyCurrentPassword(req.user, currentPassword);
       if (!passwordOk) {
-        return res.status(401).json({ error: 'Enter your current password to update identity fields.' });
+        return res.status(403).json({ error: 'Enter your current password to update identity fields.' });
       }
     }
 

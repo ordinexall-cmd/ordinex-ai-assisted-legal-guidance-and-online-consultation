@@ -615,6 +615,8 @@ export interface CitizenBrief {
 export interface BriefInquiry {
   id: string;
   message: string | null;
+  durationMinutes: number | null;
+  quotedFee: number | null;
   status: string;
   createdAt: string;
   lawyer: {
@@ -623,6 +625,13 @@ export interface BriefInquiry {
     avatarUrl: string | null;
     specializations: string | null;
     fee: number | null;
+    consultationFeeMin?: number | null;
+    consultationFeeMax?: number | null;
+  };
+  brief?: {
+    id: string;
+    consultationId: string | null;
+    summary: string;
   };
 }
 
@@ -630,6 +639,8 @@ export interface LawyerBriefOffer {
   id: string;
   status: string;
   message: string | null;
+  durationMinutes: number | null;
+  quotedFee: number | null;
   createdAt: string;
   brief: {
     id: string;
@@ -655,8 +666,16 @@ export const briefsApi = {
   }) => request<{ brief: CitizenBrief }>('/briefs/mine', { method: 'PUT', body: JSON.stringify(body) }),
   closeMine: () => request<{ brief: CitizenBrief | null }>('/briefs/mine/close', { method: 'POST' }),
   listInquiries: () => request<{ inquiries: BriefInquiry[] }>('/briefs/inquiries'),
-  acceptInquiry: (id: string) => request<{ lawyerId: string }>(`/briefs/inquiries/${id}/accept`, { method: 'POST' }),
+  acceptInquiry: (id: string) =>
+    request<{
+      lawyerId: string;
+      inquiryId: string;
+      durationMinutes: number | null;
+      quotedFee: number | null;
+      message: string | null;
+    }>(`/briefs/inquiries/${id}/accept`, { method: 'POST' }),
   declineInquiry: (id: string) => request<{ ok: boolean }>(`/briefs/inquiries/${id}/decline`, { method: 'POST' }),
+  getInquiry: (id: string) => request<{ inquiry: BriefInquiry }>(`/briefs/inquiries/${id}`),
   listOpen: (params: { search?: string; category?: string } = {}) => {
     const qs = new URLSearchParams();
     if (params.search) qs.set('search', params.search);
@@ -669,11 +688,14 @@ export const briefsApi = {
       citizen: { displayName: string; avatarUrl: string | null };
       analysis: BookingLinkedAnalysis | null;
     }>(`/briefs/${id}`),
-  offer: (id: string, message?: string) =>
-    request<{ inquiry: { id: string; status: string } }>(`/briefs/${id}/offer`, {
-      method: 'POST',
-      body: JSON.stringify({ message: message || '' }),
-    }),
+  offer: (id: string, body: { message: string; durationMinutes: number; quotedFee?: number }) =>
+    request<{ inquiry: { id: string; status: string; durationMinutes?: number | null; quotedFee?: number | null } }>(
+      `/briefs/${id}/offer`,
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+    ),
   myOffers: () => request<{ offers: LawyerBriefOffer[] }>('/briefs/my-offers'),
 };
 
@@ -782,6 +804,9 @@ export interface Booking {
   sessionStartTime?: string | null;
   sessionEndTime?: string | null;
   dutyWindow?: { startTime: string; endTime: string } | null;
+  briefInquiryId?: string | null;
+  offerDescription?: string | null;
+  agreedDurationMinutes?: number | null;
   createdAt: string;
   updatedAt: string;
   chatIsOpen: boolean;
@@ -805,7 +830,10 @@ export interface Booking {
     id: string; name: string; avatarUrl: string | null;
     specializations: string[]; practiceType: 'PUBLIC' | 'PRIVATE' | null;
     paymentMethods: PaymentMethod[];
-    consultationFee: number | null; rating: number; ratingCount: number;
+    consultationFee: number | null;
+    consultationFeeMin?: number | null;
+    consultationFeeMax?: number | null;
+    rating: number; ratingCount: number;
   };
   availability: { date: string; startTime: string; endTime: string };
   review: { id: string; rating: number; comment: string | null; createdAt: string } | null;
@@ -836,6 +864,7 @@ export const bookingsApi = {
     preferredStartTime: string;
     consultationId?: string;
     caseDescription?: string;
+    inquiryId?: string;
   }) =>
     request<{ booking: Booking }>('/bookings', { method: 'POST', body: JSON.stringify(body) }),
 

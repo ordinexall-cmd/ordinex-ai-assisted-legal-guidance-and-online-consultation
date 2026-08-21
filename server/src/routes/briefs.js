@@ -4,6 +4,12 @@ import { requireAuth } from '../middleware/auth.js';
 import { requireCitizen, requireCitizenVerified, requireLawyer, requireLawyerVerified } from '../middleware/premium.js';
 import { createNotification } from '../services/notify.js';
 import { normalizeLegacyAiResult } from '../services/legalValidator.js';
+import { lawyerFeeMin, lawyerFeeMax } from '../utils/lawyerFees.js';
+import {
+  OFFER_MESSAGE_MAX,
+  OFFER_MESSAGE_MIN,
+  isConsultOfferDuration,
+} from '../utils/consultOffer.js';
 
 const router = Router();
 const MAX_SUMMARY = 280;
@@ -32,6 +38,32 @@ function serializePublicBrief(brief, lawyerId) {
     displayName: publicDisplayName(brief),
     createdAt: brief.createdAt,
     myOfferStatus: mine?.status || null,
+  };
+}
+
+function serializeInquiryLawyer(lawyer) {
+  const min = lawyerFeeMin(lawyer);
+  const max = lawyerFeeMax(lawyer);
+  return {
+    id: lawyer.id,
+    name: lawyer.name,
+    avatarUrl: lawyer.avatarUrl,
+    specializations: lawyer.specializations,
+    fee: min,
+    consultationFeeMin: min,
+    consultationFeeMax: max,
+  };
+}
+
+function serializeInquiry(i) {
+  return {
+    id: i.id,
+    message: i.message,
+    durationMinutes: i.durationMinutes ?? null,
+    quotedFee: i.quotedFee ?? null,
+    status: i.status,
+    createdAt: i.createdAt,
+    lawyer: serializeInquiryLawyer(i.lawyer),
   };
 }
 
@@ -220,25 +252,51 @@ router.get('/inquiries', requireAuth, requireCitizen, requireCitizenVerified, as
             avatarUrl: true,
             specializations: true,
             consultationFeeMin: true,
+            consultationFeeMax: true,
             consultationFee: true,
           },
         },
       },
     });
     res.json({
-      inquiries: inquiries.map((i) => ({
-        id: i.id,
-        message: i.message,
-        status: i.status,
-        createdAt: i.createdAt,
+      inquiries: inquiries.map((i) => serializeInquiry(i)),
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/inquiries/:id', requireAuth, requireCitizen, requireCitizenVerified, async (req, res, next) => {
+  try {
+    const inquiry = await prisma.briefInquiry.findUnique({
+      where: { id: req.params.id },
+      include: {
+        brief: true,
         lawyer: {
-          id: i.lawyer.id,
-          name: i.lawyer.name,
-          avatarUrl: i.lawyer.avatarUrl,
-          specializations: i.lawyer.specializations,
-          fee: i.lawyer.consultationFeeMin ?? i.lawyer.consultationFee,
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            specializations: true,
+            consultationFeeMin: true,
+            consultationFeeMax: true,
+            consultationFee: true,
+          },
         },
-      })),
+      },
+    });
+    if (!inquiry || inquiry.brief.userId !== req.user.id) {
+      return res.status(404).json({ error: 'Offer not found.' });
+    }
+    res.json({
+      inquiry: {
+        ...serializeInquiry(inquiry),
+        brief: {
+          id: inquiry.brief.id,
+          consultationId: inquiry.brief.consultationId,
+          summary: inquiry.brief.summary,
+        },
+      },
     });
   } catch (e) {
     next(e);
@@ -268,7 +326,13 @@ router.post('/inquiries/:id/accept', requireAuth, requireCitizen, requireCitizen
       type: 'BRIEF_OFFER_ACCEPTED',
       linkTo: `/directory/requests/${inquiry.brief.id}`,
     }).catch(() => {});
-    res.json({ lawyerId: inquiry.lawyerId });
+    res.json({
+      lawyerId: inquiry.lawyerId,
+      inquiryId: inquiry.id,
+      durationMinutes: inquiry.durationMinutes,
+      quotedFee: inquiry.quotedFee,
+      message: inquiry.message,
+    });
   } catch (e) {
     next(e);
   }
@@ -321,6 +385,8 @@ router.get('/my-offers', requireAuth, requireLawyer, requireLawyerVerified, asyn
         id: i.id,
         status: i.status,
         message: i.message,
+        durationMinutes: i.durationMinutes ?? null,
+        quotedFee: i.quotedFee ?? null,
         createdAt: i.createdAt,
         brief: {
           id: i.brief.id,
@@ -441,24 +507,59 @@ router.post('/:id/offer', requireAuth, requireLawyer, requireLawyerVerified, asy
     if (todayCount >= OFFER_LIMIT_PER_DAY) {
       return res.status(429).json({ error: `You can send up to ${OFFER_LIMIT_PER_DAY} offers per day.` });
     }
-    const message = String(req.body.message || '').trim().slice(0, 200) || null;
+    const message = String(req.body.message || '').trim();
+    if (message.length < OFFER_MESSAGE_MIN || message.length > OFFER_MESSAGE_MAX) {
+      return res.status(400).json({
+        error: `Describe the consult in ${OFFER_MESSAGE_MIN}–${OFFER_MESSAGE_MAX} characters.`,
+      });
+    }
+    const durationMinutes = Number(req.body.durationMinutes);
+    if (!isConsultOfferDuration(durationMinutes)) {
+      return res.status(400).json({ error: 'Choose 30 minutes, 1 hour, or 1.5 hours.' });
+    }
+
+    const min = lawyerFeeMin(req.user);
+    const max = lawyerFeeMax(req.user);
+    const isFree = min <= 0 && max <= 0;
+    let quotedFee = null;
+    if (!isFree) {
+      quotedFee = Number(req.body.quotedFee);
+      if (!Number.isFinite(quotedFee) || quotedFee <= 0) {
+        return res.status(400).json({ error: 'Quote the exact consultation fee.' });
+      }
+      if (quotedFee < min || quotedFee > max) {
+        return res.status(400).json({
+          error: `Fee must be between ₱${min.toLocaleString()} and ₱${max.toLocaleString()}.`,
+        });
+      }
+    }
+
     try {
       const inquiry = await prisma.briefInquiry.create({
         data: {
           briefId: brief.id,
           lawyerId: req.user.id,
           message,
+          durationMinutes,
+          quotedFee,
           status: 'PENDING',
         },
       });
       createNotification({
         userId: brief.userId,
         title: 'Consult offer',
-        message: `${req.user.name} offered a consultation on your open request.`,
+        message: `${req.user.name} offered a ${durationMinutes}-minute consultation on your open request.`,
         type: 'BRIEF_OFFER',
         linkTo: '/dashboard#consult-offers',
       }).catch(() => {});
-      res.status(201).json({ inquiry: { id: inquiry.id, status: inquiry.status } });
+      res.status(201).json({
+        inquiry: {
+          id: inquiry.id,
+          status: inquiry.status,
+          durationMinutes: inquiry.durationMinutes,
+          quotedFee: inquiry.quotedFee,
+        },
+      });
     } catch (err) {
       if (String(err?.code) === 'P2002') {
         return res.status(409).json({ error: 'You already sent an offer on this request.' });
