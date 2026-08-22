@@ -48,7 +48,7 @@ const LOCALIZED_FALLBACKS = {
     possibleIssue: 'Possible legal issue',
     moreFactsNeeded: 'Based on the legal references provided, this area may be relevant. More facts are needed.',
     specializedRules: 'This situation may involve specialized legal rules that are not fully covered in our verified library. To keep you safe and give you the best help, we recommend booking a short consultation with one of our licensed lawyers.',
-    missingFacts: ['Specific dates', 'Parties involved', 'Documents or evidence available'],
+    missingFacts: ['Specific dates or timing', 'Who was involved and what each person said or did', 'What happened next after the incident'],
     noReferences: 'We could not find verified legal references for this situation in our database. For your protection, we recommend speaking with a licensed attorney who can give you proper guidance.',
     nextSteps: [
       'Book a short consultation with one of our licensed lawyers on the platform for proper guidance.',
@@ -65,7 +65,7 @@ const LOCALIZED_FALLBACKS = {
     possibleIssue: 'Posibleng legal na isyu',
     moreFactsNeeded: 'Batay sa mga ibinigay na legal na sanggunian, maaaring may kaugnayan ang bahaging ito. Kailangan ng mas maraming katotohanan.',
     specializedRules: 'Ang sitwasyong ito ay maaaring may kinalaman sa mga espesyal na legal na alituntunin na hindi ganap na sakop ng aming na-verify na library. Para sa iyong kaligtasan at upang mabigyan ka ng pinakamahusay na tulong, inirerekumenda namin ang pag-book ng maikling konsultasyon sa isa sa aming mga lisensyadong abogado.',
-    missingFacts: ['Tiyak na mga petsa', 'Mga kasangkot na panig', 'Mga available na dokumento o ebidensya'],
+    missingFacts: ['Tiyak na petsa o oras', 'Sino ang kasangkot at ano ang sinabi o ginawa ng bawat isa', 'Ano ang nangyari pagkatapos'],
     noReferences: 'Hindi kami makahanap ng mga na-verify na legal na sanggunian para sa sitwasyong ito sa aming database. Para sa iyong proteksyon, inirerekumenda namin na makipag-usap sa isang lisensyadong abogado na makakapagbigay sa iyo ng tamang gabay.',
     nextSteps: [
       'Mag-book ng maikling konsultasyon sa isa sa aming mga lisensyadong abogado sa platform para sa tamang gabay.',
@@ -82,7 +82,7 @@ const LOCALIZED_FALLBACKS = {
     possibleIssue: 'Posibleng legal nga isyu',
     moreFactsNeeded: 'Base sa mga gihatag nga legal nga mga pakisayran, mahimong may kalabutan kini nga bahin. Gikinahanglan ang dugang nga mga detalye.',
     specializedRules: 'Kini nga sitwasyon mahimong naglakip sa mga espesyal nga legal nga lagda nga wala hingpit nga nasakup sa among na-verify nga library. Alang sa imong kaluwasan ug aron mahatagan ka sa labing kaayo nga tabang, among girekomenda nga mag-book og mubo nga konsultasyon sa usa sa among mga lisensyadong abogado.',
-    missingFacts: ['Tino nga mga petsa', 'Mga nahilambigit nga partido', 'Mga magamit nga dokumento o ebidensya'],
+    missingFacts: ['Tino nga petsa o oras', 'Kinsa ang nalambigit ug unsay gisulti o gibuhat sa matag usa', 'Unsa ang nahitabo pagkahuman'],
     noReferences: 'Wala kami nakit-an nga na-verify nga mga legal nga pakisayran alang niini nga sitwasyon sa among database. Alang sa imong proteksyon, among girekomenda nga makigsulti sa usa ka lisensyadong abogado nga makahatag kanimo og saktong giya.',
     nextSteps: [
       'Mag-book og mubo nga konsultasyon sa usa sa among mga lisensyadong abogado sa platform para sa saktong giya.',
@@ -296,16 +296,29 @@ export function validateAndFilterAnalysis(raw, retrievedChunks, targetLang = 'en
     };
     complexCase = true;
   } else if (cases.length === 0 && allowed.length === 0) {
-    // No database matches at all — flag as complex
+    // No library match — keep only low-confidence placeholders; strip grounded-looking citations
+    cases = (result.possibleLegalCases || [])
+      .filter((c) => Number(c.confidenceScore) < 35)
+      .map((c) => ({
+        ...c,
+        confidenceScore: Math.min(Number(c.confidenceScore) || 20, 30),
+        applicableLaw: c.applicableLaw?.includes('Republic Act') ? local.possibleIssue : (c.applicableLaw || local.possibleIssue),
+        sourceLink: null,
+        sourceId: null,
+      }));
     complexCase = true;
-    result.courtWinOutlook = {
-      level: 'Uncertain',
-      summary: local.noReferences,
-      factorsFor: [],
-      factorsAgainst: [],
-      missingFacts: local.missingFacts,
-    };
-    result.suggestedNextSteps = [...local.nextSteps];
+    if (!result.courtWinOutlook?.summary?.trim()) {
+      result.courtWinOutlook = {
+        level: 'Uncertain',
+        summary: local.noReferences,
+        factorsFor: [],
+        factorsAgainst: [],
+        missingFacts: [],
+      };
+    }
+    if (!result.suggestedNextSteps?.length) {
+      result.suggestedNextSteps = [...local.nextSteps];
+    }
   } else {
     cases = cases.map((c) => {
       // Prefer the freshest matching chunk; fall back to any match.

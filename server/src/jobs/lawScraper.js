@@ -1,19 +1,8 @@
 // ============================================================
 // Ordinex — Daily Legal Database Auto-Update Scraper
 // Checks Official Gazette, LawPhil, and SC E-Library for new
-// AND CHANGED laws/decisions.
-//
-// What this job does, beyond simple discovery:
-//   1. Discover candidate URLs from the source index pages.
-//   2. For each URL: download, extract canonical body text,
-//      compute SHA-256 content hash.
-//   3. If unseen by URL → insert as new ACTIVE source.
-//   4. If seen by URL but content_hash differs → mark the
-//      previous version's status as 'SUPERSEDED', point its
-//      superseded_by to the new row, insert the new row as
-//      'AMENDED' with the same source_url and updated hash.
-//   5. Track last_checked_at and last_changed_at for freshness.
-//   6. Emit a per-run report with new + changed + unchanged counts.
+// AND CHANGED laws/decisions, upserting into Prisma LawReference
+// (and syncing phLawsExtended.json). Does not use legal_chunks.
 //
 // Runs daily at 12:00 AM PHT via node-cron (scheduler.js).
 // Manual: node src/jobs/lawScraper.js
@@ -22,9 +11,10 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { env } from '../config/env.js';
 import { prisma } from '../config/prisma.js';
 import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
+import { embedLawReference } from '../services/embeddings.js';
+import { REPEAL_RE } from './corpusHistoryMiner.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,8 +41,8 @@ const SOURCES = {
  * @param {string} url
  * @returns {Promise<string|null>}
  */
-async function fetchPage(url) {
-  if (!isAllowedPhLegalUrl(url)) return null;
+async function fetchPage(url, { checkStatus = false } = {}) {
+  if (!isAllowedPhLegalUrl(url)) return checkStatus ? { html: null, status: 0 } : null;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -64,11 +54,12 @@ async function fetchPage(url) {
       },
     });
     clearTimeout(timeout);
-    if (!res.ok) return null;
-    return await res.text();
+    if (!res.ok) return checkStatus ? { html: null, status: res.status } : null;
+    const html = await res.text();
+    return checkStatus ? { html, status: res.status } : html;
   } catch (err) {
     console.warn(`[lawScraper] Failed to fetch ${url}: ${err.message}`);
-    return null;
+    return checkStatus ? { html: null, status: 0 } : null;
   }
 }
 
@@ -162,26 +153,11 @@ function extractBodyText(html) {
 }
 
 /**
- * Split long text into chunks of ~1500 characters for embedding.
- * @param {string} text
- * @param {number} maxLen
- * @returns {string[]}
+ * Compute a stable content hash so trivial whitespace does not force updates.
  */
-function chunkText(text, maxLen = 1500) {
-  if (text.length <= maxLen) return [text];
-  const chunks = [];
-  const sentences = text.split(/(?<=[.!?])\s+/);
-  let current = '';
-  for (const sentence of sentences) {
-    if ((current + ' ' + sentence).length > maxLen && current.length > 0) {
-      chunks.push(current.trim());
-      current = sentence;
-    } else {
-      current = current ? current + ' ' + sentence : sentence;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-  return chunks;
+function contentHash(text) {
+  const canonical = (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return crypto.createHash('sha256').update(canonical).digest('hex');
 }
 
 /**
@@ -223,151 +199,75 @@ function categorizeContent(text) {
 }
 
 /**
- * Compute a stable, canonical content hash so trivial whitespace
- * differences don't trigger a false "amended" verdict.
+ * Look up an existing LawReference by source URL (link) or name.
  */
-function contentHash(text) {
-  const canonical = (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
-  return crypto.createHash('sha256').update(canonical).digest('hex');
-}
-
-/**
- * Look up the existing legal_sources row by URL (preferred) or by
- * fuzzy title match. Returns the row including content_hash and
- * status so the caller can decide between skip / amend / new.
- */
-async function findExistingLaw(sb, url, title) {
+async function findExistingLaw(url, title) {
   if (url) {
-    const { data, error } = await sb
-      .from('legal_sources')
-      .select('id, name, content_hash, status, last_changed_at, source_url')
-      .eq('source_url', url)
-      .order('last_changed_at', { ascending: false, nullsLast: true })
-      .limit(1);
-    if (error) {
-      // Older Supabase migrations may not have content_hash yet — gracefully fall back.
-      if (error.code === 'PGRST204' || error.message?.includes('content_hash')) {
-        const fallback = await sb.from('legal_sources').select('id, name').eq('source_url', url).limit(1);
-        return fallback.data?.[0] ? { ...fallback.data[0], content_hash: null, status: 'ACTIVE' } : null;
-      }
-      return null;
-    }
-    if (data?.length > 0) return data[0];
+    const byLink = await prisma.lawReference.findFirst({
+      where: { link: url },
+      select: { id: true, name: true, fullText: true, link: true, keywords: true },
+    });
+    if (byLink) return byLink;
   }
   if (title) {
-    const { data, error } = await sb
-      .from('legal_sources')
-      .select('id, name, content_hash, status, last_changed_at, source_url')
-      .ilike('name', `%${title.slice(0, 50)}%`)
-      .order('last_changed_at', { ascending: false, nullsLast: true })
-      .limit(1);
-    if (error) return null;
-    if (data?.length > 0) return data[0];
+    const byName = await prisma.lawReference.findFirst({
+      where: { name: { contains: title.slice(0, 80), mode: 'insensitive' } },
+      select: { id: true, name: true, fullText: true, link: true, keywords: true },
+    });
+    if (byName) return byName;
   }
   return null;
 }
 
 /**
- * Mark the previous source row as SUPERSEDED and set superseded_by to
- * the new row's id. Best-effort: tolerates older schemas that may not
- * have the freshness columns yet.
+ * Insert or update a LawReference row from a scraped PH gov page.
+ * Corpus lives in Prisma LawReference (+ JSON seed files), not legal_chunks.
  */
-async function markSuperseded(sb, prevId, newId) {
-  const { error } = await sb
-    .from('legal_sources')
-    .update({
-      status: 'SUPERSEDED',
-      superseded_by: newId,
-      last_changed_at: new Date().toISOString(),
-    })
-    .eq('id', prevId);
-  if (error && !error.message?.includes('superseded_by')) {
-    console.warn(`[lawScraper] Could not flag superseded source ${prevId}: ${error.message}`);
-  }
-}
+async function upsertLaw(law) {
+  const keywords = Array.isArray(law.keywords) ? law.keywords.join(', ') : String(law.keywords || '');
+  const hash = law.contentHash || contentHash(law.content);
+  let corpusStatus = 'ACTIVE';
+  if (REPEAL_RE.test(law.content || '')) corpusStatus = 'REPEALED';
+  else if (law.amended) corpusStatus = 'AMENDED';
 
-/**
- * Insert a new legal_source + its chunks (with embeddings when available).
- * status is either 'ACTIVE' (brand-new entry) or 'AMENDED' (replacement
- * of a previously known URL with different content).
- */
-async function insertLaw(sb, law, { status = 'ACTIVE' } = {}) {
-  const now = new Date().toISOString();
-  const baseRow = {
+  const payload = {
     name: law.title,
-    citation: law.title,
-    category: law.category,
-    region: 'National',
-    source_url: law.url,
-  };
-  // Some installations may not yet have run 004_freshness_superseded.sql,
-  // so we try the rich insert first and downgrade gracefully.
-  const richRow = {
-    ...baseRow,
-    content_hash: law.contentHash,
-    status,
-    last_checked_at: now,
-    last_changed_at: now,
+    category: law.category || 'General',
+    fullText: law.content.slice(0, 50000),
+    link: law.url || null,
+    keywords,
     priority: law.priority || 'medium',
+    region: law.region || 'National',
+    contentHash: hash,
+    corpusStatus,
   };
 
-  let src = null;
-  let srcErr = null;
-  const richInsert = await sb.from('legal_sources').insert(richRow).select('id').single();
-  src = richInsert.data;
-  srcErr = richInsert.error;
-  if (srcErr && /column .* does not exist|content_hash|status|priority|superseded_by/i.test(srcErr.message)) {
-    console.warn('[lawScraper] Freshness columns missing; falling back to legacy insert.');
-    const legacyInsert = await sb.from('legal_sources').insert(baseRow).select('id').single();
-    src = legacyInsert.data;
-    srcErr = legacyInsert.error;
-  }
-  if (srcErr) {
-    console.warn(`[lawScraper] Source insert failed for "${law.title}": ${srcErr.message}`);
-    return null;
+  const existing = await findExistingLaw(law.url, law.title);
+  if (!existing) {
+    const created = await prisma.lawReference.create({ data: payload });
+    console.log(`[lawScraper] ✅ Inserted LawReference "${law.title}"`);
+    embedLawReference(created.id).catch(() => {});
+    return { id: created.id, status: 'added' };
   }
 
-  const chunks = chunkText(law.content);
-  let insertedChunks = 0;
-
-  for (const chunkContent of chunks) {
-    const chunkData = {
-      source_id: src.id,
-      content: chunkContent,
-      keywords: law.keywords,
-      region: 'National',
-    };
-    try {
-      const vector = await embedQuery(chunkContent);
-      if (vector) chunkData.embedding = vector;
-    } catch (e) {
-      console.warn(`[lawScraper] Embedding failed for chunk, inserting without vector: ${e.message}`);
-    }
-    const { error: chunkErr } = await sb.from('legal_chunks').insert(chunkData);
-    if (!chunkErr) insertedChunks++;
+  const prevHash = existing.fullText ? contentHash(existing.fullText) : '';
+  if (prevHash === hash && corpusStatus === 'ACTIVE') {
+    return { id: existing.id, status: 'unchanged' };
   }
 
-  console.log(`[lawScraper] ✅ ${status === 'AMENDED' ? 'Amended' : 'Inserted'} "${law.title}" (${insertedChunks} chunk(s))`);
-  return src.id;
+  await prisma.lawReference.update({
+    where: { id: existing.id },
+    data: payload,
+  });
+  console.log(`[lawScraper] ✅ Updated LawReference "${law.title}" (${corpusStatus})`);
+  embedLawReference(existing.id).catch(() => {});
+  return { id: existing.id, status: corpusStatus === 'REPEALED' ? 'superseded' : 'amended' };
 }
 
 /**
- * Touch only the freshness metadata of an existing legal_source so we
- * can tell, in operational logs, that we successfully re-verified the
- * URL but found no content change.
+ * Scrape a single source feed into LawReference.
  */
-async function markUnchanged(sb, sourceId) {
-  await sb
-    .from('legal_sources')
-    .update({ last_checked_at: new Date().toISOString() })
-    .eq('id', sourceId);
-}
-
-/**
- * Scrape a single source feed and apply the freshness-aware update logic.
- * Returns per-source stats: { added, amended, unchanged, skipped }.
- */
-async function scrapeSource(sb, sourceKey) {
+async function scrapeSource(sourceKey) {
   const source = SOURCES[sourceKey];
   console.log(`[lawScraper] Checking ${source.name}...`);
 
@@ -396,6 +296,7 @@ async function scrapeSource(sb, sourceKey) {
   let amended = 0;
   let unchanged = 0;
   let skipped = 0;
+  let superseded = 0;
 
   for (const link of links) {
     const pageHtml = await fetchPage(link.url);
@@ -405,75 +306,120 @@ async function scrapeSource(sb, sourceKey) {
     if (content.length < 100) { skipped++; continue; }
 
     const hash = contentHash(content);
-    const existing = await findExistingLaw(sb, link.url, link.title);
     const category = categorizeContent(content);
     const keywords = extractKeywords(content);
     const law = { title: link.title, url: link.url, content, category, keywords, contentHash: hash };
 
-    if (!existing) {
-      const id = await insertLaw(sb, law, { status: 'ACTIVE' });
-      if (id) added++; else skipped++;
-    } else if (existing.content_hash && existing.content_hash === hash) {
-      await markUnchanged(sb, existing.id);
-      unchanged++;
-    } else {
-      // Either we never had a hash (first sighting under new schema) or the
-      // content changed — record the new version and mark the old SUPERSEDED.
-      const newId = await insertLaw(sb, law, {
-        status: existing.content_hash ? 'AMENDED' : 'ACTIVE',
-      });
-      if (newId && existing.content_hash) {
-        await markSuperseded(sb, existing.id, newId);
-        amended++;
-      } else if (newId) {
-        // Backfilling hash on first run — treat as touch, not a real change.
-        unchanged++;
-      } else {
-        skipped++;
-      }
+    try {
+      const result = await upsertLaw(law);
+      if (result.status === 'added') added++;
+      else if (result.status === 'amended') amended++;
+      else if (result.status === 'superseded') superseded++;
+      else unchanged++;
+    } catch (err) {
+      console.warn(`[lawScraper] Upsert failed for "${link.title}": ${err.message}`);
+      skipped++;
     }
 
-    // Polite delay between requests (2 seconds)
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   console.log(
-    `[lawScraper] ${source.name} → +${added} added · ↻${amended} amended · =${unchanged} unchanged · ×${skipped} skipped`,
+    `[lawScraper] ${source.name} → +${added} added · ↻${amended} amended · =${unchanged} unchanged · ×${skipped} skipped` +
+    (superseded ? ` · ⚠${superseded} superseded` : ''),
   );
-  return { added, amended, unchanged, skipped };
+  return { added, amended, unchanged, skipped, superseded };
+}
+
+/** Flag stored laws whose gov link returns 404 or shows repeal language. */
+async function checkStaleStoredLinks() {
+  const rows = await prisma.lawReference.findMany({
+    where: { link: { not: null }, corpusStatus: { not: 'REPEALED' } },
+    select: { id: true, link: true, name: true },
+    take: 40,
+  });
+  let superseded = 0;
+  for (const row of rows) {
+    if (!row.link || !isAllowedPhLegalUrl(row.link)) continue;
+    const { html, status } = await fetchPage(row.link, { checkStatus: true });
+    if (status === 404 || status === 410) {
+      await prisma.lawReference.update({
+        where: { id: row.id },
+        data: { corpusStatus: 'SUPERSEDED', priority: 'low' },
+      });
+      superseded++;
+      continue;
+    }
+    if (html && REPEAL_RE.test(html)) {
+      await prisma.lawReference.update({
+        where: { id: row.id },
+        data: { corpusStatus: 'REPEALED', priority: 'low' },
+      });
+      superseded++;
+    }
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  return superseded;
+}
+
+/** Log top citizen concerns not yet covered in LawReference keywords. */
+async function runTopConcernGapCheck() {
+  const manifestPath = path.join(__dirname, '../../data/topPhLegalConcerns.json');
+  if (!fs.existsSync(manifestPath)) return 0;
+  const topics = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+  const all = await prisma.lawReference.findMany({ select: { keywords: true, name: true, category: true } });
+  const hay = all.map((l) => `${l.name} ${l.keywords} ${l.category}`.toLowerCase()).join(' ');
+  let gaps = 0;
+  for (const t of topics) {
+    const tokens = String(t.keywords || t.topic).split(/[\s,]+/).filter((k) => k.length > 3);
+    const covered = tokens.some((tok) => hay.includes(tok.toLowerCase()));
+    if (!covered) {
+      console.log(`[lawScraper] Gap candidate (no preload match): ${t.topic}`);
+      gaps++;
+    }
+  }
+  return gaps;
 }
 
 /**
- * Main scraper entry point — checks all 3 sources.
- * Called by the scheduler daily or manually.
+ * Main scraper entry point — checks all 3 sources into LawReference.
  */
 export async function runLawScraper() {
   const startedAt = new Date();
   console.log(`\n[lawScraper] ════════════════════════════════════════`);
   console.log(`[lawScraper] Daily legal database update started`);
   console.log(`[lawScraper] Time: ${startedAt.toISOString()}`);
+  console.log(`[lawScraper] Target: Prisma LawReference (no legal_chunks)`);
   console.log(`[lawScraper] ════════════════════════════════════════\n`);
 
-  const sb = getSupabaseClient();
-  if (!sb) {
-    console.log('[lawScraper] Supabase not configured. Using Prisma database integration for legal corpus updates.');
-  }
-
   const results = {};
-  const aggregate = { added: 0, amended: 0, unchanged: 0, skipped: 0 };
+  const aggregate = { added: 0, amended: 0, unchanged: 0, skipped: 0, superseded: 0, gapFilled: 0 };
 
   for (const sourceKey of Object.keys(SOURCES)) {
     try {
-      const stats = await scrapeSource(sb, sourceKey);
+      const stats = await scrapeSource(sourceKey);
       results[sourceKey] = { ...stats, error: null };
       aggregate.added += stats.added;
       aggregate.amended += stats.amended;
       aggregate.unchanged += stats.unchanged;
       aggregate.skipped += stats.skipped;
+      aggregate.superseded += stats.superseded || 0;
     } catch (err) {
       console.error(`[lawScraper] Error scraping ${sourceKey}: ${err.message}`);
-      results[sourceKey] = { added: 0, amended: 0, unchanged: 0, skipped: 0, error: err.message };
+      results[sourceKey] = { added: 0, amended: 0, unchanged: 0, skipped: 0, superseded: 0, error: err.message };
     }
+  }
+
+  try {
+    aggregate.superseded += await checkStaleStoredLinks();
+  } catch (e) {
+    console.warn('[lawScraper] Stale link check skipped:', e.message);
+  }
+
+  try {
+    aggregate.gapFilled = await runTopConcernGapCheck();
+  } catch (e) {
+    console.warn('[lawScraper] Gap check skipped:', e.message);
   }
 
   const elapsedMs = Date.now() - startedAt.getTime();
@@ -481,12 +427,13 @@ export async function runLawScraper() {
   console.log(
     `[lawScraper] Done in ${(elapsedMs / 1000).toFixed(1)}s — ` +
     `+${aggregate.added} added · ↻${aggregate.amended} amended · ` +
-    `=${aggregate.unchanged} unchanged · ×${aggregate.skipped} skipped`,
+    `=${aggregate.unchanged} unchanged · ×${aggregate.skipped} skipped` +
+    (aggregate.superseded ? ` · ⚠${aggregate.superseded} superseded` : '') +
+    (aggregate.gapFilled ? ` · ${aggregate.gapFilled} gap topics logged` : ''),
   );
   console.log(`[lawScraper] Per-source:`, JSON.stringify(results, null, 2));
   console.log(`[lawScraper] ════════════════════════════════════════\n`);
 
-  // ── Dual Sync: export DB corpus to local JSON cache so local dev stays in sync ──
   if (aggregate.added > 0 || aggregate.amended > 0) {
     try {
       const allLaws = await prisma.lawReference.findMany({
@@ -496,6 +443,7 @@ export async function runLawScraper() {
           keywords: true,
           fullText: true,
           link: true,
+          priority: true,
         },
       });
       if (allLaws.length > 0) {
@@ -506,7 +454,7 @@ export async function runLawScraper() {
           fullText: law.fullText,
           link: law.link,
           region: 'National',
-          priority: 'medium',
+          priority: law.priority || 'medium',
         }));
         const outPath = path.join(__dirname, '../../prisma/phLawsExtended.json');
         fs.writeFileSync(outPath, JSON.stringify(jsonEntries, null, 2), 'utf-8');

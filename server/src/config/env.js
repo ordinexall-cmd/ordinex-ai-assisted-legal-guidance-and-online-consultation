@@ -77,6 +77,10 @@ export const env = {
   // Database
   DATABASE_URL: process.env.DATABASE_URL || 'file:./dev.db',
 
+  // Supabase Storage (production file uploads — survives Render redeploys)
+  SUPABASE_URL: process.env.SUPABASE_URL || '',
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+
   // JWT
   JWT_SECRET: resolveJwtSecret(),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',

@@ -11,6 +11,7 @@ import { PreGuidanceResult } from '../analysis/PreGuidanceResult';
 import { guestPreviewToAnalysis } from '../../utils/guestPreviewToAnalysis';
 import { SITUATION_PLACEHOLDER } from '../../constants/situationPrompt';
 import { assessDescriptionFacts } from '../../utils/situationFacts';
+import { filterNarrativeMissingFacts } from '../../utils/narrativeFacts';
 
 const MIN_CHARS = 40;
 const MAX_CHARS = 2000;
@@ -77,7 +78,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
         category: categoryForApi,
       });
       if (result.needsMoreDetail) {
-        setMissingFacts(result.missingFacts || facts.missing.map((m) => m.label));
+        setMissingFacts(filterNarrativeMissingFacts(result.missingFacts || facts.missing.map((m) => m.label)));
         setPreview(null);
         setDemoState('describe');
         return;
@@ -92,7 +93,7 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
       const msg =
         err instanceof ApiError
           ? err.message
-          : 'Could not generate a preview. Please try again.';
+          : 'Could not identify this situation. Please try again.';
       setErrorMessage(msg);
       setDemoState('error');
     }
@@ -173,12 +174,12 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
           needsLogin ? (
             <>
               <div className="landing-product-demo__preview-head">
-                <h2 className="landing-product-demo__heading">No preloaded match</h2>
+                <h2 className="landing-product-demo__heading">Needs deeper research</h2>
               </div>
               <div className="landing-product-demo__analysis-section">
                 <h3>Sign in to continue</h3>
                 <p className="landing-product-demo__complex-desc">
-                  This situation is not covered by our preloaded Philippine case guides. Create a free account so we can search official sources (Official Gazette, LawPhil, Supreme Court e-Library), save your history, and match you with a verified lawyer.
+                  This is not an easy match in our preloaded Philippine case guides. Create a free account for deeper research on official sources (Official Gazette, LawPhil, Supreme Court e-Library), save your history, and match with a verified lawyer if we still cannot ground an answer.
                 </p>
                 {loginFooter}
               </div>
@@ -244,7 +245,10 @@ export const LandingHeroProductDemo: React.FC<LandingHeroProductDemoProps> = ({
 
             {missingFacts.length > 0 ? (
               <div className="landing-product-demo__missing" role="status">
-                <strong>Add these details for an accurate outline</strong>
+                <strong>Add a few more story details</strong>
+                <p style={{ margin: '6px 0 8px', fontSize: '0.85rem' }}>
+                  Proof documents are optional and can come later. We have not run identification yet.
+                </p>
                 <ul>
                   {missingFacts.map((item) => (
                     <li key={item}>{item}</li>

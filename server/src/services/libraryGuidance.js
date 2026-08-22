@@ -20,7 +20,23 @@ function norm(text) {
   return String(text || '').toLowerCase().replace(/^possible\s+/i, '').trim();
 }
 
-export function attachLibraryGuidance(result, chunks = []) {
+function prefixPossible(items, lang = 'en') {
+  const label = lang === 'tl' ? 'Posibleng hakbang: '
+    : lang === 'ceb' ? 'Posibleng lakang: '
+      : 'Possible next step: ';
+  const docLabel = lang === 'tl' ? 'Posibleng dokumento: '
+    : lang === 'ceb' ? 'Posibleng dokumento: '
+      : 'Possible document: ';
+  return (items || []).map((raw) => {
+    const text = String(raw || '').trim();
+    if (!text) return '';
+    if (/^possible\s+/i.test(text) || /^posibleng/i.test(text)) return text;
+    if (/document|dokumento|id|certificate|sertipiko/i.test(text)) return `${docLabel}${text}`;
+    return `${label}${text}`;
+  }).filter(Boolean);
+}
+
+export function attachLibraryGuidance(result, chunks = [], lang = 'en') {
   const libraryNextSteps = [];
   const libraryDocuments = [];
   const libraryCautions = [];
@@ -38,8 +54,14 @@ export function attachLibraryGuidance(result, chunks = []) {
   const libCautions = unique(libraryCautions);
   const libKeys = new Set([...libSteps, ...libDocs, ...libCautions].map(norm));
 
-  const possibleNextSteps = unique(result?.suggestedNextSteps).filter((s) => !libKeys.has(norm(s)));
-  const possibleDocuments = unique(result?.courtWinOutlook?.missingFacts).filter((s) => !libKeys.has(norm(s)));
+  const possibleNextSteps = prefixPossible(
+    unique(result?.suggestedNextSteps).filter((s) => !libKeys.has(norm(s))),
+    lang,
+  );
+  const possibleDocuments = prefixPossible(
+    unique(result?.courtWinOutlook?.missingFacts).filter((s) => !libKeys.has(norm(s))),
+    lang,
+  );
   const modelCautions = unique(result?.cautions).filter((s) => !libKeys.has(norm(s)));
 
   return {

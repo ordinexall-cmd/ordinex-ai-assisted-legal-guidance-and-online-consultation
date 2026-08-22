@@ -221,14 +221,31 @@ model Consultation {
 }
 
 model LawReference {
-  id           String  @id @default(uuid())
+  id           String              @id @default(uuid())
   category     String
   name         String
   fullText     String
   link         String?
   keywords     String
-  priority     String  @default("medium")
+  priority     String              @default("medium")
+  region       String              @default("National")
+  corpusStatus String              @default("ACTIVE") // ACTIVE | AMENDED | SUPERSEDED | REPEALED
+  contentHash  String?
   guidanceJson String?
+  embeddingChunks LawEmbeddingChunk[]
+}
+
+model LawEmbeddingChunk {
+  id             String       @id @default(uuid())
+  lawReferenceId String
+  lawReference   LawReference @relation(fields: [lawReferenceId], references: [id], onDelete: Cascade)
+  chunkIndex     Int          @default(0)
+  chunkText      String
+  embeddingJson  String       // JSON array of floats (Gemini embedding)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([lawReferenceId])
 }
 
 model Availability {

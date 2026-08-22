@@ -16,7 +16,7 @@ const WHERE_RE =
   /\b(barangay|brgy\.?|purok|sitio|city|municipality|province|street|st\.|avenue|workplace|office|clinic|hospital|school|mall|market|store|convenience|home|house|davao|cebu|manila|quezon|makati|taguig|pasig|caloocan|zamboanga|iloilo|bacolod|cagayan|bank|account|acc|atm|online|internet|website|app|gcash|maya|paypal|ewallet|e-wallet|wallet|facebook|messenger|email|sms|phone|digital)\b/i;
 
 const WHAT_RE =
-  /\b(bit|bitten|nakagat|giokot|kagat|hit|assault|stole|stolen|scam|estafa|terminated|fired|dismissed|refused|demand|threat|threaten|rape|harass|harrass|stalk|stalking|injury|injured|killed|died|land|title|deed|reclaim|quitclaim|lost|unauthorized|deducted|withdrew|withdrawal|hacked|hack|fraud|phishing|charged)\b/i;
+  /\b(bit|bitten|nakagat|giokot|kagat|hit|assault|stole|stolen|scam|estafa|terminated|fired|dismissed|refused|demand|threat|threaten|rape|harass|harrass|stalk|stalking|injury|injured|killed|died|land|title|deed|reclaim|quitclaim|lost|unauthorized|deducted|withdrew|withdrawal|hacked|hack|fraud|phishing|charged|sick|puke|vomit|poison|candy|offered|principal|teacher|ate|eat|gave|give|took|take|accountab|deny|denied|open)\b/i;
 
 const LABELS: Record<SituationFactId, string> = {
   when: 'When it happened (a date or day is enough)',

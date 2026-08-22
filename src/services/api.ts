@@ -1468,7 +1468,7 @@ export interface LegalAnalysisResult {
   _supersededWarning?: boolean;
 }
 
-export type ConsultationOutcomeType = 'full' | 'needs_detail' | 'no_corpus';
+export type ConsultationOutcomeType = 'full' | 'needs_detail' | 'no_corpus' | 'uncertain' | 'requires_login';
 
 export interface CorpusFreshnessMeta {
   total: number;

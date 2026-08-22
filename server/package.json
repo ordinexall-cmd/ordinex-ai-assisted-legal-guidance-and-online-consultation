@@ -28,7 +28,8 @@
     "test:defense-flow": "node scripts/defense-flow-verify.js",
     "test:socket": "node scripts/verify-socket.js",
     "test:verification": "node scripts/test-verification-and-corpus.js",
-    "db:clear-panel-lawyer": "node scripts/clear-panel-lawyer.js"
+    "db:clear-panel-lawyer": "node scripts/clear-panel-lawyer.js",
+    "embed:corpus": "node scripts/embed-law-corpus.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

@@ -1,0 +1,22 @@
+[
+  { "topic": "Unpaid wages or salary", "category": "Labor", "region": "National", "keywords": "sweldo, sahod, unpaid, wage, back pay" },
+  { "topic": "Wrongful termination or illegal dismissal", "category": "Labor", "region": "National", "keywords": "tinanggal, fired, termination, dismissal" },
+  { "topic": "Domestic violence or VAWC", "category": "Family", "region": "National", "keywords": "abuso, domestic violence, VAWC, protection order" },
+  { "topic": "Online scam or GCash fraud", "category": "Cybercrime", "region": "National", "keywords": "scam, gcash, online fraud, phishing" },
+  { "topic": "Land title or boundary dispute", "category": "Property", "region": "National", "keywords": "lupa, title, boundary, encroachment" },
+  { "topic": "Tenant or landlord rental dispute", "category": "Property", "region": "National", "keywords": "rent, tenant, landlord, ejectment" },
+  { "topic": "Child custody or support", "category": "Family", "region": "National", "keywords": "custody, anak, child support, visitation" },
+  { "topic": "Annulment or legal separation", "category": "Family", "region": "National", "keywords": "annulment, hiwalay, separation, marriage" },
+  { "topic": "Solo parent benefits", "category": "Family", "region": "National", "keywords": "solo parent, single parent" },
+  { "topic": "Sexual harassment at work or online", "category": "Labor", "region": "National", "keywords": "harassment, catcalling, safe spaces" },
+  { "topic": "Data privacy or doxing", "category": "Data Privacy", "region": "National", "keywords": "privacy, personal data, dox, leak" },
+  { "topic": "Consumer refund or defective product", "category": "Consumer", "region": "National", "keywords": "refund, defective, warranty, DTI" },
+  { "topic": "Road accident or hit and run", "category": "Criminal", "region": "National", "keywords": "accident, bangga, hit and run" },
+  { "topic": "Theft or robbery", "category": "Criminal", "region": "National", "keywords": "nakaw, theft, robbery, holdap" },
+  { "topic": "Drug-related arrest", "category": "Criminal", "region": "National", "keywords": "drugs, shabu, possession, PDEA" },
+  { "topic": "Barangay dispute or conciliation", "category": "Civil", "region": "National", "keywords": "barangay, katarungan, conciliation" },
+  { "topic": "Davao City anti-smoking or local ordinance", "category": "Administrative", "region": "Davao", "keywords": "smoking, ordinance, Davao" },
+  { "topic": "Davao traffic or CTTMO fine", "category": "Administrative", "region": "Davao", "keywords": "traffic, CTTMO, overspeed Davao" },
+  { "topic": "OFW or overseas employment issue", "category": "Labor", "region": "National", "keywords": "OFW, POEA, overseas, deployment" },
+  { "topic": "Slander or cyber libel", "category": "Cybercrime", "region": "National", "keywords": "libel, slander, bash, social media" }
+]

@@ -19,6 +19,7 @@ import { translateText, isTranslateAvailable, getTranslateLanguages } from '../s
 import { checkUserDailyQuota } from '../services/llmClient.js';
 import { nourishCorpusFromConsultation } from '../services/legalCorpus.js';
 import { assessDescriptionFacts } from '../services/textPreprocess.js';
+import { filterNarrativeMissingFacts } from '../utils/narrativeFacts.js';
 
 const router = Router();
 
@@ -196,11 +197,12 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
 
     const outcomeType = meta.outcomeType || 'full';
 
+    // Pre-AI narrative gate only — never block on post-LLM "proof docs" missingFacts.
     if (outcomeType === 'needs_detail') {
       return res.json({
         needsMoreDetail: true,
-        missingFacts: aiResult?.courtWinOutlook?.missingFacts || [],
-        message: 'Add more detail for a full case identification. No trial was used.',
+        missingFacts: filterNarrativeMissingFacts(aiResult?.courtWinOutlook?.missingFacts || []),
+        message: 'Add more story detail for case identification. We have not run identification yet.',
         consultation: null,
         meta: { ...meta, trialsCharged: false },
       });
@@ -228,18 +230,18 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
         type: 'AI_READY',
         linkTo: `/ai-analysis?id=${consultation.id}`,
       }).catch(() => {});
-    } else {
+    } else if (outcomeType === 'uncertain' || outcomeType === 'no_corpus') {
       createNotification({
         userId: user.id,
-        title: 'More detail needed',
+        title: outcomeType === 'no_corpus' ? 'Limited case match' : 'Case identification needs a lawyer review',
         message: outcomeType === 'no_corpus'
-          ? 'Add more facts or try again later — no trial was used.'
-          : 'Add more specific facts for a full case identification — no trial was used.',
-        type: 'AI_NEEDS_DETAIL',
+          ? 'We could not ground this in our legal library. Talk to a verified lawyer or post an open request.'
+          : 'We found limited guidance. Review the result and consider matching with a verified lawyer.',
+        type: 'AI_READY',
         linkTo: `/ai-analysis?id=${consultation.id}`,
       }).catch(() => {});
     }
-    // Asynchronously nourish legal knowledge base with validated case keywords
+
     nourishCorpusFromConsultation({
       category: category || 'General',
       liveChunks: meta?.liveChunks || [],
@@ -250,8 +252,8 @@ router.post('/analyze', requireAuth, aiLimiter, upload.single('document'), async
       outcomeType === 'full'
         ? 'Identification complete.'
         : outcomeType === 'no_corpus'
-          ? 'Legal database unavailable. No trial was used — try again later.'
-          : 'Add more detail for a full case identification. No trial was used.';
+          ? 'No verified library match after deeper research. Review options below — no trial was charged beyond this run.'
+          : 'Identification complete with limited certainty. Review the result and consider a lawyer.';
 
     res.status(201).json({
       message: responseMessage,

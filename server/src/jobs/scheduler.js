@@ -13,6 +13,7 @@ import { env } from '../config/env.js';
 import { purgeExpiredAuthTokens } from '../services/sms.js';
 import { purgeExpiredTrash } from '../services/recycleBin.js';
 import { runLawScraper } from './lawScraper.js';
+import { runCorpusHistoryMiner } from './corpusHistoryMiner.js';
 
 const AUTO_CANCEL_AFTER_MS = 48 * 60 * 60 * 1000; // 48 hours
 
@@ -358,15 +359,34 @@ export function startScheduler() {
       runLawScraper()
         .then((report) => {
           if (report?.aggregate) {
-            const { added, amended, unchanged, skipped } = report.aggregate;
+            const { added, amended, unchanged, skipped, superseded, gapFilled } = report.aggregate;
             console.log(
               `[scheduler] Law scraper report — +${added} added, ↻${amended} amended, ` +
-              `=${unchanged} unchanged, ×${skipped} skipped`,
+              `=${unchanged} unchanged, ×${skipped} skipped` +
+              (superseded ? `, ⚠${superseded} superseded` : '') +
+              (gapFilled ? `, +${gapFilled} gap-filled` : ''),
             );
           }
         })
         .catch((err) =>
           console.error('[scheduler] runLawScraper failed:', err.message),
+        );
+    },
+    { timezone: 'Asia/Manila' }
+  );
+
+  // Consultation history miner — 1:00 AM PHT (after law scraper).
+  cron.schedule(
+    '0 1 * * *',
+    () => {
+      runCorpusHistoryMiner()
+        .then((report) => {
+          console.log(
+            `[scheduler] History miner — +${report.nourished} nourished, ↻${report.keywordsUpdated} keywords, ×${report.skipped} skipped`,
+          );
+        })
+        .catch((err) =>
+          console.error('[scheduler] runCorpusHistoryMiner failed:', err.message),
         );
     },
     { timezone: 'Asia/Manila' }
@@ -381,5 +401,5 @@ export function startScheduler() {
     expireUnpaidApprovedBookings().catch(() => {});
   }
 
-  console.log('[scheduler] Cron jobs registered (sub expiry: daily 02:00 PHT; auto-cancel: every 30 min; law scraper: daily 00:00 PHT).');
+  console.log('[scheduler] Cron jobs registered (sub expiry: daily 02:00 PHT; auto-cancel: every 30 min; law scraper: daily 00:00 PHT; history miner: daily 01:00 PHT).');
 }

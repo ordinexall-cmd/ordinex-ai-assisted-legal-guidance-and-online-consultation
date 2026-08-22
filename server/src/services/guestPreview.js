@@ -1,10 +1,11 @@
 /**
- * Guest landing preview — preloaded corpus only (no live gov scrape).
+ * Landing Identify for easy / common concerns — preloaded corpus only (no live gov scrape).
  * Grounded hits return full case identification. Corpus misses return
- * requiresLogin so the citizen can Sign in (create an account) or Log in
- * for live search + history. This module does not write to the database.
+ * requiresLogin so the citizen can sign in for deeper research + history.
+ * This module does not write to the database.
  */
 import { analyzeLegalCase } from './aiOrchestrator.js';
+import { filterNarrativeMissingFacts } from '../utils/narrativeFacts.js';
 
 const DISCLAIMER =
   'This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney.';
@@ -47,7 +48,7 @@ function mapFullResult(result, category) {
       summary: outlook.summary || result.userConcernSummary || '',
       factorsFor: outlook.factorsFor || [],
       factorsAgainst: outlook.factorsAgainst || [],
-      missingFacts: outlook.missingFacts || [],
+      missingFacts: filterNarrativeMissingFacts(outlook.missingFacts || []),
     },
     suggestedNextSteps: Array.isArray(result.suggestedNextSteps) ? result.suggestedNextSteps : [],
     recommendedAgency: result.recommendedAgency,
@@ -120,7 +121,7 @@ export async function analyzeGuestPreview({ description, category } = {}) {
   if (meta?.outcomeType === 'needs_detail') {
     return {
       needsMoreDetail: true,
-      missingFacts: result.courtWinOutlook?.missingFacts || [],
+      missingFacts: filterNarrativeMissingFacts(result.courtWinOutlook?.missingFacts || []),
       userConcernSummary: '',
       situationSummary: '',
       possibleLegalCases: [],
@@ -135,8 +136,10 @@ export async function analyzeGuestPreview({ description, category } = {}) {
     };
   }
 
+  // Weak / uncertain preloaded hits still show results on landing when cases exist;
+  // empty cases → deeper research login gate.
   const mapped = mapFullResult(result, cat);
-  if (!mapped.possibleLegalCases.length && meta?.outcomeType !== 'needs_detail') {
+  if (!mapped.possibleLegalCases.length) {
     return loginGate({ category: cat });
   }
   return mapped;

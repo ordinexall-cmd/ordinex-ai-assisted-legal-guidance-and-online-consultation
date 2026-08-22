@@ -11,9 +11,21 @@ import {
   summarizeChunkFreshness,
   getLocalCorpusStats,
 } from './legalCorpus.js';
+import { retrieveLiveLegalContext } from './liveLegalSearch.js';
 import { validateAndFilterAnalysis } from './legalValidator.js';
 import { attachLibraryGuidance } from './libraryGuidance.js';
+import { scrubAnalysisMissingFacts } from '../utils/narrativeFacts.js';
 import { toAiUserFacingError } from '../utils/userFacingError.js';
+
+const POSSIBLE_SYSTEM = `You are ORDINEX for Philippine citizens. No verified legal library match was found.
+Write ONLY in the user's DETECTED_LANGUAGE (en, tl, or ceb).
+Use everyday words — no lawyer jargon without a short plain explanation in parentheses.
+Do NOT cite Republic Acts, articles, or penalties unless you state they are only general possibilities, not confirmed for this case.
+Prefix every suggestedNextSteps item with "Possible next step: " and any document hints with "Possible document: ".
+possibleLegalCases must be empty OR one item with confidenceScore below 30 and explanation that no library match was confirmed.
+penalties: one short sentence that exposure depends on facts and must be confirmed with a lawyer.
+courtWinOutlook.level must be Uncertain.
+Output valid JSON only.`;
 
 const SYSTEM = `You are ORDINEX, an AI-assisted legal guidance system for the Philippines (Davao City and national law).
 You provide pre-guidance only — NOT legal advice. Never claim to be a lawyer.
@@ -36,7 +48,7 @@ RULES:
 - Each possibleLegalCases item should include the strongest matching citation context available from ALLOWED_LEGAL_SOURCES (law title, article/section if provided).
 - courtWinOutlook.level: Weak | Moderate | Strong | Uncertain — based on facts and evidence described.
 - Do NOT invent Republic Acts, articles, or penalties not supported by sources.
-- If facts are vague, set courtWinOutlook.level to Uncertain and list missingFacts.
+- If facts are vague, set courtWinOutlook.level to Uncertain and list missingFacts as ADDITIONAL STORY DETAILS only (who was involved, what each person said or did, clearer timing). Never ask the user to obtain or upload medical certificates, lab results, photos, packaging, affidavits, or other proof documents in missingFacts — those belong in suggestedNextSteps / document guidance after a match.
 - penalties: short summary of possible legal exposure only, from grounded sources.
 - suggestedNextSteps: copy LIBRARY_STEPS from ALLOWED_LEGAL_SOURCES when present. You may add extra situation-specific steps; do not invent a statute that is not in the sources.
 - documents: copy LIBRARY_DOCUMENTS when present. Extra items for this person's facts are allowed.
@@ -167,13 +179,24 @@ export async function analyzeLegalCase({
         },
       };
     }
-    const rawResult = buildNoCorpusResult(pre.normalized);
-    const translatedResult = await translateAnalysisResultJSON(rawResult, detectedLang);
+    const rawResult = await buildPossibleOnlyResult({
+      summary: pre.normalized,
+      category,
+      detectedLang,
+      keywords,
+    });
+    const translatedResult = scrubAnalysisMissingFacts(
+      attachLibraryGuidance(
+        validateAndFilterAnalysis(rawResult, [], detectedLang, category),
+        [],
+        detectedLang,
+      ),
+    );
     return {
-      result: translatedResult,
+      result: await translateAnalysisResultJSON(translatedResult, detectedLang),
       meta: {
         outcomeType: 'no_corpus',
-        providersUsed,
+        providersUsed: [...providersUsed, 'possible-only'],
         corpusSource,
         usedMock: false,
       },
@@ -215,9 +238,12 @@ ${OUTPUT_SCHEMA}`;
     throw friendly;
   }
 
-  const result = attachLibraryGuidance(
-    validateAndFilterAnalysis(raw, chunks, detectedLang, category),
-    chunks,
+  const result = scrubAnalysisMissingFacts(
+    attachLibraryGuidance(
+      validateAndFilterAnalysis(raw, chunks, detectedLang, category),
+      chunks,
+      detectedLang,
+    ),
   );
   if (keywords.length && result.extractedKeywords.length < 2) {
     result.extractedKeywords = keywords.slice(0, 10);
@@ -236,12 +262,14 @@ ${OUTPUT_SCHEMA}`;
     highPriority: corpusStats.highPriority,
   };
 
-  // A "full" billable result requires both a confident match AND grounding on
-  // sources that are not entirely superseded/stale.
+  // Strong grounded match → full. Weak / complex / stale still return results as uncertain
+  // (never fold into needs_detail — that gate is pre-AI narrative facts only).
   const billable = hasStrongMatch && !result._complexCase && !result._supersededWarning;
 
-  const translated = await translateAnalysisResultJSON(result, detectedLang);
-  const finalResult = attachLibraryGuidance(translated, chunks);
+  const translated = scrubAnalysisMissingFacts(
+    await translateAnalysisResultJSON(result, detectedLang),
+  );
+  const finalResult = attachLibraryGuidance(translated, chunks, detectedLang);
 
   const retrievedSources = (chunks || []).slice(0, 12).map((c) => ({
     name: c.name || c.citation || 'Legal reference',
@@ -252,7 +280,7 @@ ${OUTPUT_SCHEMA}`;
   return {
     result: finalResult,
     meta: {
-      outcomeType: billable ? 'full' : 'needs_detail',
+      outcomeType: billable ? 'full' : 'uncertain',
       providersUsed,
       corpusSource,
       corpusFreshness: freshness,
@@ -297,15 +325,63 @@ function buildVagueResult(summary, missingFacts = []) {
 
 function buildNoCorpusResult(summary) {
   return {
-    ...buildVagueResult(summary),
+    userConcernSummary: summary,
+    extractedKeywords: [],
+    possibleLegalCases: [],
+    penalties: 'Possible penalty exposure depends on the exact facts. A licensed lawyer should confirm before you act.',
     courtWinOutlook: {
       level: 'Uncertain',
-      summary: 'Legal knowledge base is not available yet. Configure Supabase corpus or run database seed.',
+      summary: 'We could not match your situation to our verified Philippine legal library after deeper research. The steps below are general possibilities — not confirmed legal advice for your case.',
       factorsFor: [],
       factorsAgainst: [],
-      missingFacts: ['Legal database connection'],
+      missingFacts: [],
     },
+    possibleDeadline: '',
+    cautions: [
+      'Do not sign anything you do not understand until a lawyer reviews it.',
+      'Keep copies of messages, receipts, IDs, and any barangay or police records.',
+    ],
+    suggestedNextSteps: [
+      'Possible next step: Write a short timeline of who did what and when.',
+      'Possible next step: Visit your barangay hall or PAO if you need free initial guidance.',
+      'Possible next step: Book a short consult with a verified lawyer on Ordinex.',
+    ],
+    recommendedAgency: 'Barangay hall, PNP, or PAO depending on urgency',
+    lawyerSpecialty: 'General practice attorney',
+    matchSpecialty: 'General',
+    costBallpark: 'PAO is free if you qualify; private consult fees vary',
+    systemDisclaimer: 'This AI-assisted system provides pre-guidance and case identification only. It does not replace consultation with a licensed attorney.',
   };
+}
+
+async function buildPossibleOnlyResult({ summary, category, detectedLang, keywords = [] }) {
+  const langLabel = detectedLang === 'tl' ? 'Tagalog (tl)' : detectedLang === 'ceb' ? 'Cebuano (ceb)' : 'English (en)';
+  try {
+    const { text } = await llmChatWithMeta({
+      model: env.GROQ_MODEL,
+      jsonMode: true,
+      maxTokens: 2048,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: POSSIBLE_SYSTEM },
+        {
+          role: 'user',
+          content: `DETECTED_LANGUAGE: ${detectedLang} (${langLabel})
+CATEGORY: ${category}
+USER CONCERN:
+${summary}
+${keywords.length ? `KEYWORDS: ${keywords.join(', ')}` : ''}
+
+Respond with JSON matching:
+${OUTPUT_SCHEMA}`,
+        },
+      ],
+    });
+    return JSON.parse(text);
+  } catch (e) {
+    console.warn('[ai] possible-only LLM failed:', e.message);
+    return buildNoCorpusResult(summary);
+  }
 }
 
 // Common marker words for fast local heuristic detection.

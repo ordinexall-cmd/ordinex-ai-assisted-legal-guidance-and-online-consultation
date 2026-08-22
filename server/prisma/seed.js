@@ -44,6 +44,8 @@ async function main() {
         link: law.link || null,
         keywords: law.keywords || '',
         priority: law.priority || 'medium',
+        region: law.region || 'National',
+        corpusStatus: law.corpusStatus || 'ACTIVE',
         guidanceJson: JSON.stringify({
           suggestedNextSteps: law.suggestedNextSteps || [],
           documentsNeeded: law.documentsNeeded || [],

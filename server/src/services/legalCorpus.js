@@ -1,27 +1,46 @@
 /**
- * Legal knowledge retrieval — Prisma (PostgreSQL) primary, local JSON fallback.
+ * Legal knowledge retrieval — hybrid keyword + vector RAG.
+ * Prisma (PostgreSQL) primary, local JSON fallback.
  */
 import { isAllowedPhLegalUrl } from '../utils/phLegalHosts.js';
 import { prisma } from '../config/prisma.js';
 import { tokenizeForMatch } from './textPreprocess.js';
+import { vectorSearchLegalChunks, embedLawReference } from './embeddings.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function scoreChunk(chunk, tokens, category) {
+const REGION_MARKERS = {
+  Davao: /\bdavao\b/i,
+  Luzon: /\b(manila|quezon|cebu city|baguio|luzon|ncr|metro manila)\b/i,
+  Visayas: /\b(visayas|iloilo|cebu|bohol|negros)\b/i,
+  Mindanao: /\b(mindanao|zamboanga|gensan|general santos|cagayan de oro)\b/i,
+};
+
+function detectRegionFromText(text) {
+  const t = String(text || '');
+  for (const [region, re] of Object.entries(REGION_MARKERS)) {
+    if (re.test(t)) return region;
+  }
+  return null;
+}
+
+function scoreChunk(chunk, tokens, category, regionHint) {
   const hay = `${chunk.keywords} ${chunk.content} ${chunk.name} ${chunk.citation} ${chunk.category}`.toLowerCase();
-  let score = 0;
-  for (const t of tokens) {
-    if (hay.includes(t)) score += 2;
+  let score = chunk.score || 0;
+  for (const tok of tokens) {
+    if (hay.includes(tok)) score += 2;
   }
   if (category && category !== 'unsure' && chunk.category?.toLowerCase().includes(category.toLowerCase())) {
     score += 3;
   }
+  if (regionHint && chunk.region === regionHint) score += 2;
   if (chunk.region === 'Davao') score += 1;
   if (chunk.priority === 'high') score += 4;
   if (chunk.priority === 'low') score -= 2;
+  if (chunk.status === 'SUPERSEDED' || chunk.status === 'REPEALED') score -= 3;
   return score;
 }
 
@@ -34,6 +53,8 @@ function parseGuidance(law) {
         documentsNeeded: g.documentsNeeded || [],
         cautions: g.cautions || [],
         recommendedAgency: g.recommendedAgency || '',
+        concernSummary: g.concernSummary || '',
+        penaltiesSummary: g.penaltiesSummary || '',
       };
     } catch { /* fall through */ }
   }
@@ -42,44 +63,95 @@ function parseGuidance(law) {
     documentsNeeded: law.documentsNeeded || [],
     cautions: law.cautions || [],
     recommendedAgency: law.recommendedAgency || '',
+    concernSummary: '',
+    penaltiesSummary: '',
   };
 }
 
-async function retrieveFromPrisma({ category, description, limit = 8 }) {
+function lawRowToChunk(law, extra = {}) {
+  const g = parseGuidance(law);
+  return {
+    id: law.id,
+    content: law.fullText,
+    keywords: law.keywords,
+    region: law.region || 'National',
+    name: law.name,
+    citation: law.name,
+    category: law.category,
+    source_url: law.link,
+    priority: law.priority || 'medium',
+    status: law.corpusStatus || 'ACTIVE',
+    suggestedNextSteps: g.suggestedNextSteps,
+    documentsNeeded: g.documentsNeeded,
+    cautions: g.cautions,
+    recommendedAgency: g.recommendedAgency,
+    ...extra,
+  };
+}
+
+async function retrieveKeywordFromPrisma({ category, description, limit, regionHint }) {
   const where = category && category !== 'unsure' ? { category: { contains: category } } : {};
-  const rows = await prisma.lawReference.findMany({ where, take: 50 });
+  const rows = await prisma.lawReference.findMany({
+    where: { ...where, corpusStatus: { not: 'REPEALED' } },
+    take: 80,
+  });
   const tokens = tokenizeForMatch(description);
 
   return rows
     .map((law) => {
-      const g = parseGuidance(law);
-      return {
-        id: law.id,
-        content: law.fullText,
-        keywords: law.keywords,
-        region: 'National',
-        name: law.name,
-        citation: law.name,
-        category: law.category,
-        source_url: law.link,
-        priority: law.priority || 'medium',
-        suggestedNextSteps: g.suggestedNextSteps,
-        documentsNeeded: g.documentsNeeded,
-        cautions: g.cautions,
-        recommendedAgency: g.recommendedAgency,
-        score: scoreChunk({
-          keywords: law.keywords,
-          content: law.fullText,
-          name: law.name,
-          citation: law.name,
-          category: law.category,
-          region: 'National',
-          priority: law.priority || 'medium',
-        }, tokens, category),
-      };
+      const chunk = lawRowToChunk(law);
+      chunk.score = scoreChunk(chunk, tokens, category, regionHint);
+      chunk.matchSource = 'keyword';
+      return chunk;
     })
     .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+async function retrieveVectorFromPrisma({ category, description, limit }) {
+  const hits = await vectorSearchLegalChunks(description, { limit: limit * 2, category });
+  if (!hits.length) return [];
+
+  const ids = [...new Set(hits.map((h) => h.lawReferenceId))];
+  const laws = await prisma.lawReference.findMany({ where: { id: { in: ids } } });
+  const byId = new Map(laws.map((l) => [l.id, l]));
+
+  return hits
+    .map((h) => {
+      const law = byId.get(h.lawReferenceId);
+      if (!law) return null;
+      const chunk = lawRowToChunk(law, { score: h.score, matchSource: 'vector' });
+      return chunk;
+    })
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function mergeRetrievalResults(keywordChunks, vectorChunks, limit) {
+  const byId = new Map();
+
+  for (const chunk of [...keywordChunks, ...vectorChunks]) {
+    const key = chunk.id || (chunk.name || '').toLowerCase();
+    const prev = byId.get(key);
+    if (!prev) {
+      byId.set(key, { ...chunk });
+      continue;
+    }
+    const mergedScore = (prev.score || 0) + (chunk.score || 0) * (chunk.matchSource === 'vector' ? 0.9 : 1);
+    const sources = new Set([prev.matchSource, chunk.matchSource].filter(Boolean));
+    byId.set(key, {
+      ...prev,
+      ...chunk,
+      score: mergedScore + (sources.size > 1 ? 3 : 0),
+      matchSource: sources.size > 1 ? 'hybrid' : (prev.matchSource || chunk.matchSource),
+      suggestedNextSteps: prev.suggestedNextSteps?.length ? prev.suggestedNextSteps : chunk.suggestedNextSteps,
+      documentsNeeded: prev.documentsNeeded?.length ? prev.documentsNeeded : chunk.documentsNeeded,
+    });
+  }
+
+  return [...byId.values()]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, limit);
 }
 
@@ -122,11 +194,6 @@ function loadLocalCorpus() {
   return corpus;
 }
 
-/**
- * Public helper: report how many active, high-priority curated entries
- * are present locally. Used by health checks and the orchestrator to
- * detect under-seeded environments.
- */
 export function getLocalCorpusStats() {
   const laws = loadLocalCorpus();
   const byCategory = {};
@@ -143,14 +210,14 @@ export function getLocalCorpusStats() {
   };
 }
 
-async function retrieveFromLocalJson({ category, description, limit = 8 }) {
+async function retrieveFromLocalJson({ category, description, limit, regionHint }) {
   const laws = loadLocalCorpus();
   if (!laws.length) return [];
   const tokens = tokenizeForMatch(description);
   return laws
     .map((law, i) => {
       const g = parseGuidance(law);
-      return {
+      const chunk = {
         id: `local-${i}`,
         content: law.fullText,
         keywords: law.keywords,
@@ -160,20 +227,15 @@ async function retrieveFromLocalJson({ category, description, limit = 8 }) {
         category: law.category,
         source_url: law.link,
         priority: law.priority || 'medium',
+        status: 'ACTIVE',
         suggestedNextSteps: g.suggestedNextSteps,
         documentsNeeded: g.documentsNeeded,
         cautions: g.cautions,
         recommendedAgency: g.recommendedAgency,
-        score: scoreChunk({
-          keywords: law.keywords,
-          content: law.fullText,
-          name: law.name,
-          citation: law.citation || law.name,
-          category: law.category,
-          region: law.region || 'National',
-          priority: law.priority || 'medium',
-        }, tokens, category),
+        matchSource: 'keyword',
       };
+      chunk.score = scoreChunk(chunk, tokens, category, regionHint);
+      return chunk;
     })
     .filter((c) => c.score >= 2)
     .sort((a, b) => b.score - a.score)
@@ -181,18 +243,25 @@ async function retrieveFromLocalJson({ category, description, limit = 8 }) {
 }
 
 /**
- * Retrieve legal context — Prisma (PostgreSQL) primary, local JSON fallback.
- * @returns {Promise<{ chunks: object[], source: 'prisma'|'local' }>}
+ * Hybrid retrieve — keyword + vector (when embeddings exist), JSON fallback.
  */
 export async function retrieveLegalContext({ category, description, limit = 8 }) {
-  let fromDb = [];
+  const regionHint = detectRegionFromText(description);
+  let keywordDb = [];
+  let vectorDb = [];
+
   try {
-    fromDb = await retrieveFromPrisma({ category, description, limit }) || [];
+    [keywordDb, vectorDb] = await Promise.all([
+      retrieveKeywordFromPrisma({ category, description, limit, regionHint }),
+      retrieveVectorFromPrisma({ category, description, limit }),
+    ]);
   } catch (e) {
     console.warn('[legalCorpus] Prisma retrieve failed:', e.message);
   }
 
-  const local = await retrieveFromLocalJson({ category, description, limit });
+  const fromDb = mergeRetrievalResults(keywordDb, vectorDb, limit);
+  const local = await retrieveFromLocalJson({ category, description, limit, regionHint });
+
   const byName = new Map();
   for (const chunk of [...fromDb, ...local]) {
     const key = (chunk.name || chunk.citation || '').toLowerCase().trim();
@@ -207,31 +276,24 @@ export async function retrieveLegalContext({ category, description, limit = 8 })
         merged.recommendedAgency = prev.recommendedAgency || merged.recommendedAgency;
       }
       byName.set(key, merged);
-    } else if (chunk.suggestedNextSteps?.length && !prev.suggestedNextSteps?.length) {
-      byName.set(key, {
-        ...prev,
-        suggestedNextSteps: chunk.suggestedNextSteps,
-        documentsNeeded: chunk.documentsNeeded,
-        cautions: chunk.cautions,
-        recommendedAgency: chunk.recommendedAgency || prev.recommendedAgency,
-        priority: chunk.priority || prev.priority,
-      });
     }
   }
+
   const chunks = [...byName.values()]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, limit);
-  return { chunks, source: fromDb.length ? 'prisma' : 'local' };
+
+  const source = fromDb.length ? (vectorDb.length ? 'hybrid' : 'prisma') : 'local';
+  return { chunks, source };
 }
 
 export function formatChunksForPrompt(chunks) {
   return chunks.map((c, i) => {
     const status = c.status || 'ACTIVE';
     const priority = c.priority || 'medium';
-    const lastChanged = c.last_changed_at ? new Date(c.last_changed_at).toISOString().slice(0, 10) : 'n/a';
     return (
       `[${i + 1}] ID=${c.id} | ${c.name} (${c.citation}) | Region: ${c.region} | Category: ${c.category}\n` +
-      `Status: ${status} | Priority: ${priority} | Last updated: ${lastChanged}\n` +
+      `Status: ${status} | Priority: ${priority} | Match: ${c.matchSource || 'keyword'}\n` +
       `URL: ${c.source_url || 'n/a'}\n` +
       (c.suggestedNextSteps?.length ? `LIBRARY_STEPS: ${c.suggestedNextSteps.join(' | ')}\n` : '') +
       (c.documentsNeeded?.length ? `LIBRARY_DOCUMENTS: ${c.documentsNeeded.join(' | ')}\n` : '') +
@@ -242,11 +304,6 @@ export function formatChunksForPrompt(chunks) {
   }).join('\n\n');
 }
 
-/**
- * Summarise the freshness signals of a retrieved chunk set so the
- * orchestrator can surface a caution badge to the UI when sources are
- * stale, amended, or unevenly prioritized.
- */
 export function summarizeChunkFreshness(chunks) {
   if (!Array.isArray(chunks) || chunks.length === 0) {
     return { total: 0, active: 0, amended: 0, superseded: 0, highPriority: 0, oldestDays: null };
@@ -255,36 +312,16 @@ export function summarizeChunkFreshness(chunks) {
   let amended = 0;
   let superseded = 0;
   let highPriority = 0;
-  let oldestMs = null;
-  const now = Date.now();
   for (const c of chunks) {
     const status = c.status || 'ACTIVE';
     if (status === 'ACTIVE') active++;
     else if (status === 'AMENDED') amended++;
     else if (status === 'SUPERSEDED' || status === 'REPEALED') superseded++;
     if (c.priority === 'high') highPriority++;
-    if (c.last_changed_at) {
-      const d = new Date(c.last_changed_at).getTime();
-      if (!Number.isNaN(d)) {
-        const ageMs = now - d;
-        if (oldestMs == null || ageMs > oldestMs) oldestMs = ageMs;
-      }
-    }
   }
-  return {
-    total: chunks.length,
-    active,
-    amended,
-    superseded,
-    highPriority,
-    oldestDays: oldestMs == null ? null : Math.floor(oldestMs / (24 * 60 * 60 * 1000)),
-  };
+  return { total: chunks.length, active, amended, superseded, highPriority, oldestDays: null };
 }
 
-/**
- * Save live-search page excerpts from allowlisted PH legal sites into the library.
- * Does not insert model-written case names as if they were statutes.
- */
 export async function nourishCorpusFromConsultation({ category, liveChunks = [], keywords = [] }) {
   try {
     const allowed = (liveChunks || []).filter(
@@ -312,7 +349,7 @@ export async function nourishCorpusFromConsultation({ category, liveChunks = [],
         recommendedAgency: chunk.recommendedAgency || '',
       };
 
-      await prisma.lawReference.create({
+      const created = await prisma.lawReference.create({
         data: {
           category: category || chunk.category || 'General',
           name: String(chunk.name || chunk.citation || 'PH legal source').slice(0, 220),
@@ -320,10 +357,15 @@ export async function nourishCorpusFromConsultation({ category, liveChunks = [],
           link: chunk.source_url,
           keywords: kw.join(', ') || (chunk.keywords || ''),
           priority: 'medium',
+          region: chunk.region || 'National',
+          corpusStatus: 'ACTIVE',
           guidanceJson: JSON.stringify(guidance),
         },
       });
       console.log(`[legalCorpus] Saved live excerpt "${chunk.name}" from allowlisted source`);
+      embedLawReference(created.id).catch((e) => {
+        console.warn('[legalCorpus] embed after nourish skipped:', e.message);
+      });
     }
   } catch (err) {
     console.warn('[legalCorpus] Corpus nourishment skipped:', err.message);

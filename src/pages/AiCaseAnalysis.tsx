@@ -28,6 +28,7 @@ import {
 import { clearGuestDraft, getGuestDraft } from '../constants/guestDraft';
 import { SITUATION_PLACEHOLDER } from '../constants/situationPrompt';
 import { assessDescriptionFacts } from '../utils/situationFacts';
+import { filterNarrativeMissingFacts } from '../utils/narrativeFacts';
 
 const categories = CASE_ANALYSIS_CATEGORIES;
 
@@ -107,7 +108,7 @@ export const AiCaseAnalysis: React.FC = () => {
 
       const response = await consultationApi.analyze(formData);
       if (response.needsMoreDetail || !response.consultation) {
-        setDetailGaps(response.missingFacts || facts.missing.map((m) => m.label));
+        setDetailGaps(filterNarrativeMissingFacts(response.missingFacts || facts.missing.map((m) => m.label)));
         setResult(null);
         setLastOutcomeType('needs_detail');
         setLastMeta(response.meta ?? null);
@@ -175,9 +176,13 @@ export const AiCaseAnalysis: React.FC = () => {
     setResult(c);
     if (c.description) setDescription(c.description);
     if (c.category) setCategory(c.category);
-    const charged = c.trialsCharged !== false;
-    const hasCases = (c.aiResult?.possibleLegalCases?.length ?? 0) > 0;
-    setLastOutcomeType(charged && hasCases ? 'full' : 'needs_detail');
+    const metaOutcome = c.analysisMeta?.outcomeType;
+    if (metaOutcome) {
+      setLastOutcomeType(metaOutcome);
+    } else {
+      const hasCases = (c.aiResult?.possibleLegalCases?.length ?? 0) > 0;
+      setLastOutcomeType(hasCases ? 'full' : 'uncertain');
+    }
     setLastMeta(c.analysisMeta ?? null);
     window.history.replaceState(null, '', `/ai-analysis?id=${c.id}`);
   };
@@ -240,13 +245,14 @@ export const AiCaseAnalysis: React.FC = () => {
                 </span>
                 <div style={{ flex: 1 }}>
                   <strong style={{ color: '#1e40af', fontSize: '0.95rem', display: 'block', marginBottom: 4 }}>
-                    More detail needed for case matches
+                    More story detail needed
                   </strong>
                   <p style={{ margin: '0 0 8px', fontSize: '0.875rem', color: '#1e3a8a', lineHeight: 1.4 }}>
-                    Add the missing facts below, then identify again. We have not used an AI request yet.
+                    Add the missing facts below, then identify again. We have not run case identification yet.
+                    Proof documents are optional and can be attached later or on another day.
                   </p>
                   <p style={{ margin: '0 0 6px', fontSize: '0.82rem', fontWeight: 600, color: '#1e40af' }}>
-                    To get an accurate case identification, please include:
+                    Please include:
                   </p>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: '#1e3a8a', lineHeight: 1.6 }}>
                     {detailGaps.map((item) => (
@@ -314,10 +320,10 @@ export const AiCaseAnalysis: React.FC = () => {
                   <span className="analysis-describe__category-label" style={{ marginTop: 12 }}>Quick add details — tap to insert:</span>
                   <div className="analysis-describe__chips" role="group" aria-label="Quick fact helpers" style={{ marginBottom: 8 }}>
                     {[
-                      { label: 'Date / Timeline', template: '[Petsa at Oras: ]' },
-                      { label: 'Location', template: '[Lugar: ]' },
-                      { label: 'Parties / Ages', template: '[Mga Sangkot at Edad: ]' },
-                      { label: 'Documents / Actions', template: '[Mga Dokumento o Aksyon: ]' },
+                      { label: 'Date / Timeline', template: '[Date/time: ]' },
+                      { label: 'Location', template: '[Where: ]' },
+                      { label: 'Who was involved', template: '[Who was involved and what they said/did: ]' },
+                      { label: 'What happened next', template: '[What happened next: ]' },
                     ].map((chip) => (
                       <button
                         key={chip.label}
@@ -476,9 +482,44 @@ export const AiCaseAnalysis: React.FC = () => {
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>info</span>
                     <span className="callout-success__text">
                       {lastOutcomeType === 'no_corpus'
-                        ? 'Legal database unavailable — no trial was used. Try again later or add more detail.'
-                        : 'More detail needed for case matches — no trial was used. Expand your description and identify again.'}
+                        ? 'We could not ground this in our verified library after deeper research. Review the guidance below, or match with a lawyer / post an open request.'
+                        : lastOutcomeType === 'uncertain'
+                          ? 'Limited certainty on this match. Review the result below — documents to prepare are optional guidance, not requirements to continue.'
+                          : 'Add clearer story details (when, where, what happened) and identify again if you want a stronger match.'}
                     </span>
+                  </div>
+                )}
+
+                {(ar._supersededWarning || lastMeta?.supersededWarning || lastOutcomeType === 'uncertain' || lastOutcomeType === 'no_corpus') && (
+                  <div className="complex-case-banner" role="alert" style={{ marginBottom: 12 }}>
+                    <div className="complex-case-banner__icon">
+                      <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#e6a817' }}>info</span>
+                    </div>
+                    <div className="complex-case-banner__body">
+                      <p className="complex-case-banner__title">Need a professional opinion?</p>
+                      <p className="complex-case-banner__text">
+                        If this does not fully answer your situation, match with a verified lawyer or post an open request so lawyers can offer consult terms.
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                        <Link
+                          to={buildLawyersPath({
+                            specialty: resolveMatchSpecialty({
+                              category: result.category ?? category,
+                              lawyerSpecialty: ar.lawyerSpecialty,
+                              matchSpecialty: ar.matchSpecialty,
+                            }),
+                            consultationId: result.id,
+                          })}
+                          className="complex-case-banner__cta"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person_search</span>
+                          Find a lawyer
+                        </Link>
+                        <Link to="/dashboard#consult-offers" className="complex-case-banner__cta">
+                          Post open request
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -497,7 +538,7 @@ export const AiCaseAnalysis: React.FC = () => {
                   </div>
                 )}
 
-                {ar._complexCase && (
+                {ar._complexCase && lastOutcomeType === 'full' && (
                   <div className="complex-case-banner" role="alert" id="complex-case-warning">
                     <div className="complex-case-banner__icon">
                       <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#e6a817' }}>info</span>
